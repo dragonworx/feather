@@ -1,13 +1,12 @@
 import { Component } from './component';
-import { html } from './util';
 
-export class Checkbox extends Component<HTMLInputElement, boolean> {
-	protected defaultModel(): boolean {
+export class Checkbox extends Component<boolean, HTMLInputElement> {
+	protected defaults(): boolean {
 		return false;
 	}
 
-	protected createView(): HTMLInputElement {
-		return html(`<input type="checkbox" />`);
+	public static template(): string {
+		return `<input type="checkbox" />`;
 	}
 
 	protected updateView(): void {
