@@ -5,7 +5,7 @@ export class Checkbox extends Component<boolean, HTMLInputElement> {
 		return false;
 	}
 
-	public static template(): string {
+	public template(): string {
 		return `<input type="checkbox" />`;
 	}
 
