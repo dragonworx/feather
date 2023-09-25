@@ -1,33 +1,29 @@
-import { html, type Writable } from './util';
+import { html } from './util';
 
-export abstract class Component<M = unknown, V extends HTMLElement = HTMLDivElement> {
+export type Constructor<T extends Component> = new (...args: unknown[]) => T;
+
+export abstract class Component<M = unknown, V extends HTMLElement = HTMLElement> {
 	public readonly view: V;
-	public readonly model: M;
+	protected model: M;
 
-	constructor(model?: M, view?: V) {
+	constructor(model?: M) {
 		this.model = model ?? this.defaults();
-		this.view = view ?? this.createView();
-
+		this.view = this.createView();
 		this.value = this.model;
 	}
 
 	protected abstract defaults(): M;
-	public static template(): string {
+
+	public template(): string {
 		return '<div></div>';
 	}
 
 	protected createView(): V {
-		return html((this.constructor as typeof Component).template());
+		return html(this.template());
 	}
 
 	protected updateView(): void {
-		// subclasses should override this method 
-		// to update the view from the model
-	}
-
-	protected initFromModel() {
-		// subclasses can override this method to initialize children from the model
-		// they can choose how to optimise this, for example list
+		// override
 	}
 
 	public get value() {
@@ -35,11 +31,7 @@ export abstract class Component<M = unknown, V extends HTMLElement = HTMLDivElem
 	}
 
 	public set value(value: M) {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const writableThis: Writable<Component<M, V>, 'model'> = this;
-
-		writableThis.model = value;
-		this.initFromModel();
+		this.model = value;
 		this.updateView();
 	}
 }
