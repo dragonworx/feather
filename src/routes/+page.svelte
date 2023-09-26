@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Checkbox } from '../lib/index.js';
-	import { List } from '../lib/list.js';
-	import { StringListItem } from '../lib/listItem.js';
+	import { StringList } from '../lib/list.js';
 
 	let main: HTMLElement;
 	let checkbox: Checkbox;
-	let list: List<string, StringListItem>;
+	let list: StringList;
 
 	onMount(() => {
 		checkbox = new Checkbox();
-		list = new List(StringListItem as any);
+		list = new StringList(['test1', 'test2', 'test3']);
 
 		main.appendChild(checkbox.view);
+		main.appendChild(list.view);
 	});
 </script>
 
