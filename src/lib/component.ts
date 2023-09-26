@@ -9,7 +9,8 @@ export abstract class Component<M = unknown, V extends HTMLElement = HTMLElement
 	constructor(model?: M) {
 		this.model = model ?? this.defaults();
 		this.view = this.createView();
-		this.value = this.model;
+		this.initFromModel();
+		this.updateView();
 	}
 
 	protected abstract defaults(): M;
@@ -20,6 +21,10 @@ export abstract class Component<M = unknown, V extends HTMLElement = HTMLElement
 
 	protected createView(): V {
 		return html(this.template());
+	}
+
+	protected initFromModel(): void {
+		// override
 	}
 
 	protected updateView(): void {

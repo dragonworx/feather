@@ -3,15 +3,13 @@ import type { ListItem } from './listItem';
 
 type ListView = HTMLDivElement;
 
-export class List<IM, IV extends ListItem> 
+export class List<IM, IV extends ListItem<IM>> 
     extends Component<IM[], ListView>
 {
-    protected itemCtor: Constructor<IV>;
 
-    constructor(itemCtor: Constructor<IV>, model?: IM[])
+    constructor(protected readonly itemCtor: Constructor<IV>, model?: IM[])
     {
         super(model);
-        this.itemCtor = itemCtor;
     }
 
     protected defaults(): IM[]
@@ -26,6 +24,14 @@ export class List<IM, IV extends ListItem>
         return listItem;
     }
 
+    protected initFromModel(): void
+    {
+        this.model.forEach((item) => {
+            const listItem = this.createItem(item);
+            this.view.appendChild(listItem.view);
+        });
+    }
+
     public addItem(item: IM): void {
         this.insertItem(item, this.model.length);
     }
@@ -33,6 +39,6 @@ export class List<IM, IV extends ListItem>
     public insertItem(item: IM, index: number): void {
         this.model.splice(index, 0, item);
         const listItem = this.createItem(item);
+        this.view.insertBefore(listItem.view, this.view.children[index]);
     }
-
 }
