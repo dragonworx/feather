@@ -1,5 +1,17 @@
 import { Component } from './component';
 
-export class ListItem extends Component {
-    
+export abstract class ListItem<M = unknown> extends Component<M, HTMLLIElement> {
+    public template(): string {
+		return `<li></li>`;
+	}
+}
+
+export class StringListItem extends ListItem<string> {
+    protected defaults(): string {
+        return '';
+    }
+
+    protected updateView(): void {
+        this.view.textContent = this.model;
+    }
 }
