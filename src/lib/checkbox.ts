@@ -1,6 +1,8 @@
 import { Component } from './component';
 
 export class Checkbox extends Component<boolean, HTMLInputElement> {
+	static componentId = 'checkbox';
+
 	protected defaults(): boolean {
 		return false;
 	}
