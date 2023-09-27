@@ -127,4 +127,8 @@ export abstract class Component<M = unknown, V extends HTMLElement = HTMLElement
 		}
 		this._styles = {};
 	}
+
+	public appendTo(parent: HTMLElement | Component) {
+		(parent instanceof HTMLElement ? parent : parent.view).appendChild(this.view);
+	}
 }
