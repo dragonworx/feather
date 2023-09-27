@@ -1,14 +1,12 @@
-html,
-body {
-	background: #222;
-}
-
 *[data-component] {
 	box-sizing: border-box;
-	outline: 1px dotted #666;
-	color: white;
 	font-family: sans-serif;
 	font-size: 14px;
+}
+
+*[data-component].button {
+	border: 1px outset #ccc;
+	border-radius: 3px;
 }
 
 [data-component].list {

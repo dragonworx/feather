@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Checkbox } from '../lib/index.js';
-	import { StringList } from '../lib/list.js';
+	import { Checkbox } from '../lib/checkbox';
+	import { Button } from '../lib/button';
+	import { StringList } from '../lib/list';
 
 	let main: HTMLElement;
-	let checkbox: Checkbox;
-	let list: StringList;
+	let button = new Button('Button');
+	let checkbox = new Checkbox();
+	let list = new StringList(['test1', 'test2', 'test3']);
 
 	onMount(() => {
-		checkbox = new Checkbox();
-		list = new StringList(['test1', 'test2', 'test3']);
+		button.on('click', () => (checkbox.value = !checkbox.value));
 
-		main.appendChild(checkbox.view);
-		main.appendChild(list.view);
+		button.appendTo(main);
+		checkbox.appendTo(main);
+		list.appendTo(main);
 	});
 </script>
 
-<main bind:this={main}>
-	<button on:click={() => (checkbox.value = !checkbox.value)}>Test</button>
-</main>
+<main bind:this={main} />

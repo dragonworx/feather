@@ -27,14 +27,14 @@ export abstract class List<IM, IV extends ListItem<unknown>>
         }
     }
 
-    public addItem(item: IM): void {
-        this.insertItem(item, this.model.length);
-    }
-
     public insertItem(item: IM, index: number): void {
         this.model.splice(index, 0, item);
         const listItem = this.createItem(item);
         this.view.insertBefore(listItem.view, this.view.children[index]);
+    }
+
+    public addItem(item: IM): void {
+        this.insertItem(item, this.model.length);
     }
 }
 
