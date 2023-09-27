@@ -17,7 +17,7 @@ export abstract class List<IM, IV extends ListItem<unknown>>
 
     protected abstract createItem(itemModel: IM): IV;
 
-    protected initFromModel(): void
+    protected onModelReset(): void
     {
         this.view.innerHTML = '';
 
@@ -59,6 +59,19 @@ export class StringListItem extends ListItem<string> {
 
     protected defaults(): string {
         return '';
+    }
+
+    protected init(): void
+    {
+        this.on('mousedown', () => {
+            if (this.hasStyle('color', 'red')) {
+                this.clearStyle('color');
+            } else {
+                this.style({
+                    color: 'red',
+                });
+            }
+        });
     }
 }
 
