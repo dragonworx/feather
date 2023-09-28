@@ -29,7 +29,7 @@ function collectIds<T extends ComponentCtor>(ctor: T): string[] {
 	return ids;
 }
 
-export abstract class Component<M = unknown, V extends HTMLElement = HTMLElement> {
+export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
 	public readonly view: V;
 	protected model: M;
 	private _id: string[];
