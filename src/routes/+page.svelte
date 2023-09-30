@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Checkbox } from '../lib/checkbox';
-	import { Button } from '../lib/button';
-	import { StringList } from '../lib/list';
+	import { Checkbox } from '$lib/checkbox';
+	import { Button } from '$lib/button';
+	import { StringList } from '$lib//list';
+	import { Component } from '$lib/component';
 
 	let main: HTMLElement;
 	let button = new Button('Button');
@@ -11,6 +12,9 @@
 
 	onMount(() => {
 		button.on('click', () => (checkbox.value = !checkbox.value));
+		list.on<'foo' | 'bar'>('foo', () => {});
+		list.on('click', (e) => console.log(Component.owner(e)));
+		list.on<'hover'>('hover', (e) => console.log(e.detail));
 
 		button.appendTo(main);
 		checkbox.appendTo(main);
