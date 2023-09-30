@@ -11,3 +11,7 @@ export function html<T extends HTMLElement>(htmlStr: string): T {
 }
 
 export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
+
+export function asArray<T>(value: T | T[]) {
+	return Array.isArray(value) ? value : [value];
+}

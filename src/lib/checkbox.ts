@@ -1,6 +1,6 @@
 import { Component } from './component';
 
-export class Checkbox extends Component<boolean, HTMLInputElement> {
+export class Checkbox extends Component<HTMLInputElement, boolean> {
 	static componentId = 'checkbox';
 
 	protected defaults(): boolean {

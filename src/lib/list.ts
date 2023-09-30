@@ -1,84 +1,86 @@
 import { Component } from './component';
 
-export abstract class List<IM, IV extends ListItem<unknown>> 
-    extends Component<IM[], HTMLUListElement>
-{
-   static componentId = 'list';
+export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
+	HTMLUListElement,
+	IM[]
+> {
+	static componentId = 'list';
 
-    protected defaults(): IM[]
-    {
-        return [];
-    }
+	protected defaults(): IM[] {
+		return [];
+	}
 
-    public template(): string
-    {
-        return `<ul></ul>`;
-    }
+	public template(): string {
+		return `<ul></ul>`;
+	}
 
-    protected abstract createItem(itemModel: IM): IV;
+	protected abstract createItem(itemModel: IM): IV;
 
-    protected onModelReset(): void
-    {
-        this.view.innerHTML = '';
+	protected onModelReset(): void {
+		this.view.innerHTML = '';
 
-        for (const item of this.model) {
-            const listItem = this.createItem(item);
-            this.view.appendChild(listItem.view);
-        }
-    }
+		for (const item of this.model) {
+			const listItem = this.createItem(item);
+			this.view.appendChild(listItem.view);
+		}
+	}
 
-    public insertItem(item: IM, index: number): void {
-        this.model.splice(index, 0, item);
-        const listItem = this.createItem(item);
-        this.view.insertBefore(listItem.view, this.view.children[index]);
-    }
+	public insertItem(item: IM, index: number): void {
+		this.model.splice(index, 0, item);
+		const listItem = this.createItem(item);
+		this.view.insertBefore(listItem.view, this.view.children[index]);
+	}
 
-    public addItem(item: IM): void {
-        this.insertItem(item, this.model.length);
-    }
+	public addItem(item: IM): void {
+		this.insertItem(item, this.model.length);
+	}
 }
 
-export abstract class ListItem<T> extends Component<T, HTMLLIElement> {
-    static componentId = 'list-item';
+export abstract class ListItem<T> extends Component<HTMLLIElement, T> {
+	static componentId = 'list-item';
 
-    public template(): string {
-        return `<li></li>`;
-    }
+	public template(): string {
+		return `<li></li>`;
+	}
 
-    public toString(): string {
-        return String(this.model);
-    }
+	public toString(): string {
+		return String(this.model);
+	}
 
-    protected updateView(): void {
-        this.view.textContent = this.toString();
-    }
+	protected updateView(): void {
+		this.view.textContent = this.toString();
+	}
 }
 
 export class StringListItem extends ListItem<string> {
-    static componentId = 'string-list-item';
+	static componentId = 'string-list-item';
 
-    protected defaults(): string {
-        return '';
-    }
+	protected defaults(): string {
+		return '';
+	}
 
-    protected init(): void
-    {
-        this.on('mousedown', () => {
-            if (this.hasStyle('color', 'red')) {
-                this.clearStyle('color');
-            } else {
-                this.style({
-                    color: 'red',
-                });
-            }
-        });
-    }
+	protected init(): void {
+		this.on('mousedown', () => {
+			// if (this.hasStyle('color', 'red')) {
+			// 	this.clearStyle('color');
+			// } else {
+			// 	this.style({
+			// 		color: 'red'
+			// 	});
+			// }
+			if (!this.hasClass('foo')) {
+				this.addClass('foo');
+			} else {
+				this.removeClass('foo');
+			}
+		});
+	}
 }
 
 export class StringList extends List<string, StringListItem> {
-    static componentId = 'string-list';
+	static componentId = 'string-list';
 
-    protected createItem(itemModel: string): StringListItem {
-        return new StringListItem(itemModel);
-    }
+	protected createItem(itemModel: string): StringListItem {
+		return new StringListItem(itemModel);
+	}
 }
