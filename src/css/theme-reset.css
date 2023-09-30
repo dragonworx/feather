@@ -18,3 +18,7 @@
 [data-component].list-item {
 	text-align: center;
 }
+
+[data-component].list-item.foo {
+	color: pink;
+}
