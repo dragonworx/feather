@@ -60,20 +60,7 @@ export class StringListItem extends ListItem<string> {
 	}
 
 	protected init(): void {
-		this.on('mousedown', () => {
-			// if (this.hasStyle('color', 'red')) {
-			// 	this.clearStyle('color');
-			// } else {
-			// 	this.style({
-			// 		color: 'red'
-			// 	});
-			// }
-			if (!this.hasClass('foo')) {
-				this.addClass('foo');
-			} else {
-				this.removeClass('foo');
-			}
-		});
+		this.on('mouseenter', () => this.dispatch('hover', this.model));
 	}
 }
 

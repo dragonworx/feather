@@ -43,8 +43,9 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 
 	static componentId = 'component';
 
-	public static owner(view: HTMLElement): Component | null {
-		if ('__component' in view && view.__component instanceof Component) {
+	public static owner(source: Event | EventTarget | null): Component | null {
+		const view = source instanceof Event ? source.target : source;
+		if (view && '__component' in view && view.__component instanceof Component) {
 			return view.__component;
 		}
 		return null;
@@ -102,9 +103,12 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public on<K extends keyof HTMLElementEventMap>(
-		type: K,
-		listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+	public on<K extends string>(
+		type: K | keyof HTMLElementEventMap,
+		listener: (
+			this: HTMLElement,
+			ev: K extends keyof HTMLElementEventMap ? HTMLElementEventMap[K] : any
+		) => any,
 		options?: boolean | AddEventListenerOptions
 	): void;
 	public on(
@@ -116,10 +120,13 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public off<K extends keyof HTMLElementEventMap>(
-		type: K,
-		listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-		options?: boolean | EventListenerOptions
+	public off<K extends string>(
+		type: K | keyof HTMLElementEventMap,
+		listener: (
+			this: HTMLElement,
+			ev: K extends keyof HTMLElementEventMap ? HTMLElementEventMap[K] : any
+		) => any,
+		options?: boolean | AddEventListenerOptions
 	): void;
 	public off(
 		type: string,
@@ -127,6 +134,16 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		options?: boolean | EventListenerOptions
 	): void {
 		return this.view.removeEventListener(type, listener, options);
+	}
+
+	public dispatch<K extends string>(type: K | keyof HTMLElementEventMap, detail?: any): void {
+		this.view.dispatchEvent(
+			new CustomEvent(type, {
+				detail,
+				bubbles: true,
+				cancelable: true
+			})
+		);
 	}
 
 	public style(styles: Partial<CSSStyleDeclaration>) {
@@ -154,7 +171,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		(parent instanceof HTMLElement ? parent : parent.view).appendChild(this.view);
 	}
 
-	public hasClass(cssClass: string | string[]) {
+	public hasClass<T extends string>(cssClass: T | T[]) {
 		for (const cls of asArray(cssClass)) {
 			if (this.view.classList.contains(cls)) {
 				return true;
@@ -163,7 +180,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return false;
 	}
 
-	public addClass(cssClass: string | string[]) {
+	public addClass<T extends string>(cssClass: T | T[]) {
 		const { classList } = this.view;
 		for (const cls of asArray(cssClass)) {
 			if (classList.contains(cls)) {
@@ -174,7 +191,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		}
 	}
 
-	public removeClass(cssClass: string | string[]) {
+	public removeClass<T extends string>(cssClass: T | T[]) {
 		const { classList } = this.view;
 		for (const cls of asArray(cssClass)) {
 			if (classList.contains(cls)) {
