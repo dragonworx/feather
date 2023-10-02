@@ -1,38 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
 import { asArray, html } from './util';
-
-type ComponentCtor = {
-	new (...args: unknown[]): Component;
-	componentId: string;
-	owner: () => HTMLElementWithMetaData;
-};
-
-type HTMLElementWithMetaData = HTMLElement & { __component: Component };
-
-function collectIds<T extends ComponentCtor>(ctor: T): string[] {
-	const ids: string[] = [];
-	let currentCtor: ComponentCtor = ctor;
-
-	while (currentCtor) {
-		if (currentCtor.componentId) {
-			ids.unshift(currentCtor.componentId);
-		}
-
-		const newCtor = Object.getPrototypeOf(currentCtor);
-
-		if ((currentCtor as unknown) === Component) {
-			break;
-		}
-
-		if (newCtor.id === currentCtor.componentId) {
-			throw new Error(`${currentCtor.name} is missing static "id" property`);
-		}
-
-		currentCtor = newCtor;
-	}
-
-	return ids;
-}
 
 export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
 	public readonly view: V;
@@ -40,6 +8,8 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
+	private _cache: Map<string, any> = new Map();
+	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
 
 	static componentId = 'component';
 
@@ -102,6 +72,13 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this.updateView();
 	}
 
+	private getListeners(type: string) {
+		if (!this._listeners.has(type)) {
+			this._listeners.set(type, []);
+		}
+		return this._listeners.get(type)!;
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public on<K extends string>(
 		type: K | keyof HTMLElementEventMap,
@@ -116,7 +93,8 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		listener: EventListenerOrEventListenerObject,
 		options?: boolean | AddEventListenerOptions
 	): void {
-		return this.view.addEventListener(type, listener, options);
+		this.getListeners(type).push(listener);
+		this.view.addEventListener(type, listener, options);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -130,10 +108,30 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	): void;
 	public off(
 		type: string,
-		listener: EventListenerOrEventListenerObject,
+		listener?: EventListenerOrEventListenerObject,
 		options?: boolean | EventListenerOptions
 	): void {
-		return this.view.removeEventListener(type, listener, options);
+		if (!this._listeners.has(type)) {
+			return;
+		}
+		const listeners = this.getListeners(type);
+		if (listener) {
+			// remove listener
+			const index = listeners.indexOf(listener);
+			if (index !== -1) {
+				listeners.splice(index, 1);
+			}
+			if (listeners.length === 0) {
+				this._listeners.delete(type);
+			}
+			this.view.removeEventListener(type, listener, options);
+		} else {
+			// remove all
+			for (const l of listeners) {
+				this.view.removeEventListener(type, l, options);
+			}
+			this._listeners.delete(type);
+		}
 	}
 
 	public dispatch<K extends string>(type: K | keyof HTMLElementEventMap, detail?: any): void {
@@ -207,5 +205,35 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 			classList.remove(cssClass);
 		}
 		this._classes.length = 0;
+	}
+
+	public clearCache(key?: string) {
+		const { _cache: _cache } = this;
+		if (key && _cache.has(key)) {
+			_cache.delete(key);
+			return;
+		}
+		_cache.clear();
+	}
+
+	protected getCache<T>(key: string): T | null {
+		return this._cache.has(key) ? this._cache.get(key) : null;
+	}
+
+	protected setCache<T>(key: string, value: T) {
+		this._cache.set(key, value);
+	}
+
+	public query<T extends HTMLElement>(cssSelector: string): T | null {
+		const cacheElement = this.getCache(cssSelector);
+		if (cacheElement) {
+			return cacheElement as T;
+		}
+		const element = this.view.querySelector<T>(cssSelector);
+		if (element) {
+			this.setCache(cssSelector, element);
+			return element;
+		}
+		return null;
 	}
 }
