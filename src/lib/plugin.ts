@@ -1,7 +1,22 @@
 import type { Component } from './component';
 
-export interface ComponentPlugin {
-	id: string;
-	init(component: Component): void;
-	destroy?(component: Component): void;
+export abstract class ComponentPlugin<T extends object = object> {
+	public options: T;
+
+	constructor(options: Partial<T> = {}) {
+		this.options = {
+			...this.defaultOptions(),
+			...options
+		} as T;
+	}
+
+	protected abstract defaultOptions(): T;
+
+	public init(component: Component): void {
+		String(component);
+	}
+
+	public destroy(component: Component): void {
+		String(component);
+	}
 }
