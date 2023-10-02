@@ -4,6 +4,7 @@
 	import { Button } from '$lib/button';
 	import { StringList } from '$lib//list';
 	import { Component } from '$lib/component';
+	import type { ComponentPlugin } from '$lib/plugin';
 
 	let main: HTMLElement;
 	let button = new Button('Button');
@@ -11,6 +12,15 @@
 	let list = new StringList(['test1', 'test2', 'test3']);
 
 	type MyEvent = 'foo' | 'bar' | 'hover';
+
+	const plugin: ComponentPlugin = {
+		id: 'test',
+		init(component) {
+			component.on('click', () => component.style({ opacity: '0.5' }));
+		}
+	};
+
+	checkbox.addPlugin(plugin);
 
 	onMount(() => {
 		button.on('click', () => (checkbox.value = !checkbox.value));

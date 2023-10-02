@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
+import type { ComponentPlugin } from './plugin';
 import { asArray, html } from './util';
 
 export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
@@ -10,6 +11,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	private _classes: string[] = [];
 	private _cache: Map<string, any> = new Map();
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
+	private _plugins: Map<string, ComponentPlugin> = new Map();
 
 	static componentId = 'component';
 
@@ -27,10 +29,11 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this.model = model ?? this.defaults();
 		this.view = this.createView();
 
+		this.compose();
 		this.initView();
+		this.init();
 		this.onModelReset();
 		this.updateView();
-		this.init();
 	}
 
 	protected abstract defaults(): M;
@@ -58,6 +61,10 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		// override
 	}
 
+	protected compose() {
+		// override
+	}
+
 	protected init() {
 		// override
 	}
@@ -70,6 +77,10 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this.model = value;
 		this.onModelReset();
 		this.updateView();
+	}
+
+	public asComponent() {
+		return this as unknown as Component;
 	}
 
 	private getListeners(type: string) {
@@ -235,5 +246,25 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 			return element;
 		}
 		return null;
+	}
+
+	public addPlugin(plugin: ComponentPlugin) {
+		if (this._plugins.has(plugin.id)) {
+			throw new Error(`Component Plugin with id ${plugin.id} already exists`);
+		}
+		this._plugins.set(plugin.id, plugin);
+		plugin.init(this.asComponent());
+	}
+
+	public removePlugin(plugin: ComponentPlugin) {
+		if (!this._plugins.has(plugin.id)) {
+			throw new Error(`Component Plugin with id ${plugin.id} does not exist`);
+		}
+		this._plugins.delete(plugin.id);
+		plugin.destroy?.(this.asComponent());
+	}
+
+	public hide() {
+		this.style({ display: 'none' });
 	}
 }
