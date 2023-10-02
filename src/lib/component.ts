@@ -11,7 +11,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	private _classes: string[] = [];
 	private _cache: Map<string, any> = new Map();
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
-	private _plugins: Map<string, ComponentPlugin> = new Map();
+	private _plugins: ComponentPlugin[] = [];
 
 	static componentId = 'component';
 
@@ -249,19 +249,17 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	public addPlugin(plugin: ComponentPlugin) {
-		if (this._plugins.has(plugin.id)) {
-			throw new Error(`Component Plugin with id ${plugin.id} already exists`);
-		}
-		this._plugins.set(plugin.id, plugin);
+		this._plugins.push(plugin);
 		plugin.init(this.asComponent());
 	}
 
 	public removePlugin(plugin: ComponentPlugin) {
-		if (!this._plugins.has(plugin.id)) {
-			throw new Error(`Component Plugin with id ${plugin.id} does not exist`);
+		const { _plugins } = this;
+		const index = _plugins.indexOf(plugin);
+		if (index > -1) {
+			this._plugins.splice(index, 1);
+			plugin.destroy(this.asComponent());
 		}
-		this._plugins.delete(plugin.id);
-		plugin.destroy?.(this.asComponent());
 	}
 
 	public hide() {

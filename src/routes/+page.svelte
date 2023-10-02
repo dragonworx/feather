@@ -4,7 +4,7 @@
 	import { Button } from '$lib/button';
 	import { StringList } from '$lib//list';
 	import { Component } from '$lib/component';
-	import type { ComponentPlugin } from '$lib/plugin';
+	import { ComponentPlugin } from '$lib/plugin';
 
 	let main: HTMLElement;
 	let button = new Button('Button');
@@ -13,14 +13,25 @@
 
 	type MyEvent = 'foo' | 'bar' | 'hover';
 
-	const plugin: ComponentPlugin = {
-		id: 'test',
-		init(component) {
-			component.on('click', () => component.style({ opacity: '0.5' }));
+	class TestPlugin extends ComponentPlugin<{ text: string }> {
+		protected defaultOptions(): { text: string } {
+			return {
+				text: 'foo'
+			};
 		}
-	};
 
-	checkbox.addPlugin(plugin);
+		public init(component: Component<HTMLElement, undefined>): void {
+			component.on('click', () => {
+				component.view.innerText = this.options.text;
+			});
+		}
+	}
+
+	const plugin = new TestPlugin({
+		text: 'bar'
+	});
+
+	button.addPlugin(plugin);
 
 	onMount(() => {
 		button.on('click', () => (checkbox.value = !checkbox.value));
