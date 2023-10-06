@@ -1,6 +1,6 @@
 import type { Component } from './component';
 
-export abstract class ComponentPlugin<T extends object = object> {
+export abstract class Behavior<T extends object = object> {
 	public options: T;
 
 	constructor(options: Partial<T> = {}) {

@@ -4,7 +4,8 @@
 	import { Button } from '$lib/button';
 	import { StringList } from '$lib//list';
 	import { Component } from '$lib/component';
-	import { ComponentPlugin } from '$lib/plugin';
+	import { Behavior } from '$lib/behavior';
+	import { generateStyleSheet, css } from '$lib/style';
 
 	let main: HTMLElement;
 	let button = new Button('Button');
@@ -13,7 +14,7 @@
 
 	type MyEvent = 'foo' | 'bar' | 'hover';
 
-	class TestPlugin extends ComponentPlugin<{ text: string }> {
+	class TestPlugin extends Behavior<{ text: string }> {
 		protected defaultOptions(): { text: string } {
 			return {
 				text: 'foo'
@@ -31,7 +32,7 @@
 		text: 'bar'
 	});
 
-	button.addPlugin(plugin);
+	button.addBehavior(plugin);
 
 	onMount(() => {
 		button.on('click', () => (checkbox.value = !checkbox.value));
@@ -42,6 +43,19 @@
 		button.appendTo(main);
 		checkbox.appendTo(main);
 		list.appendTo(main);
+
+		// Usage
+		const style = css(
+			'.container',
+			{
+				color: 'red'
+			},
+			css('.child', {
+				color: 'blue'
+			})
+		);
+
+		generateStyleSheet(style, '.container');
 	});
 </script>
 

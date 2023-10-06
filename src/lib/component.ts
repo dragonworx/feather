@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
-import type { ComponentPlugin } from './plugin';
+import type { Behavior } from './behavior';
 import { asArray, html } from './util';
 
 export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
@@ -11,7 +11,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	private _classes: string[] = [];
 	private _cache: Map<string, any> = new Map();
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
-	private _plugins: ComponentPlugin[] = [];
+	private _plugins: Behavior[] = [];
 
 	static componentId = 'component';
 
@@ -248,21 +248,17 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return null;
 	}
 
-	public addPlugin(plugin: ComponentPlugin) {
-		this._plugins.push(plugin);
-		plugin.init(this.asComponent());
+	public addBehavior(behavior: Behavior) {
+		this._plugins.push(behavior);
+		behavior.init(this.asComponent());
 	}
 
-	public removePlugin(plugin: ComponentPlugin) {
+	public removeBehavior(behavior: Behavior) {
 		const { _plugins } = this;
-		const index = _plugins.indexOf(plugin);
+		const index = _plugins.indexOf(behavior);
 		if (index > -1) {
 			this._plugins.splice(index, 1);
-			plugin.destroy(this.asComponent());
+			behavior.destroy(this.asComponent());
 		}
-	}
-
-	public hide() {
-		this.style({ display: 'none' });
 	}
 }
