@@ -7,23 +7,36 @@ export abstract class Behavior<
 > {
 	public options: T;
 	protected emitter: EventEmitter;
+	public tag: string = '';
+	protected _component: Component | null = null;
 
-	constructor(options: Partial<T> = {}) {
+	constructor(options: Partial<T> = {}, tag?: string) {
 		this.options = {
 			...this.defaultOptions(),
 			...options
 		} as T;
 		this.emitter = new EventEmitter();
+		this.tag = tag ?? '';
 	}
 
 	protected abstract defaultOptions(): T;
 
-	public init(component: Component): void {
-		String(component);
+	protected get component(): Component {
+		if (!this._component) {
+			throw new Error('Component not initialized');
+		}
+		return this._component;
 	}
 
-	public destroy(component: Component): void {
-		String(component);
+	public init(component: Component): void {
+		this._component = component;
+	}
+
+	public destroy(): void {
+		this._component = null;
+		this.options = {} as T;
+		this.tag = '';
+		this.emitter.removeAllListeners();
 	}
 
 	public on(eventName: E, handler: EventEmitter.ListenerFn, context?: unknown): void {
