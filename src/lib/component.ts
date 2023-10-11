@@ -3,23 +3,20 @@ import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './
 import { Behavior } from './behavior';
 import { asArray, html } from './util';
 import { Cache } from './cache';
-import EventEmitter from 'eventemitter3';
-
-export type ComponentEvents = 'modelChanged' | 'updateView';
 
 export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
-	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
+	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map(); // track custom event listeners internally
 	private _behaviors: Behavior[] = [];
 
 	protected model: M;
-	protected emitter: EventEmitter<ComponentEvents> = new EventEmitter();
 
 	public readonly view: V;
 	public readonly cache: Cache<string, any> = new Cache();
 
+	// must be ovewritten by subclasses
 	static componentId = 'component';
 
 	public static owner(source: Event | EventTarget | null): Component | null {
@@ -42,6 +39,23 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this.value = this.model;
 	}
 
+	public dispose() {
+		for (const behavior of this._behaviors) {
+			behavior.dispose();
+		}
+		this._behaviors.length = 0;
+		for (const [k, v] of this._listeners.entries()) {
+			for (const listener of v) {
+				this.view.removeEventListener(k, listener);
+			}
+		}
+		this._listeners.clear();
+		for (const key of Object.keys(this._styles)) {
+			this.clearStyle(key as keyof CSSStyleDeclaration);
+		}
+		this.clearClasses();
+	}
+
 	protected abstract defaults(): M;
 
 	public template(): string {
@@ -52,9 +66,16 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return html(this.template());
 	}
 
-	protected render() {
+	protected update() {
 		this.updateView();
-		this.emitter.emit('updateView');
+		this.onViewUpdated();
+		for (const behavior of this._behaviors) {
+			behavior.onViewUpdated();
+		}
+	}
+
+	protected onViewUpdated() {
+		// override
 	}
 
 	private initView(): void {
@@ -87,8 +108,10 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		const oldValue = this.model;
 		this.model = value;
 		this.onModelChanged(value, oldValue);
-		this.emitter.emit('modelChanged', value, oldValue);
-		this.render();
+		for (const behavior of this._behaviors) {
+			behavior.onModelChanged(value, oldValue);
+		}
+		this.update();
 	}
 
 	public asComponent() {
@@ -105,10 +128,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public on<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: (
-			this: HTMLElement,
-			ev: K extends keyof HTMLElementEventMap ? HTMLElementEventMap[K] : any
-		) => any,
+		listener: EventListenerOrEventListenerObject,
 		options?: boolean | AddEventListenerOptions
 	): void;
 	public on(
@@ -123,10 +143,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public off<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: (
-			this: HTMLElement,
-			ev: K extends keyof HTMLElementEventMap ? HTMLElementEventMap[K] : any
-		) => any,
+		listener: EventListenerOrEventListenerObject,
 		options?: boolean | AddEventListenerOptions
 	): void;
 	public off(
@@ -264,11 +281,15 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return [];
 	}
 
-	public behavior<T extends string = string>(tag: T): Behavior | undefined {
-		return this._behaviors.find((behavior) => behavior.tag === tag);
+	public behavior<B extends Behavior, T extends string = string>(tag: T): B | undefined {
+		return this._behaviors.find((behavior) => behavior.tag === tag) as B | undefined;
 	}
 
-	public addBehavior(behavior: Behavior, tag?: string) {
+	public behaviors<B extends Behavior, T extends string = string>(tag: T): B[] {
+		return this._behaviors.filter((behavior) => behavior.tag === tag) as B[];
+	}
+
+	public addBehavior<T extends string = string>(tag: T, behavior: Behavior) {
 		this._behaviors.push(behavior);
 		behavior.init(this.asComponent());
 		behavior.tag = tag ?? behavior.tag;
@@ -279,8 +300,8 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 			const { _behaviors } = this;
 			const index = _behaviors.indexOf(behavior);
 			if (index > -1) {
+				behavior.dispose();
 				this._behaviors.splice(index, 1);
-				behavior.destroy();
 			}
 		} else {
 			for (const b of this._behaviors) {
