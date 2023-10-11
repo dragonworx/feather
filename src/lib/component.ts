@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
 import { Behavior } from './behavior';
-import { asArray, html } from './util';
+import { asArray, html, uniqueId } from './util';
 import { Cache } from './cache';
 
 export abstract class Component<
@@ -18,6 +18,7 @@ export abstract class Component<
 
 	public readonly element: ElementType;
 	public readonly cache: Cache<string, any> = new Cache();
+	public readonly _uid = uniqueId();
 
 	// must be ovewritten by subclasses
 	static componentId = 'component';
@@ -183,7 +184,7 @@ export abstract class Component<
 		return this;
 	}
 
-	public dispatch<K extends string>(type: K | keyof HTMLElementEventMap, detail?: any): this {
+	public emit<K extends string>(type: K | keyof HTMLElementEventMap, detail?: any): this {
 		this.element.dispatchEvent(
 			new CustomEvent(type, {
 				detail,
@@ -291,11 +292,11 @@ export abstract class Component<
 		return [];
 	}
 
-	public behavior<B extends Behavior, T extends string = string>(tag: T): B | undefined {
-		return this._behaviors.find((behavior) => behavior.tag === tag) as B | undefined;
+	public behavior<B extends Behavior | undefined, T extends string = string>(tag: T): B {
+		return this._behaviors.find((behavior) => behavior.tag === tag) as B;
 	}
 
-	public behaviors<B extends Behavior, T extends string = string>(tag: T): B[] {
+	public behaviors<B extends Behavior | undefined, T extends string = string>(tag: T): B[] {
 		return this._behaviors.filter((behavior) => behavior.tag === tag) as B[];
 	}
 

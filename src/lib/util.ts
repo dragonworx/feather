@@ -15,3 +15,9 @@ export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: 
 export function asArray<T>(value: T | T[]) {
 	return Array.isArray(value) ? value : [value];
 }
+
+let _id = 0;
+
+export function uniqueId() {
+	return `#${++_id}`;
+}

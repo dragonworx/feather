@@ -1,3 +1,5 @@
+import { ButtonBehavior } from '$lib/behaviors/button';
+import { RightClickBehavior } from '$lib/behaviors/rightClick';
 import { Component } from '../component';
 
 export class Button extends Component<HTMLButtonElement, string> {
@@ -13,5 +15,10 @@ export class Button extends Component<HTMLButtonElement, string> {
 
 	protected updateElement(): void {
 		this.element.textContent = this.model;
+	}
+
+	protected init() {
+		this.addBehavior('button', new ButtonBehavior());
+		this.addBehavior('rightClick', new RightClickBehavior());
 	}
 }

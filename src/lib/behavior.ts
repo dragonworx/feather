@@ -1,21 +1,25 @@
 import EventEmitter from 'eventemitter3';
 import type { Component } from './component';
+import { uniqueId } from './util';
 
 export abstract class Behavior<
 	T extends object = object,
 	E extends EventEmitter.ValidEventTypes = string
 > {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	static instances: Record<string, any> = {};
+
+	private _component: Component | null = null;
+	protected emitter: EventEmitter = new EventEmitter();
 	public options: T;
-	protected emitter: EventEmitter;
 	public tag: string = '';
-	protected _component: Component | null = null;
+	public readonly _uid = uniqueId();
 
 	constructor(options: Partial<T> = {}) {
 		this.options = {
 			...this.defaultOptions(),
 			...options
 		} as T;
-		this.emitter = new EventEmitter();
 	}
 
 	protected defaultOptions(): T {
