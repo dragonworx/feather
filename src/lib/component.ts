@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
-import type { Behavior } from './behavior';
+import { Behavior } from './behavior';
 import { asArray, html } from './util';
 import { Cache } from './cache';
 
@@ -11,7 +11,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
-	private _plugins: Behavior[] = [];
+	private _behaviors: Behavior[] = [];
 
 	static componentId = 'component';
 
@@ -249,17 +249,31 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return [];
 	}
 
-	public addBehavior(behavior: Behavior) {
-		this._plugins.push(behavior);
-		behavior.init(this.asComponent());
+	public behavior<T extends string = string>(tag: T): Behavior | undefined {
+		return this._behaviors.find((behavior) => behavior.tag === tag);
 	}
 
-	public removeBehavior(behavior: Behavior) {
-		const { _plugins } = this;
-		const index = _plugins.indexOf(behavior);
-		if (index > -1) {
-			this._plugins.splice(index, 1);
-			behavior.destroy(this.asComponent());
+	public addBehavior(behavior: Behavior, tag?: string) {
+		this._behaviors.push(behavior);
+		behavior.init(this.asComponent());
+		behavior.tag = tag ?? behavior.tag;
+	}
+
+	public removeBehavior<T extends string = string>(behavior: Behavior | T) {
+		if (behavior instanceof Behavior) {
+			const { _behaviors } = this;
+			const index = _behaviors.indexOf(behavior);
+			if (index > -1) {
+				this._behaviors.splice(index, 1);
+				behavior.destroy();
+			}
+		} else {
+			for (const b of this._behaviors) {
+				if (b.tag === behavior) {
+					this.removeBehavior(b);
+					break;
+				}
+			}
 		}
 	}
 }

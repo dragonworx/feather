@@ -34,7 +34,9 @@
 
 	behavior.on('foo', (e) => console.log(e));
 
-	button.addBehavior(behavior);
+	button.addBehavior(behavior, 'test');
+	console.log('!', button.behavior('test'));
+	button.removeBehavior<'test'>('test');
 
 	onMount(() => {
 		button.on('click', () => (checkbox.value = !checkbox.value));
