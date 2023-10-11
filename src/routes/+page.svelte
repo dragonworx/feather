@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Checkbox } from '$lib/checkbox';
-	import { Button } from '$lib/button';
-	import { StringList } from '$lib//list';
+	import { Checkbox } from '$lib/components/checkbox';
+	import { Button } from '$lib/components/button';
+	import { StringList } from '$lib/components/list';
 	import { Component } from '$lib/component';
 	import { Behavior } from '$lib/behavior';
-	import { generateStyleSheet, css } from '$lib/style';
 
 	let main: HTMLElement;
 	let button = new Button('Button');
@@ -14,7 +13,7 @@
 
 	type MyEvent = 'foo' | 'bar' | 'hover';
 
-	class TestPlugin extends Behavior<{ text: string }> {
+	class TestBehavior extends Behavior<{ text: string }, 'foo'> {
 		protected defaultOptions(): { text: string } {
 			return {
 				text: 'foo'
@@ -24,15 +23,18 @@
 		public init(component: Component<HTMLElement, undefined>): void {
 			component.on('click', () => {
 				component.view.innerText = this.options.text;
+				this.emit('foo', { x: 1 });
 			});
 		}
 	}
 
-	const plugin = new TestPlugin({
+	const behavior = new TestBehavior({
 		text: 'bar'
 	});
 
-	button.addBehavior(plugin);
+	behavior.on('foo', (e) => console.log(e));
+
+	button.addBehavior(behavior);
 
 	onMount(() => {
 		button.on('click', () => (checkbox.value = !checkbox.value));
@@ -43,19 +45,6 @@
 		button.appendTo(main);
 		checkbox.appendTo(main);
 		list.appendTo(main);
-
-		// Usage
-		const style = css(
-			'.container',
-			{
-				color: 'red'
-			},
-			css('.child', {
-				color: 'blue'
-			})
-		);
-
-		generateStyleSheet(style, '.container');
 	});
 </script>
 
