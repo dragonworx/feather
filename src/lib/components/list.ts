@@ -16,7 +16,7 @@ export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
 
 	protected abstract createItem(itemModel: IM): IV;
 
-	protected onModelReset(): void {
+	protected onModelChanged(): void {
 		this.view.innerHTML = '';
 
 		for (const item of this.model) {

@@ -3,19 +3,24 @@ import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './
 import { Behavior } from './behavior';
 import { asArray, html } from './util';
 import { Cache } from './cache';
+import EventEmitter from 'eventemitter3';
+
+export type ComponentEvents = 'modelChanged' | 'updateView';
 
 export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
-	public readonly view: V;
-	protected model: M;
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
 	private _behaviors: Behavior[] = [];
 
-	static componentId = 'component';
+	protected model: M;
+	protected emitter: EventEmitter<ComponentEvents> = new EventEmitter();
 
+	public readonly view: V;
 	public readonly cache: Cache<string, any> = new Cache();
+
+	static componentId = 'component';
 
 	public static owner(source: Event | EventTarget | null): Component | null {
 		const view = source instanceof Event ? source.target : source;
@@ -47,6 +52,11 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return html(this.template());
 	}
 
+	protected render() {
+		this.updateView();
+		this.emitter.emit('updateView');
+	}
+
 	private initView(): void {
 		const { view, _id } = this;
 		view.classList.add(..._id);
@@ -54,7 +64,10 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		(view as unknown as HTMLElementWithMetaData).__component = this as unknown as Component;
 	}
 
-	protected onModelReset(): void {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected onModelChanged(value: M, oldValue: M): void {
+		String(value);
+		String(oldValue);
 		// override
 	}
 
@@ -71,9 +84,11 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	public set value(value: M) {
+		const oldValue = this.model;
 		this.model = value;
-		this.onModelReset();
-		this.updateView();
+		this.onModelChanged(value, oldValue);
+		this.emitter.emit('modelChanged', value, oldValue);
+		this.render();
 	}
 
 	public asComponent() {
