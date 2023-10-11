@@ -60,7 +60,7 @@ export class StringListItem extends ListItem<string> {
 	}
 
 	protected init(): void {
-		this.on('mouseenter', () => this.dispatch('hover', this.model));
+		this.on('mouseenter', () => this.emit('hover', this.model));
 	}
 }
 
