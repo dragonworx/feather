@@ -2,6 +2,7 @@
 import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
 import type { Behavior } from './behavior';
 import { asArray, html } from './util';
+import { Cache } from './cache';
 
 export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
 	public readonly view: V;
@@ -9,11 +10,12 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
-	private _cache: Map<string, any> = new Map();
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map();
 	private _plugins: Behavior[] = [];
 
 	static componentId = 'component';
+
+	public readonly cache: Cache<string, any> = new Cache();
 
 	public static owner(source: Event | EventTarget | null): Component | null {
 		const view = source instanceof Event ? source.target : source;
@@ -29,11 +31,10 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this.model = model ?? this.defaults();
 		this.view = this.createView();
 
-		this.compose();
 		this.initView();
 		this.init();
-		this.onModelReset();
-		this.updateView();
+
+		this.value = this.model;
 	}
 
 	protected abstract defaults(): M;
@@ -46,7 +47,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return html(this.template());
 	}
 
-	protected initView(): void {
+	private initView(): void {
 		const { view, _id } = this;
 		view.classList.add(..._id);
 		view.setAttribute('data-component', _id[_id.length - 1]);
@@ -58,10 +59,6 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	protected updateView(): void {
-		// override
-	}
-
-	protected compose() {
 		// override
 	}
 
@@ -218,34 +215,38 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this._classes.length = 0;
 	}
 
-	public clearCache(key?: string) {
-		const { _cache: _cache } = this;
-		if (key && _cache.has(key)) {
-			_cache.delete(key);
-			return;
+	public query<T extends HTMLElement>(cssSelector: string, useCache = true): T | null {
+		if (!useCache) {
+			return this.view.querySelector<T>(cssSelector);
 		}
-		_cache.clear();
-	}
-
-	protected getCache<T>(key: string): T | null {
-		return this._cache.has(key) ? this._cache.get(key) : null;
-	}
-
-	protected setCache<T>(key: string, value: T) {
-		this._cache.set(key, value);
-	}
-
-	public query<T extends HTMLElement>(cssSelector: string): T | null {
-		const cacheElement = this.getCache(cssSelector);
+		const cacheElement = this.cache.get(cssSelector);
 		if (cacheElement) {
 			return cacheElement as T;
 		}
 		const element = this.view.querySelector<T>(cssSelector);
 		if (element) {
-			this.setCache(cssSelector, element);
+			this.cache.set(cssSelector, element);
 			return element;
 		}
 		return null;
+	}
+
+	public queryAll<T extends HTMLElement>(cssSelector: string, useCache = true): T[] {
+		if (!useCache) {
+			const nodeList = this.view.querySelectorAll<T>(cssSelector);
+			return nodeList.length ? [...nodeList.values()] : [];
+		}
+		const cacheElement = this.cache.get(cssSelector);
+		if (cacheElement) {
+			return cacheElement as T[];
+		}
+		const nodeList = this.view.querySelectorAll<T>(cssSelector);
+		if (nodeList.length) {
+			const array = [...nodeList.values()];
+			this.cache.set(cssSelector, array);
+			return array;
+		}
+		return [];
 	}
 
 	public addBehavior(behavior: Behavior) {

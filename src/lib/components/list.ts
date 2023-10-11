@@ -1,4 +1,4 @@
-import { Component } from './component';
+import { Component } from '../component';
 
 export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
 	HTMLUListElement,
