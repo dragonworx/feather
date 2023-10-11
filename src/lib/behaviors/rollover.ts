@@ -1,21 +1,41 @@
 import { Behavior } from '$lib/behavior';
-import type { Component } from '$lib/component';
 
-export interface RolloverBehaviorOptions {}
-
-export type RolloverBehaviorEvents = 'mouseover';
-
-export class RolloverBehavior extends Behavior<RolloverBehaviorOptions, RolloverBehaviorEvents> {
+export class RolloverBehavior extends Behavior {
 	private _isOver = false;
 
 	public get isOver() {
 		return this._isOver;
 	}
 
-	public init(component: Component): void {
-		component.on('mouseover', () => (this._isOver = true));
-		component.on('mouseout', () => (this._isOver = false));
-		component.on('mouseenter', () => (this._isOver = true));
-		component.on('mouseleave', () => (this._isOver = false));
+	public install(): void {
+		const { component } = this;
+		component.on('mouseover', this.onMouseOver);
+		component.on('mouseout', this.onMouseOut);
+		component.on('mouseenter', this.onMouseEnter);
+		component.on('mouseleave', this.onMouseLeave);
 	}
+
+	public uninstall(): void {
+		const { component } = this;
+		component.off('mouseover', this.onMouseOver);
+		component.off('mouseout', this.onMouseOut);
+		component.off('mouseenter', this.onMouseEnter);
+		component.off('mouseleave', this.onMouseLeave);
+	}
+
+	protected onMouseOver = () => {
+		this._isOver = true;
+	};
+
+	protected onMouseOut = () => {
+		this._isOver = false;
+	};
+
+	protected onMouseEnter = () => {
+		this._isOver = true;
+	};
+
+	protected onMouseLeave = () => {
+		this._isOver = false;
+	};
 }

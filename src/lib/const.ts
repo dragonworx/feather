@@ -6,7 +6,7 @@ export type ComponentCtor = {
 	owner: () => HTMLElementWithMetaData;
 };
 
-export type HTMLElementWithMetaData = HTMLElement & { __component: Component };
+export type HTMLElementWithMetaData = HTMLElement & { __feather_component: Component };
 
 export function collectIds<T extends ComponentCtor>(ctor: T): string[] {
 	const ids: string[] = [];

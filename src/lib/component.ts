@@ -4,36 +4,43 @@ import { Behavior } from './behavior';
 import { asArray, html } from './util';
 import { Cache } from './cache';
 
-export abstract class Component<V extends HTMLElement = HTMLElement, M = undefined> {
+export abstract class Component<
+	ElementType extends HTMLElement = HTMLElement,
+	ModelType = undefined
+> {
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map(); // track custom event listeners internally
 	private _behaviors: Behavior[] = [];
 
-	protected model: M;
+	protected model: ModelType;
 
-	public readonly view: V;
+	public readonly element: ElementType;
 	public readonly cache: Cache<string, any> = new Cache();
 
 	// must be ovewritten by subclasses
 	static componentId = 'component';
 
-	public static owner(source: Event | EventTarget | null): Component | null {
-		const view = source instanceof Event ? source.target : source;
-		if (view && '__component' in view && view.__component instanceof Component) {
-			return view.__component;
+	public static elementOwner(source: Event | EventTarget | null): Component | null {
+		const element = source instanceof Event ? source.target : source;
+		if (
+			element &&
+			'__feather_component' in element &&
+			element.__feather_component instanceof Component
+		) {
+			return element.__feather_component;
 		}
 		return null;
 	}
 
-	constructor(model?: M) {
+	constructor(model?: ModelType) {
 		this._id = collectIds(this.constructor as ComponentCtor);
 
 		this.model = model ?? this.defaults();
-		this.view = this.createView();
+		this.element = this.createElement();
 
-		this.initView();
+		this.initElement();
 		this.init();
 
 		this.value = this.model;
@@ -46,7 +53,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this._behaviors.length = 0;
 		for (const [k, v] of this._listeners.entries()) {
 			for (const listener of v) {
-				this.view.removeEventListener(k, listener);
+				this.element.removeEventListener(k, listener);
 			}
 		}
 		this._listeners.clear();
@@ -56,43 +63,43 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		this.clearClasses();
 	}
 
-	protected abstract defaults(): M;
+	protected abstract defaults(): ModelType;
 
 	public template(): string {
 		return '<div></div>';
 	}
 
-	protected createView(): V {
+	protected createElement(): ElementType {
 		return html(this.template());
 	}
 
 	protected update() {
-		this.updateView();
-		this.onViewUpdated();
+		this.updateElement();
+		this.onElementUpdated();
 		for (const behavior of this._behaviors) {
-			behavior.onViewUpdated();
+			behavior.onElementUpdated();
 		}
 	}
 
-	protected onViewUpdated() {
+	protected onElementUpdated() {
 		// override
 	}
 
-	private initView(): void {
-		const { view, _id } = this;
+	private initElement(): void {
+		const { element: view, _id } = this;
 		view.classList.add(..._id);
-		view.setAttribute('data-component', _id[_id.length - 1]);
-		(view as unknown as HTMLElementWithMetaData).__component = this as unknown as Component;
+		view.setAttribute('data-com', _id[_id.length - 1]);
+		(view as unknown as HTMLElementWithMetaData).__feather_component = this as unknown as Component;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected onModelChanged(value: M, oldValue: M): void {
+	protected onModelChanged(value: ModelType, oldValue: ModelType): void {
 		String(value);
 		String(oldValue);
 		// override
 	}
 
-	protected updateView(): void {
+	protected updateElement(): void {
 		// override
 	}
 
@@ -104,7 +111,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		return this.model;
 	}
 
-	public set value(value: M) {
+	public set value(value: ModelType) {
 		const oldValue = this.model;
 		this.model = value;
 		this.onModelChanged(value, oldValue);
@@ -130,14 +137,15 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		type: K | keyof HTMLElementEventMap,
 		listener: EventListenerOrEventListenerObject,
 		options?: boolean | AddEventListenerOptions
-	): void;
+	): this;
 	public on(
 		type: string,
 		listener: EventListenerOrEventListenerObject,
 		options?: boolean | AddEventListenerOptions
-	): void {
+	): this {
 		this.getListeners(type).push(listener);
-		this.view.addEventListener(type, listener, options);
+		this.element.addEventListener(type, listener, options);
+		return this;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,14 +153,14 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 		type: K | keyof HTMLElementEventMap,
 		listener: EventListenerOrEventListenerObject,
 		options?: boolean | AddEventListenerOptions
-	): void;
+	): this;
 	public off(
 		type: string,
 		listener?: EventListenerOrEventListenerObject,
 		options?: boolean | EventListenerOptions
-	): void {
+	): this {
 		if (!this._listeners.has(type)) {
-			return;
+			return this;
 		}
 		const listeners = this.getListeners(type);
 		if (listener) {
@@ -164,29 +172,31 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 			if (listeners.length === 0) {
 				this._listeners.delete(type);
 			}
-			this.view.removeEventListener(type, listener, options);
+			this.element.removeEventListener(type, listener, options);
 		} else {
 			// remove all
 			for (const l of listeners) {
-				this.view.removeEventListener(type, l, options);
+				this.element.removeEventListener(type, l, options);
 			}
 			this._listeners.delete(type);
 		}
+		return this;
 	}
 
-	public dispatch<K extends string>(type: K | keyof HTMLElementEventMap, detail?: any): void {
-		this.view.dispatchEvent(
+	public dispatch<K extends string>(type: K | keyof HTMLElementEventMap, detail?: any): this {
+		this.element.dispatchEvent(
 			new CustomEvent(type, {
 				detail,
 				bubbles: true,
 				cancelable: true
 			})
 		);
+		return this;
 	}
 
 	public style(styles: Partial<CSSStyleDeclaration>) {
 		this._styles = { ...this._styles, ...styles };
-		Object.assign(this.view.style, styles);
+		Object.assign(this.element.style, styles);
 	}
 
 	public hasStyle(key: keyof CSSStyleDeclaration, value?: string) {
@@ -195,23 +205,23 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 
 	public clearStyle(key?: keyof CSSStyleDeclaration) {
 		if (key) {
-			this.view.style.removeProperty(String(key));
+			this.element.style.removeProperty(String(key));
 			delete this._styles[key];
 			return;
 		}
 		for (const key of Object.keys(this._styles)) {
-			this.view.style.removeProperty(key);
+			this.element.style.removeProperty(key);
 		}
 		this._styles = {};
 	}
 
 	public appendTo(parent: HTMLElement | Component) {
-		(parent instanceof HTMLElement ? parent : parent.view).appendChild(this.view);
+		(parent instanceof HTMLElement ? parent : parent.element).appendChild(this.element);
 	}
 
 	public hasClass<T extends string>(cssClass: T | T[]) {
 		for (const cls of asArray(cssClass)) {
-			if (this.view.classList.contains(cls)) {
+			if (this.element.classList.contains(cls)) {
 				return true;
 			}
 		}
@@ -219,7 +229,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	public addClass<T extends string>(cssClass: T | T[]) {
-		const { classList } = this.view;
+		const { classList } = this.element;
 		for (const cls of asArray(cssClass)) {
 			if (classList.contains(cls)) {
 				continue;
@@ -230,7 +240,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	public removeClass<T extends string>(cssClass: T | T[]) {
-		const { classList } = this.view;
+		const { classList } = this.element;
 		for (const cls of asArray(cssClass)) {
 			if (classList.contains(cls)) {
 				this._classes.splice(this._classes.indexOf(cls), 1);
@@ -240,7 +250,7 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 	}
 
 	public clearClasses() {
-		const { classList } = this.view;
+		const { classList } = this.element;
 		for (const cssClass of this._classes) {
 			classList.remove(cssClass);
 		}
@@ -249,13 +259,13 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 
 	public query<T extends HTMLElement>(cssSelector: string, useCache = true): T | null {
 		if (!useCache) {
-			return this.view.querySelector<T>(cssSelector);
+			return this.element.querySelector<T>(cssSelector);
 		}
 		const cacheElement = this.cache.get(cssSelector);
 		if (cacheElement) {
 			return cacheElement as T;
 		}
-		const element = this.view.querySelector<T>(cssSelector);
+		const element = this.element.querySelector<T>(cssSelector);
 		if (element) {
 			this.cache.set(cssSelector, element);
 			return element;
@@ -265,14 +275,14 @@ export abstract class Component<V extends HTMLElement = HTMLElement, M = undefin
 
 	public queryAll<T extends HTMLElement>(cssSelector: string, useCache = true): T[] {
 		if (!useCache) {
-			const nodeList = this.view.querySelectorAll<T>(cssSelector);
+			const nodeList = this.element.querySelectorAll<T>(cssSelector);
 			return nodeList.length ? [...nodeList.values()] : [];
 		}
 		const cacheElement = this.cache.get(cssSelector);
 		if (cacheElement) {
 			return cacheElement as T[];
 		}
-		const nodeList = this.view.querySelectorAll<T>(cssSelector);
+		const nodeList = this.element.querySelectorAll<T>(cssSelector);
 		if (nodeList.length) {
 			const array = [...nodeList.values()];
 			this.cache.set(cssSelector, array);

@@ -17,18 +17,18 @@ export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
 	protected abstract createItem(itemModel: IM): IV;
 
 	protected onModelChanged(): void {
-		this.view.innerHTML = '';
+		this.element.innerHTML = '';
 
 		for (const item of this.model) {
 			const listItem = this.createItem(item);
-			this.view.appendChild(listItem.view);
+			this.element.appendChild(listItem.element);
 		}
 	}
 
 	public insertItem(item: IM, index: number): void {
 		this.model.splice(index, 0, item);
 		const listItem = this.createItem(item);
-		this.view.insertBefore(listItem.view, this.view.children[index]);
+		this.element.insertBefore(listItem.element, this.element.children[index]);
 	}
 
 	public addItem(item: IM): void {
@@ -47,8 +47,8 @@ export abstract class ListItem<T> extends Component<HTMLLIElement, T> {
 		return String(this.model);
 	}
 
-	protected updateView(): void {
-		this.view.textContent = this.toString();
+	protected updateElement(): void {
+		this.element.textContent = this.toString();
 	}
 }
 

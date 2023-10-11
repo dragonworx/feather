@@ -31,25 +31,37 @@ export abstract class Behavior<
 
 	public init(component: Component): void {
 		this._component = component;
+		this.install();
+	}
+
+	protected install() {
+		// override
+	}
+	protected uninstall() {
+		// override
 	}
 
 	public dispose(): void {
+		this.uninstall();
 		this._component = null;
 		this.options = {} as T;
 		this.tag = '';
 		this.emitter.removeAllListeners();
 	}
 
-	public on(eventName: E, handler: EventEmitter.ListenerFn, context?: unknown): void {
+	public on(eventName: E, handler: EventEmitter.ListenerFn, context?: unknown): this {
 		this.emitter.on(String(eventName), handler, context);
+		return this;
 	}
 
-	public off(eventName: E, handler?: EventEmitter.ListenerFn, context?: unknown): void {
+	public off(eventName: E, handler?: EventEmitter.ListenerFn, context?: unknown): this {
 		this.emitter.off(String(eventName), handler, context);
+		return this;
 	}
 
-	public emit(eventName: E, ...args: unknown[]): void {
+	public emit(eventName: E, ...args: unknown[]): this {
 		this.emitter.emit(String(eventName), ...args);
+		return this;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,7 +71,7 @@ export abstract class Behavior<
 		// override
 	}
 
-	public onViewUpdated() {
+	public onElementUpdated() {
 		// override
 	}
 }

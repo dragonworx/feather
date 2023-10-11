@@ -8,10 +8,10 @@ export class Button extends Component<HTMLButtonElement, string> {
 	}
 
 	public template(): string {
-		return `<button></button>`;
+		return `<button type="button"></button>`;
 	}
 
-	protected updateView(): void {
-		this.view.textContent = this.model;
+	protected updateElement(): void {
+		this.element.textContent = this.model;
 	}
 }
