@@ -10,16 +10,17 @@ export abstract class Behavior<
 	public tag: string = '';
 	protected _component: Component | null = null;
 
-	constructor(options: Partial<T> = {}, tag?: string) {
+	constructor(options: Partial<T> = {}) {
 		this.options = {
 			...this.defaultOptions(),
 			...options
 		} as T;
 		this.emitter = new EventEmitter();
-		this.tag = tag ?? '';
 	}
 
-	protected abstract defaultOptions(): T;
+	protected defaultOptions(): T {
+		return {} as T;
+	}
 
 	protected get component(): Component {
 		if (!this._component) {
@@ -32,7 +33,7 @@ export abstract class Behavior<
 		this._component = component;
 	}
 
-	public destroy(): void {
+	public dispose(): void {
 		this._component = null;
 		this.options = {} as T;
 		this.tag = '';
@@ -49,5 +50,16 @@ export abstract class Behavior<
 
 	public emit(eventName: E, ...args: unknown[]): void {
 		this.emitter.emit(String(eventName), ...args);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	public onModelChanged(value: unknown, oldValue: unknown): void {
+		String(value);
+		String(oldValue);
+		// override
+	}
+
+	public onViewUpdated() {
+		// override
 	}
 }

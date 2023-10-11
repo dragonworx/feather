@@ -3,50 +3,24 @@
 	import { Checkbox } from '$lib/components/checkbox';
 	import { Button } from '$lib/components/button';
 	import { StringList } from '$lib/components/list';
-	import { Component } from '$lib/component';
-	import { Behavior } from '$lib/behavior';
+	import { RolloverBehavior } from '$lib/behaviors/rollover';
 
 	let main: HTMLElement;
 	let button = new Button('Button');
 	let checkbox = new Checkbox();
 	let list = new StringList(['test1', 'test2', 'test3']);
 
-	type MyEvent = 'foo' | 'bar' | 'hover';
-
-	class TestBehavior extends Behavior<{ text: string }, 'foo'> {
-		protected defaultOptions(): { text: string } {
-			return {
-				text: 'foo'
-			};
-		}
-
-		public init(component: Component<HTMLElement, undefined>): void {
-			component.on('click', () => {
-				component.view.innerText = this.options.text;
-				this.emit('foo', { x: 1 });
-			});
-		}
-	}
-
-	const behavior = new TestBehavior({
-		text: 'bar'
-	});
-
-	behavior.on('foo', (e) => console.log(e));
-
-	button.addBehavior(behavior, 'test');
-	console.log('!', button.behavior('test'));
-	button.removeBehavior<'test'>('test');
-
 	onMount(() => {
-		button.on('click', () => (checkbox.value = !checkbox.value));
-		list.on<MyEvent>('foo', () => {});
-		list.on('click', (e) => console.log(Component.owner(e)));
-		list.on<MyEvent>('hover', (e) => console.log(e.detail));
-
+		button.addBehavior('rollover', new RolloverBehavior());
 		button.appendTo(main);
 		checkbox.appendTo(main);
 		list.appendTo(main);
+
+		setInterval(() => {
+			console.log(button.behavior<RolloverBehavior>('rollover')?.isOver);
+		}, 1000);
+
+		(window as any).button = button;
 	});
 </script>
 
