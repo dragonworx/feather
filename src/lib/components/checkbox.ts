@@ -1,7 +1,12 @@
+import { ButtonBehavior } from '$lib/behaviors/button';
 import { Component } from '../component';
 
 export class Checkbox extends Component<HTMLInputElement, boolean> {
 	static componentId = 'checkbox';
+
+	protected init(): void {
+		this.addBehavior('button', new ButtonBehavior());
+	}
 
 	protected defaults(): boolean {
 		return false;
@@ -11,7 +16,7 @@ export class Checkbox extends Component<HTMLInputElement, boolean> {
 		return `<input type="checkbox" />`;
 	}
 
-	protected updateView(): void {
-		this.view.checked = this.model;
+	protected updateElement(): void {
+		this.element.checked = this.model;
 	}
 }

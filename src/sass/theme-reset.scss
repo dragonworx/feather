@@ -1,13 +1,22 @@
-[data-component] {
+[data-com] {
+	color: white;
+	background: #666;
 	box-sizing: border-box;
 	font-family: sans-serif;
 	font-size: 14px;
+	user-select: none;
 
+	/* Button */
 	&.button {
 		border: 1px outset #ccc;
 		border-radius: 3px;
+
+		&:hover.down {
+			background: red;
+		}
 	}
 
+	/* List */
 	&.list {
 		list-style: none;
 		margin: 0;
@@ -15,6 +24,13 @@
 
 		.list-item {
 			text-align: center;
+		}
+	}
+
+	/* Checkbox */
+	&.checkbox {
+		&.down {
+			outline: 1px solid blue;
 		}
 	}
 }

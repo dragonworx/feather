@@ -1,13 +1,23 @@
-[data-component] {
+[data-com] {
+  color: white;
+  background: #666;
   box-sizing: border-box;
   font-family: sans-serif;
-  font-size: 14px; }
-  [data-component].button {
+  font-size: 14px;
+  user-select: none;
+  /* Button */
+  /* List */
+  /* Checkbox */ }
+  [data-com].button {
     border: 1px outset #ccc;
     border-radius: 3px; }
-  [data-component].list {
+    [data-com].button:hover.down {
+      background: red; }
+  [data-com].list {
     list-style: none;
     margin: 0;
     padding: 0; }
-    [data-component].list .list-item {
+    [data-com].list .list-item {
       text-align: center; }
+  [data-com].checkbox.down {
+    outline: 1px solid blue; }
