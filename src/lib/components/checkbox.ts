@@ -8,7 +8,7 @@ export class Checkbox extends Component<HTMLInputElement, boolean> {
 		this.addBehavior('button', new ButtonBehavior());
 	}
 
-	protected defaults(): boolean {
+	protected defaultModel(): boolean {
 		return false;
 	}
 

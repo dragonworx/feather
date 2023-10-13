@@ -12,8 +12,8 @@ export abstract class Component<
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
 	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map(); // track custom event listeners internally
-	private _behaviors: Behavior[] = [];
 
+	protected _behaviors: Behavior[] = [];
 	protected model: ModelType;
 
 	public readonly element: ElementType;
@@ -21,7 +21,7 @@ export abstract class Component<
 	public readonly _uid = uniqueId();
 
 	// must be ovewritten by subclasses
-	static componentId = 'component';
+	public static componentId = 'component';
 
 	public static elementOwner(source: Event | EventTarget | null): Component | null {
 		const element = source instanceof Event ? source.target : source;
@@ -38,7 +38,7 @@ export abstract class Component<
 	constructor(model?: ModelType) {
 		this._id = collectIds(this.constructor as ComponentCtor);
 
-		this.model = model ?? this.defaults();
+		this.model = model ?? this.defaultModel();
 		this.element = this.createElement();
 
 		this.initElement();
@@ -64,7 +64,9 @@ export abstract class Component<
 		this.clearClasses();
 	}
 
-	protected abstract defaults(): ModelType;
+	protected defaultModel(): ModelType {
+		return undefined as ModelType;
+	}
 
 	public template(): string {
 		return '<div></div>';
@@ -292,21 +294,25 @@ export abstract class Component<
 		return [];
 	}
 
-	public behavior<B extends Behavior | undefined, T extends string = string>(tag: T): B {
-		return this._behaviors.find((behavior) => behavior.tag === tag) as B;
+	public get behaviors(): Behavior[] {
+		return this._behaviors;
 	}
 
-	public behaviors<B extends Behavior | undefined, T extends string = string>(tag: T): B[] {
-		return this._behaviors.filter((behavior) => behavior.tag === tag) as B[];
+	public behavior<T extends Behavior>(behaviorType: new () => T): Behavior {
+		for (const behavior of this._behaviors) {
+			if (behavior instanceof behaviorType) {
+				return behavior;
+			}
+		}
+		throw new Error('behavior not found');
 	}
 
-	public addBehavior<T extends string = string>(tag: T, behavior: Behavior) {
+	public addBehavior(behavior: Behavior) {
 		this._behaviors.push(behavior);
 		behavior.init(this.asComponent());
-		behavior.tag = tag ?? behavior.tag;
 	}
 
-	public removeBehavior<T extends string = string>(behavior: Behavior | T): Behavior {
+	public removeBehavior<T extends Behavior>(behavior: Behavior | (new () => T)): Behavior {
 		if (behavior instanceof Behavior) {
 			const { _behaviors } = this;
 			const index = _behaviors.indexOf(behavior);
@@ -317,7 +323,7 @@ export abstract class Component<
 			return behavior;
 		} else {
 			for (const b of this._behaviors) {
-				if (b.tag === behavior) {
+				if (b instanceof behavior) {
 					this.removeBehavior(b);
 					return b;
 				}

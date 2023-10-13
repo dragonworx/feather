@@ -12,13 +12,12 @@ export abstract class Behavior<
 	E extends EventEmitter.ValidEventTypes = string
 > {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	static instances: Record<string, any> = {};
+	public static instances: Record<string, any> = {};
 
 	private _component: Component | null = null;
 	protected _behaviors: Behavior[] = [];
 	protected emitter: EventEmitter = new EventEmitter();
 	public options: T;
-	public tag: string = '';
 	public readonly _uid = uniqueId();
 
 	constructor(options: Partial<T> = {}) {
@@ -32,7 +31,7 @@ export abstract class Behavior<
 		return {} as T;
 	}
 
-	protected get component(): Component {
+	public get component(): Component {
 		if (!this._component) {
 			throw new Error('Component not initialized');
 		}
@@ -55,7 +54,6 @@ export abstract class Behavior<
 		this.uninstall();
 		this._component = null;
 		this.options = {} as T;
-		this.tag = '';
 		this.emitter.removeAllListeners();
 		for (const behavior of this._behaviors) {
 			behavior.dispose();
@@ -93,20 +91,12 @@ export abstract class Behavior<
 		// override
 	}
 
-	public behavior<B extends Behavior | undefined, T extends string = string>(tag: T): B {
-		return this._behaviors.find((behavior) => behavior.tag === tag) as B;
-	}
-
-	public behaviors<B extends Behavior | undefined, T extends string = string>(tag: T): B[] {
-		return this._behaviors.filter((behavior) => behavior.tag === tag) as B[];
-	}
-
-	public addBehavior<T extends string = string>(tag: T, behavior: Behavior) {
+	public addBehavior(behavior: Behavior) {
 		this._behaviors.push(behavior);
-		return this.component.addBehavior(tag, behavior);
+		return this.component.addBehavior(behavior);
 	}
 
-	public removeBehavior<T extends string = string>(behavior: Behavior | T) {
+	public removeBehavior<T extends Behavior>(behavior: Behavior | (new () => T)): Behavior {
 		const b = this.component.removeBehavior(behavior);
 		if (b) {
 			this._behaviors.splice(this._behaviors.indexOf(b), 1);
