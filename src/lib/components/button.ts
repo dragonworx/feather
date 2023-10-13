@@ -18,7 +18,7 @@ export class Button extends Component<HTMLButtonElement, string> {
 	}
 
 	protected init() {
-		this.addBehavior('button', new ButtonBehavior());
-		this.addBehavior('context', new ContextMenuBehavior());
+		this.addBehavior(new ButtonBehavior());
+		this.addBehavior(new ContextMenuBehavior());
 	}
 }
