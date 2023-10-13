@@ -1,5 +1,5 @@
 import { ButtonBehavior } from '$lib/behaviors/button';
-import { RightClickBehavior } from '$lib/behaviors/rightClick';
+import { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
 import { Component } from '../component';
 
 export class Button extends Component<HTMLButtonElement, string> {
@@ -19,6 +19,6 @@ export class Button extends Component<HTMLButtonElement, string> {
 
 	protected init() {
 		this.addBehavior('button', new ButtonBehavior());
-		this.addBehavior('rightClick', new RightClickBehavior());
+		this.addBehavior('context', new ContextMenuBehavior());
 	}
 }

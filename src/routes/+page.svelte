@@ -4,6 +4,8 @@
 	import { Button } from '$lib/components/button';
 	import { StringList } from '$lib/components/list';
 	import type { ButtonBehavior } from '$lib/behaviors/button';
+	import { DragBehavior } from '$lib/behaviors/drag';
+	import type { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
 
 	console.clear();
 
@@ -23,32 +25,18 @@
 			.on('down', () => console.log('down'))
 			.on('up', () => console.log('up'))
 			.on('upOutside', () => console.log('upOutside'));
-
+		button2.addBehavior('drag', new DragBehavior());
+		button2
+			.behavior<DragBehavior>('drag')
+			.on('start', () => console.log('start'))
+			.on('move', (e) => console.log('move', e))
+			.on('end', (e) => console.log('end', e));
+		button2.behavior<ContextMenuBehavior>('context').on('context', (e) => {
+			console.log('RightClick', e);
+		});
 		(window as any).button1 = button1;
 		(window as any).button2 = button2;
 	});
-
-	// class SingletonBase {
-	// 	static instances: Record<string, any> = {};
-
-	// 	constructor() {
-	// 		const className = this.constructor.name;
-	// 		if (SingletonBase.instances[className]) {
-	// 			return SingletonBase.instances[className];
-	// 		}
-	// 		console.log('!');
-	// 		SingletonBase.instances[className] = this;
-	// 	}
-	// }
-
-	// class MySubClass extends SingletonBase {
-	// 	// Subclass logic here
-	// }
-
-	// const instance1 = new MySubClass();
-	// const instance2 = new MySubClass();
-
-	// console.log(instance1 === instance2); // Should print true
 </script>
 
 <main bind:this={main} />
