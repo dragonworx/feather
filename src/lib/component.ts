@@ -306,7 +306,7 @@ export abstract class Component<
 		behavior.tag = tag ?? behavior.tag;
 	}
 
-	public removeBehavior<T extends string = string>(behavior: Behavior | T) {
+	public removeBehavior<T extends string = string>(behavior: Behavior | T): Behavior {
 		if (behavior instanceof Behavior) {
 			const { _behaviors } = this;
 			const index = _behaviors.indexOf(behavior);
@@ -314,13 +314,15 @@ export abstract class Component<
 				behavior.dispose();
 				this._behaviors.splice(index, 1);
 			}
+			return behavior;
 		} else {
 			for (const b of this._behaviors) {
 				if (b.tag === behavior) {
 					this.removeBehavior(b);
-					break;
+					return b;
 				}
 			}
 		}
+		throw new Error('behavior not found');
 	}
 }

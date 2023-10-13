@@ -52,7 +52,7 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 		window.addEventListener('mouseup', this.onMouseUp);
 		this.component.addClass(css.down);
 		this.emit('down');
-	}) as EventListenerOrEventListenerObject;
+	}) as EventListener;
 
 	protected onMouseUp = (e: MouseEvent) => {
 		this._isDown = false;
