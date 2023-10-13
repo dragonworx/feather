@@ -6,7 +6,7 @@ export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
 > {
 	static componentId = 'list';
 
-	protected defaults(): IM[] {
+	protected defaultModel(): IM[] {
 		return [];
 	}
 
@@ -55,7 +55,7 @@ export abstract class ListItem<T> extends Component<HTMLLIElement, T> {
 export class StringListItem extends ListItem<string> {
 	static componentId = 'string-list-item';
 
-	protected defaults(): string {
+	protected defaultModel(): string {
 		return '';
 	}
 

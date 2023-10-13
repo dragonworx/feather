@@ -3,9 +3,9 @@
 	import { Checkbox } from '$lib/components/checkbox';
 	import { Button } from '$lib/components/button';
 	import { StringList } from '$lib/components/list';
-	import type { ButtonBehavior } from '$lib/behaviors/button';
+	import { ButtonBehavior } from '$lib/behaviors/button';
 	import { DragBehavior } from '$lib/behaviors/drag';
-	import type { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
+	import { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
 
 	console.clear();
 
@@ -21,17 +21,17 @@
 		checkbox.appendTo(main);
 		list.appendTo(main);
 		button1
-			.behavior<ButtonBehavior>('button')
+			.behavior(ButtonBehavior)
 			.on('down', () => console.log('down'))
 			.on('up', () => console.log('up'))
 			.on('upOutside', () => console.log('upOutside'));
-		button2.addBehavior('drag', new DragBehavior());
+		button2.addBehavior(new DragBehavior());
 		button2
-			.behavior<DragBehavior>('drag')
+			.behavior(DragBehavior)
 			.on('start', () => console.log('start'))
 			.on('move', (e) => console.log('move', e))
 			.on('end', (e) => console.log('end', e));
-		button2.behavior<ContextMenuBehavior>('context').on('context', (e) => {
+		button2.behavior(ContextMenuBehavior).on('context', (e) => {
 			console.log('RightClick', e);
 		});
 		(window as any).button1 = button1;
