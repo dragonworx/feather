@@ -5,7 +5,7 @@ export class Checkbox extends Component<HTMLInputElement, boolean> {
 	static componentId = 'checkbox';
 
 	protected init(): void {
-		this.addBehavior('button', new ButtonBehavior());
+		this.addBehavior(new ButtonBehavior());
 	}
 
 	protected defaultModel(): boolean {
