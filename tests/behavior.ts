@@ -9,7 +9,7 @@ class TestBehavior extends Behavior {
 
 class TestComponent extends Component {
 	getBehaviors() {
-		return this._behaviors;
+		return this.behaviors;
 	}
 }
 

@@ -4,6 +4,12 @@ import { Behavior } from './behavior';
 import { asArray, html, uniqueId } from './util';
 import { Cache } from './cache';
 
+interface CustomEventListener {
+	(evt: CustomEvent): void;
+}
+
+type EventHandler = EventListenerOrEventListenerObject | CustomEventListener;
+
 export abstract class Component<
 	ElementType extends HTMLElement = HTMLElement,
 	ModelType = undefined
@@ -11,9 +17,9 @@ export abstract class Component<
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
-	private _listeners: Map<string, EventListenerOrEventListenerObject[]> = new Map(); // track custom event listeners internally
+	private _listeners: Map<string, EventHandler[]> = new Map(); // track custom event listeners internally
 
-	protected _behaviors: Behavior[] = [];
+	protected behaviors: Behavior[] = [];
 	protected model: ModelType;
 
 	public readonly element: ElementType;
@@ -48,13 +54,13 @@ export abstract class Component<
 	}
 
 	public dispose() {
-		for (const behavior of this._behaviors) {
+		for (const behavior of this.behaviors) {
 			behavior.dispose();
 		}
-		this._behaviors.length = 0;
+		this.behaviors.length = 0;
 		for (const [k, v] of this._listeners.entries()) {
 			for (const listener of v) {
-				this.element.removeEventListener(k, listener);
+				this.element.removeEventListener(k, listener as EventListenerOrEventListenerObject);
 			}
 		}
 		this._listeners.clear();
@@ -79,7 +85,7 @@ export abstract class Component<
 	protected update() {
 		this.updateElement();
 		this.onElementUpdated();
-		for (const behavior of this._behaviors) {
+		for (const behavior of this.behaviors) {
 			behavior.onElementUpdated();
 		}
 	}
@@ -118,7 +124,7 @@ export abstract class Component<
 		const oldValue = this.model;
 		this.model = value;
 		this.onModelChanged(value, oldValue);
-		for (const behavior of this._behaviors) {
+		for (const behavior of this.behaviors) {
 			behavior.onModelChanged(value, oldValue);
 		}
 		this.update();
@@ -138,28 +144,28 @@ export abstract class Component<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public on<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: EventListenerOrEventListenerObject,
+		listener: EventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this;
 	public on(
 		type: string,
-		listener: EventListenerOrEventListenerObject,
+		listener: EventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this {
 		this.getListeners(type).push(listener);
-		this.element.addEventListener(type, listener, options);
+		this.element.addEventListener(type, listener as EventListenerOrEventListenerObject, options);
 		return this;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public off<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: EventListenerOrEventListenerObject,
+		listener: EventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this;
 	public off(
 		type: string,
-		listener?: EventListenerOrEventListenerObject,
+		listener?: EventHandler,
 		options?: boolean | EventListenerOptions
 	): this {
 		if (!this._listeners.has(type)) {
@@ -175,11 +181,15 @@ export abstract class Component<
 			if (listeners.length === 0) {
 				this._listeners.delete(type);
 			}
-			this.element.removeEventListener(type, listener, options);
+			this.element.removeEventListener(
+				type,
+				listener as EventListenerOrEventListenerObject,
+				options
+			);
 		} else {
 			// remove all
 			for (const l of listeners) {
-				this.element.removeEventListener(type, l, options);
+				this.element.removeEventListener(type, l as EventListenerOrEventListenerObject, options);
 			}
 			this._listeners.delete(type);
 		}
@@ -218,8 +228,17 @@ export abstract class Component<
 		this._styles = {};
 	}
 
-	public appendTo(parent: HTMLElement | Component) {
+	public mount(parent: HTMLElement | Component) {
+		// todo: fire this.onBeforeMount + behaviors.onBeforeMount
 		(parent instanceof HTMLElement ? parent : parent.element).appendChild(this.element);
+	}
+
+	public unmount(dispose = true) {
+		// todo: onBeforeUnMount? How can a behavior intercept and cancel removing element to manage by self (eg: animation/transition)
+		this.element.remove();
+		if (dispose) {
+			this.dispose();
+		}
 	}
 
 	public hasClass<T extends string>(cssClass: T | T[]) {
@@ -294,35 +313,22 @@ export abstract class Component<
 		return [];
 	}
 
-	public get behaviors(): Behavior[] {
-		return this._behaviors;
-	}
-
-	public behavior<T extends Behavior>(behaviorType: new () => T): Behavior {
-		for (const behavior of this._behaviors) {
-			if (behavior instanceof behaviorType) {
-				return behavior;
-			}
-		}
-		throw new Error('behavior not found');
-	}
-
 	public addBehavior(behavior: Behavior) {
-		this._behaviors.push(behavior);
+		this.behaviors.push(behavior);
 		behavior.init(this.asComponent());
 	}
 
 	public removeBehavior<T extends Behavior>(behavior: Behavior | (new () => T)): Behavior {
 		if (behavior instanceof Behavior) {
-			const { _behaviors } = this;
+			const { behaviors: _behaviors } = this;
 			const index = _behaviors.indexOf(behavior);
 			if (index > -1) {
 				behavior.dispose();
-				this._behaviors.splice(index, 1);
+				this.behaviors.splice(index, 1);
 			}
 			return behavior;
 		} else {
-			for (const b of this._behaviors) {
+			for (const b of this.behaviors) {
 				if (b instanceof behavior) {
 					this.removeBehavior(b);
 					return b;
