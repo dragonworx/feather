@@ -3,9 +3,13 @@
 	import { Checkbox } from '$lib/components/checkbox';
 	import { Button } from '$lib/components/button';
 	import { StringList } from '$lib/components/list';
-	import { ButtonBehavior } from '$lib/behaviors/button';
-	import { DragBehavior } from '$lib/behaviors/drag';
-	import { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
+	import type { ButtonBehaviorEvents } from '$lib/behaviors/button';
+	import type { ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
+	import {
+		DragBehavior,
+		type DragBehaviorEvent,
+		type DragBehaviorEvents
+	} from '$lib/behaviors/drag';
 
 	console.clear();
 
@@ -16,24 +20,31 @@
 	let list = new StringList(['test1', 'test2', 'test3']);
 
 	onMount(() => {
-		button1.appendTo(main);
-		button2.appendTo(main);
-		checkbox.appendTo(main);
-		list.appendTo(main);
+		// mount components
+		button1.mount(main);
+		button2.mount(main);
+		checkbox.mount(main);
+		list.mount(main);
+
+		// attach to internal behavior events (requires documentation)
 		button1
-			.behavior(ButtonBehavior)
-			.on('down', () => console.log('down'))
+			.on<ButtonBehaviorEvents>('down', () => console.log('down'))
 			.on('up', () => console.log('up'))
 			.on('upOutside', () => console.log('upOutside'));
+
+		// add additional behavior
 		button2.addBehavior(new DragBehavior());
 		button2
-			.behavior(DragBehavior)
-			.on('start', () => console.log('start'))
-			.on('move', (e) => console.log('move', e))
-			.on('end', (e) => console.log('end', e));
-		button2.behavior(ContextMenuBehavior).on('context', (e) => {
+			.on<DragBehaviorEvents>('start', (e: CustomEvent<DragBehaviorEvent>) =>
+				console.log('start', e.detail)
+			)
+			.on('move', (e: CustomEvent<DragBehaviorEvent>) => console.log('move', e.detail))
+			.on('end', (e: CustomEvent<DragBehaviorEvent>) => console.log('end', e));
+		button2.on<ContextMenuBehaviorEvents>('context', (e: CustomEvent<DragBehaviorEvent>) => {
 			console.log('RightClick', e);
 		});
+
+		// debug
 		(window as any).button1 = button1;
 		(window as any).button2 = button2;
 	});

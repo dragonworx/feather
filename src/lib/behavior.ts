@@ -1,22 +1,12 @@
-import EventEmitter from 'eventemitter3';
 import type { Component } from './component';
 import { uniqueId } from './util';
 
-export interface BehaviorEvent<T = unknown> {
-	behavior: Behavior;
-	data?: T;
-}
-
-export abstract class Behavior<
-	T extends object = object,
-	E extends EventEmitter.ValidEventTypes = string
-> {
+export abstract class Behavior<T extends object = object, E extends string = string> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public static instances: Record<string, any> = {};
 
 	private _component: Component | null = null;
 	protected _behaviors: Behavior[] = [];
-	protected emitter: EventEmitter = new EventEmitter();
 	public options: T;
 	public readonly _uid = uniqueId();
 
@@ -54,29 +44,14 @@ export abstract class Behavior<
 		this.uninstall();
 		this._component = null;
 		this.options = {} as T;
-		this.emitter.removeAllListeners();
 		for (const behavior of this._behaviors) {
 			behavior.dispose();
 		}
 		this._behaviors.length = 0;
 	}
 
-	public on(eventName: E, handler: EventEmitter.ListenerFn, context?: unknown): this {
-		this.emitter.on(String(eventName), handler, context);
-		return this;
-	}
-
-	public off(eventName: E, handler?: EventEmitter.ListenerFn, context?: unknown): this {
-		this.emitter.off(String(eventName), handler, context);
-		return this;
-	}
-
-	public emit(eventName: E, data?: unknown): this {
-		const event: BehaviorEvent = {
-			behavior: this as unknown as Behavior,
-			data
-		};
-		this.emitter.emit(String(eventName), event);
+	protected emit(eventName: E, detail?: unknown): this {
+		this.component.emit(eventName, detail);
 		return this;
 	}
 
