@@ -1,17 +1,4 @@
-import { Behavior } from '$lib/behavior';
-import { Component } from '$lib/component';
-
-class TestBehavior extends Behavior {
-	getBehaviors() {
-		return this._behaviors;
-	}
-}
-
-class TestComponent extends Component {
-	getBehaviors() {
-		return this.behaviors;
-	}
-}
+import { TestComponent, TestBehavior } from './helpers';
 
 describe('Behavior', () => {
 	it('should add sub-behavior to component', () => {

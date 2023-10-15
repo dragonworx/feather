@@ -8,7 +8,9 @@ interface CustomEventListener {
 	(evt: CustomEvent): void;
 }
 
-type EventHandler = EventListenerOrEventListenerObject | CustomEventListener;
+export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
+
+export type ComponentEvent = 'elementUpdated' | 'modelUpdated';
 
 export abstract class Component<
 	ElementType extends HTMLElement = HTMLElement,
@@ -17,7 +19,7 @@ export abstract class Component<
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
-	private _listeners: Map<string, EventHandler[]> = new Map(); // track custom event listeners internally
+	private _listeners: Map<string, ComponentEventHandler[]> = new Map(); // track custom event listeners internally
 
 	protected behaviors: Behavior[] = [];
 	protected model: ModelType;
@@ -85,9 +87,7 @@ export abstract class Component<
 	protected update() {
 		this.updateElement();
 		this.onElementUpdated();
-		for (const behavior of this.behaviors) {
-			behavior.onElementUpdated();
-		}
+		this.emit<ComponentEvent>('elementUpdated');
 	}
 
 	protected onElementUpdated() {
@@ -124,9 +124,7 @@ export abstract class Component<
 		const oldValue = this.model;
 		this.model = value;
 		this.onModelChanged(value, oldValue);
-		for (const behavior of this.behaviors) {
-			behavior.onModelChanged(value, oldValue);
-		}
+		this.emit<ComponentEvent>('modelUpdated', { value, oldValue });
 		this.update();
 	}
 
@@ -144,12 +142,12 @@ export abstract class Component<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public on<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: EventHandler,
+		listener: ComponentEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this;
 	public on(
 		type: string,
-		listener: EventHandler,
+		listener: ComponentEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this {
 		this.getListeners(type).push(listener);
@@ -160,12 +158,12 @@ export abstract class Component<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public off<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: EventHandler,
+		listener: ComponentEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this;
 	public off(
 		type: string,
-		listener?: EventHandler,
+		listener?: ComponentEventHandler,
 		options?: boolean | EventListenerOptions
 	): this {
 		if (!this._listeners.has(type)) {

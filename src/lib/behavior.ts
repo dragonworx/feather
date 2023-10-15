@@ -1,4 +1,4 @@
-import type { Component } from './component';
+import type { ComponentEvent, Component, ComponentEventHandler } from './component';
 import { uniqueId } from './util';
 
 export abstract class Behavior<T extends object = object, E extends string = string> {
@@ -30,17 +30,15 @@ export abstract class Behavior<T extends object = object, E extends string = str
 
 	public init(component: Component): void {
 		this._component = component;
+		component.on<ComponentEvent>('modelUpdated', this.onModelChanged);
+		component.on<ComponentEvent>('elementUpdated', this.onElementUpdated);
 		this.install();
 	}
 
-	protected install() {
-		// override
-	}
-	protected uninstall() {
-		// override
-	}
-
 	public dispose(): void {
+		const { component } = this;
+		component.off<ComponentEvent>('modelUpdated', this.onModelChanged);
+		component.off<ComponentEvent>('elementUpdated', this.onElementUpdated);
 		this.uninstall();
 		this._component = null;
 		this.options = {} as T;
@@ -50,21 +48,28 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		this._behaviors.length = 0;
 	}
 
+	protected install() {
+		// override
+	}
+	protected uninstall() {
+		// override
+	}
+
 	protected emit(eventName: E, detail?: unknown): this {
 		this.component.emit(eventName, detail);
 		return this;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	public onModelChanged(value: unknown, oldValue: unknown): void {
+	public onModelChanged = ((value: unknown, oldValue: unknown): void => {
 		String(value);
 		String(oldValue);
 		// override
-	}
+	}) as ComponentEventHandler;
 
-	public onElementUpdated() {
+	protected onElementUpdated = () => {
 		// override
-	}
+	};
 
 	public addBehavior(behavior: Behavior) {
 		this._behaviors.push(behavior);
