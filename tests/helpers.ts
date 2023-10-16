@@ -7,6 +7,8 @@ export class TestBehavior extends Behavior {
 	}
 }
 
+export type TestComponentEvent = 'testEvent';
+
 export class TestComponent extends Component<HTMLDivElement, string> {
 	getBehaviors() {
 		return this.behaviors;
@@ -17,6 +19,15 @@ export class TestComponent extends Component<HTMLDivElement, string> {
 	}
 
 	public template(): string {
-		return '<div><b>Test</b></div>';
+		return '<test-component><b>Test</b></test-component>';
+	}
+
+	public emitTestEvent(detail?: unknown) {
+		this.emit<TestComponentEvent>('testEvent', detail);
+	}
+
+	public addChild(child: TestComponent) {
+		this.children.push(child);
+		this.element.appendChild(child.element);
 	}
 }

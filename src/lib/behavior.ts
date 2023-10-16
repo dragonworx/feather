@@ -76,11 +76,12 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		return this.component.addBehavior(behavior);
 	}
 
-	public removeBehavior<T extends Behavior>(behavior: Behavior | (new () => T)): Behavior {
+	public removeBehavior(behavior: Behavior): Behavior {
 		const b = this.component.removeBehavior(behavior);
-		if (b) {
-			this._behaviors.splice(this._behaviors.indexOf(b), 1);
+		if (!this._behaviors.includes(b)) {
+			throw new Error('Behavior not found');
 		}
+		this._behaviors.splice(this._behaviors.indexOf(b), 1);
 		return b;
 	}
 }

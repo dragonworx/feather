@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Behavior } from './behavior';
 import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
-import { Behavior } from './behavior';
 import { asArray, html, uniqueId } from './util';
-import { Cache } from './cache';
 
 interface CustomEventListener {
 	(evt: CustomEvent): void;
@@ -10,7 +9,8 @@ interface CustomEventListener {
 
 export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
 
-export type ComponentEvent = 'elementUpdated' | 'modelUpdated';
+export type ComponentEvent = 'elementUpdated' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removedFromParent'
+;
 
 export abstract class Component<
 	ElementType extends HTMLElement = HTMLElement,
@@ -23,13 +23,15 @@ export abstract class Component<
 
 	protected behaviors: Behavior[] = [];
 	protected model: ModelType;
+	protected readonly children: Component<HTMLElement, unknown>[] = [];
 
 	public readonly element: ElementType;
-	public readonly cache: Cache<string, any> = new Cache();
 	public readonly _uid = uniqueId();
 
-	// must be ovewritten by subclasses
+	// must be overwritten by subclasses
 	public static componentId = 'component';
+	
+	public static dataAttribute = 'data-com';
 
 	public static elementOwner(source: Event | EventTarget | null): Component | null {
 		const element = source instanceof Event ? source.target : source;
@@ -97,7 +99,7 @@ export abstract class Component<
 	private initElement(): void {
 		const { element: view, _id } = this;
 		view.classList.add(..._id);
-		view.setAttribute('data-com', _id[_id.length - 1]);
+		view.setAttribute(Component.dataAttribute, _id[_id.length - 1]);
 		(view as unknown as HTMLElementWithMetaData).__feather_component = this as unknown as Component;
 	}
 
@@ -132,7 +134,7 @@ export abstract class Component<
 		return this as unknown as Component;
 	}
 
-	private getListeners(type: string) {
+	private listenersForType(type: string) {
 		if (!this._listeners.has(type)) {
 			this._listeners.set(type, []);
 		}
@@ -150,7 +152,7 @@ export abstract class Component<
 		listener: ComponentEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this {
-		this.getListeners(type).push(listener);
+		this.listenersForType(type).push(listener);
 		this.element.addEventListener(type, listener as EventListenerOrEventListenerObject, options);
 		return this;
 	}
@@ -158,7 +160,7 @@ export abstract class Component<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public off<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: ComponentEventHandler,
+		listener?: ComponentEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this;
 	public off(
@@ -169,7 +171,7 @@ export abstract class Component<
 		if (!this._listeners.has(type)) {
 			return this;
 		}
-		const listeners = this.getListeners(type);
+		const listeners = this.listenersForType(type);
 		if (listener) {
 			// remove listener
 			const index = listeners.indexOf(listener);
@@ -205,6 +207,10 @@ export abstract class Component<
 		return this;
 	}
 
+	public getEventListeners<K extends string>(type: K | keyof HTMLElementEventMap) {
+		return this._listeners.get(type) ?? [];
+	}
+
 	public style(styles: Partial<CSSStyleDeclaration>) {
 		this._styles = { ...this._styles, ...styles };
 		Object.assign(this.element.style, styles);
@@ -228,15 +234,31 @@ export abstract class Component<
 
 	public mount(parent: HTMLElement | Component) {
 		// todo: fire this.onBeforeMount + behaviors.onBeforeMount
+		this.onBeforeMount();
+		this.emit<ComponentEvent>('beforeMount');
 		(parent instanceof HTMLElement ? parent : parent.element).appendChild(this.element);
 	}
 
 	public unmount(dispose = true) {
-		// todo: onBeforeUnMount? How can a behavior intercept and cancel removing element to manage by self (eg: animation/transition)
+		this.onBeforeUnMount();
+		this.emit<ComponentEvent>('beforeUnmount');
+		// todo: allow behaviors to prevent element from being removed so they can do it async?
 		this.element.remove();
 		if (dispose) {
 			this.dispose();
 		}
+	}
+
+	public get isMounted() {
+		return this.element.parentElement !== null;
+	}
+
+	protected onBeforeMount() {
+		// override
+	}
+
+	protected onBeforeUnMount() {
+		// override
 	}
 
 	public hasClass<T extends string>(cssClass: T | T[]) {
@@ -277,38 +299,12 @@ export abstract class Component<
 		this._classes.length = 0;
 	}
 
-	public query<T extends HTMLElement>(cssSelector: string, useCache = true): T | null {
-		if (!useCache) {
-			return this.element.querySelector<T>(cssSelector);
-		}
-		const cacheElement = this.cache.get(cssSelector);
-		if (cacheElement) {
-			return cacheElement as T;
-		}
-		const element = this.element.querySelector<T>(cssSelector);
-		if (element) {
-			this.cache.set(cssSelector, element);
-			return element;
-		}
-		return null;
+	public querySelector<T extends HTMLElement>(cssSelector: string): T | null {
+		return this.element.querySelector<T>(cssSelector);
 	}
 
-	public queryAll<T extends HTMLElement>(cssSelector: string, useCache = true): T[] {
-		if (!useCache) {
-			const nodeList = this.element.querySelectorAll<T>(cssSelector);
-			return nodeList.length ? [...nodeList.values()] : [];
-		}
-		const cacheElement = this.cache.get(cssSelector);
-		if (cacheElement) {
-			return cacheElement as T[];
-		}
-		const nodeList = this.element.querySelectorAll<T>(cssSelector);
-		if (nodeList.length) {
-			const array = [...nodeList.values()];
-			this.cache.set(cssSelector, array);
-			return array;
-		}
-		return [];
+	public querySelectorAll<T extends HTMLElement>(cssSelector: string): T[] {
+		return [...this.element.querySelectorAll<T>(cssSelector).values()];
 	}
 
 	public addBehavior(behavior: Behavior) {
@@ -316,23 +312,36 @@ export abstract class Component<
 		behavior.init(this.asComponent());
 	}
 
-	public removeBehavior<T extends Behavior>(behavior: Behavior | (new () => T)): Behavior {
-		if (behavior instanceof Behavior) {
-			const { behaviors: _behaviors } = this;
-			const index = _behaviors.indexOf(behavior);
-			if (index > -1) {
-				behavior.dispose();
-				this.behaviors.splice(index, 1);
-			}
-			return behavior;
+	public removeBehavior(behavior: Behavior): Behavior {
+		const { behaviors: _behaviors } = this;
+		const index = _behaviors.indexOf(behavior);
+		if (index > -1) {
+			behavior.dispose();
+			this.behaviors.splice(index, 1);
 		} else {
-			for (const b of this.behaviors) {
-				if (b instanceof behavior) {
-					this.removeBehavior(b);
-					return b;
-				}
-			}
+			throw new Error('behavior not found');
 		}
-		throw new Error('behavior not found');
+		return behavior;
+	}
+
+	public addChild(child: Component<HTMLElement, unknown>) {
+		this.children.push(child);
+		this.appendChildElement(child.element);
+		child.emit<ComponentEvent>('addedToParent', this.asComponent());
+	}
+
+	protected appendChildElement(element: HTMLElement) {
+		this.element.appendChild(element);
+	}
+
+	public removeChild(child: Component<HTMLElement, unknown>) {
+		const index = this.children.indexOf(child);
+		if (index > -1) {
+			this.children.splice(index, 1);
+			child.element.remove();
+			child.emit<ComponentEvent>('removedFromParent', this.asComponent());
+		} else {
+			throw new Error('child not found');
+		}
 	}
 }

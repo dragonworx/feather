@@ -14,7 +14,8 @@
 		"format": "prettier --plugin-search-dir . --write .",
 		"css": "node-sass src/sass -o src/css",
 		"css:watch": "node-sass src/sass -o src/css --watch",
-		"test": "jest"
+		"test": "jest",
+		"test:watch": "jest --watch"
 	},
 	"exports": {
 		".": {
