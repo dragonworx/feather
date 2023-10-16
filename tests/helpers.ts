@@ -7,7 +7,7 @@ export class TestBehavior extends Behavior {
 	}
 }
 
-export type TestComponentEvent = 'testEvent';
+export type TestComponentEvent = 'testEvent' | 'appendChildElement';
 
 export class TestComponent extends Component<HTMLDivElement, string> {
 	getBehaviors() {
@@ -26,8 +26,8 @@ export class TestComponent extends Component<HTMLDivElement, string> {
 		this.emit<TestComponentEvent>('testEvent', detail);
 	}
 
-	public addChild(child: TestComponent) {
-		this.children.push(child);
-		this.element.appendChild(child.element);
+	protected appendChildElement(element: HTMLElement) {
+		this.querySelector('b')!.appendChild(element);
+		this.emit<TestComponentEvent>('appendChildElement', element);
 	}
 }

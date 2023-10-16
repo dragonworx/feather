@@ -9,7 +9,7 @@ interface CustomEventListener {
 
 export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
 
-export type ComponentEvent = 'elementUpdated' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removedFromParent'
+export type ComponentEvent = 'elementUpdated' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent'
 ;
 
 export abstract class Component<
@@ -58,19 +58,26 @@ export abstract class Component<
 	}
 
 	public dispose() {
+		// clean up behaviors
 		for (const behavior of this.behaviors) {
 			behavior.dispose();
 		}
 		this.behaviors.length = 0;
+
+		// clean up listeners
 		for (const [k, v] of this._listeners.entries()) {
 			for (const listener of v) {
 				this.element.removeEventListener(k, listener as EventListenerOrEventListenerObject);
 			}
 		}
 		this._listeners.clear();
+
+		// clean up styles
 		for (const key of Object.keys(this._styles)) {
 			this.clearStyle(key as keyof CSSStyleDeclaration);
 		}
+
+		// clean up classes
 		this.clearClasses();
 	}
 
@@ -97,10 +104,11 @@ export abstract class Component<
 	}
 
 	private initElement(): void {
-		const { element: view, _id } = this;
-		view.classList.add(..._id);
-		view.setAttribute(Component.dataAttribute, _id[_id.length - 1]);
-		(view as unknown as HTMLElementWithMetaData).__feather_component = this as unknown as Component;
+		const { element, _id } = this;
+		element.classList.add(..._id);
+		element.setAttribute(Component.dataAttribute, _id[_id.length - 1]);
+		element.setAttribute(`${Component.dataAttribute}-id`, this._uid);
+		(element as unknown as HTMLElementWithMetaData).__feather_component = this as unknown as Component;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -331,17 +339,22 @@ export abstract class Component<
 	}
 
 	protected appendChildElement(element: HTMLElement) {
+		// override in subclass for more specific child element targetting
 		this.element.appendChild(element);
 	}
 
 	public removeChild(child: Component<HTMLElement, unknown>) {
 		const index = this.children.indexOf(child);
 		if (index > -1) {
+			child.emit<ComponentEvent>('removingFromParent', this.asComponent());
 			this.children.splice(index, 1);
 			child.element.remove();
-			child.emit<ComponentEvent>('removedFromParent', this.asComponent());
 		} else {
 			throw new Error('child not found');
 		}
+	}
+
+	public getChildren() {
+		return [...this.children];
 	}
 }
