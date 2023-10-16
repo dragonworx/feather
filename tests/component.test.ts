@@ -1,4 +1,4 @@
-import type { ComponentEvent } from '$lib/component';
+import { Component, type ComponentEvent } from '../src/lib/component';
 import { TestComponent, type TestComponentEvent } from './helpers';
 
 describe('Component', () => {
@@ -45,10 +45,15 @@ describe('Component', () => {
 			const component = new TestComponent();
 			expect(component.querySelectorAll('b').length).toBe(1);
 		});
+
+		it('should detect element owner', () => {
+			const component = new TestComponent();
+			expect(Component.elementOwner(component.element)).toBe(component);
+		});
 	});
 
 	describe('Mounting', () => {
-		
+		// todo: test dispose
 	});
 
 	describe('Events', () => {
@@ -93,22 +98,49 @@ describe('Component', () => {
 				done();
 			});
 			component2.emitTestEvent('component2');
-		})
+		});
+
+		// todo: test dispose cleans up listeners
 	});
 
 	describe('Hierarchy', () => {
+		it('should call appendToElement when added to parent', () => {
+			const component1 = new TestComponent();
+			const component2 = new TestComponent();
+			component1.on<TestComponentEvent>('appendChildElement', (e: CustomEvent<HTMLElement>) => {
+				expect(e.detail).toBe(component2.element);
+			});
+			component1.addChild(component2);
+		});
+		
+		it('should contain added children in both component and element', () => {
+			const component1 = new TestComponent();
+			const component2 = new TestComponent();
+			component1.addChild(component2);
+			expect(component1.getChildren()).toEqual([component2]);
+			expect(component1.element.children).toHaveLength(1);
+			expect(component1.querySelector('b test-component')).toEqual(component2.element);
+		});
 
+		it('should remove added children from both component and element', () => {
+			const component1 = new TestComponent();
+			const component2 = new TestComponent();
+			component1.addChild(component2);
+			component1.removeChild(component2);
+			expect(component1.getChildren()).toEqual([]);
+			expect(component1.querySelector('b test-component')).toBeNull();
+		});
 	});
 
 	describe('CSS Style', () => {
-
+		// todo: test dispose cleans up styles
 	});
 
 	describe('CSS Classes', () => {
-		
+		// todo: test dispose cleans up classes
 	});
 
 	describe('Behaviors', () => {
-
+		// todo: test dispose cleans up behaviors
 	});
 });
