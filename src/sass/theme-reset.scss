@@ -7,6 +7,10 @@
 	background: red;
 }
 
+@mixin control_toggled {
+	background: green;
+}
+
 [data-com] {
 	@include control;
 	box-sizing: border-box;
@@ -21,6 +25,10 @@
 
 		&:hover.down {
 			@include control_down;
+		}
+
+		&.toggled {
+			@include control_toggled;
 		}
 	}
 
