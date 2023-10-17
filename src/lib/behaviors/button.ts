@@ -8,9 +8,11 @@ export enum ButtonFlag {
 
 export interface ButtonBehaviorOptions {
 	buttons: ButtonFlag;
+	isToggle: boolean;
+	isToggled: boolean;
 }
 
-export type ButtonBehaviorEvents = 'down' | 'up' | 'upOutside';
+export type ButtonBehaviorEvents = 'down' | 'up' | 'upOutside' | 'toggle';
 
 const css = {
 	down: 'down'
@@ -22,10 +24,13 @@ function checkFlag(flag: number, mode: ButtonFlag): boolean {
 
 export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehaviorEvents> {
 	private _isDown = false;
+	private _isToggled = false;
 
 	protected defaultOptions(): ButtonBehaviorOptions {
 		return {
-			buttons: ButtonFlag.Left
+			buttons: ButtonFlag.Left,
+			isToggle: true,
+			isToggled: false,
 		};
 	}
 
@@ -36,6 +41,10 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 	public install(): void {
 		const { component } = this;
 		component.on('mousedown', this.onMouseDown);
+		this._isToggled = this.options.isToggled;
+		if (this.options.isToggle && this._isToggled) {
+			this.component.addClass('toggled');
+		}
 	}
 
 	public uninstall(): void {
@@ -52,6 +61,15 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 		window.addEventListener('mouseup', this.onMouseUp);
 		this.component.addClass(css.down);
 		this.emit('down');
+		if (this.options.isToggle) {
+			this._isToggled = !this._isToggled;
+			if (this._isToggled) {
+				this.component.addClass('toggled');
+			} else {
+				this.component.removeClass('toggled');
+			}
+			this.emit('toggle', this._isToggled);
+		}
 	}) as EventListener;
 
 	protected onMouseUp = (e: MouseEvent) => {
