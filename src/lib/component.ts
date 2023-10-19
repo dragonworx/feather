@@ -9,12 +9,11 @@ interface CustomEventListener {
 
 export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
 
-export type ComponentEvent = 'elementUpdated' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent'
-;
+export type ComponentEvent = 'rendered' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
 
 export abstract class Component<
 	ElementType extends HTMLElement = HTMLElement,
-	ModelType = undefined
+	ModelType extends object = object,
 > {
 	private _id: string[];
 	private _styles: Partial<CSSStyleDeclaration> = {};
@@ -23,8 +22,8 @@ export abstract class Component<
 
 	protected behaviors: Behavior[] = [];
 	protected model: ModelType;
-	protected readonly children: Component<HTMLElement, unknown>[] = [];
-
+	protected readonly children: Component<HTMLElement, object>[] = [];
+	
 	public readonly element: ElementType;
 	public readonly _uid = uniqueId();
 
@@ -45,16 +44,18 @@ export abstract class Component<
 		return null;
 	}
 
-	constructor(model?: ModelType) {
+	constructor(model?: Partial<ModelType>) {
 		this._id = collectIds(this.constructor as ComponentCtor);
-
-		this.model = model ?? this.defaultModel();
+		this.model = {
+			...this.defaultModel(),
+			...model,
+		};
 		this.element = this.createElement();
 
 		this.initElement();
 		this.init();
 
-		this.value = this.model;
+		this.set(this.model);
 	}
 
 	public dispose() {
@@ -81,8 +82,8 @@ export abstract class Component<
 		this.clearClasses();
 	}
 
-	protected defaultModel(): ModelType {
-		return undefined as ModelType;
+	public defaultModel(): ModelType {
+		return {} as ModelType;
 	}
 
 	public template(): string {
@@ -94,12 +95,12 @@ export abstract class Component<
 	}
 
 	protected update() {
-		this.updateElement();
-		this.onElementUpdated();
-		this.emit<ComponentEvent>('elementUpdated');
+		this.render();
+		this.onRendered();
+		this.emit<ComponentEvent>('rendered');
 	}
 
-	protected onElementUpdated() {
+	protected onRendered() {
 		// override
 	}
 
@@ -112,13 +113,13 @@ export abstract class Component<
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected onModelChanged(value: ModelType, oldValue: ModelType): void {
+	protected onModelChanged(value: Partial<ModelType>, oldValue: Partial<ModelType>): void {
 		String(value);
 		String(oldValue);
 		// override
 	}
 
-	protected updateElement(): void {
+	protected render(): void {
 		// override
 	}
 
@@ -126,13 +127,20 @@ export abstract class Component<
 		// override
 	}
 
-	public get value() {
-		return this.model;
+	public get<K extends keyof ModelType>(key: K): ModelType[K] {
+		return this.model[key];
 	}
 
-	public set value(value: ModelType) {
-		const oldValue = this.model;
-		this.model = value;
+	public set(value: Partial<ModelType>) {
+		// get old values from value keys
+		const oldValue = Object.keys(value).reduce((acc, key) => {
+			acc[key as keyof ModelType] = this.model[key as keyof ModelType];
+			return acc;
+		}, {} as Partial<ModelType>);
+		this.model = {
+			...this.model,
+			...value
+		};
 		this.onModelChanged(value, oldValue);
 		this.emit<ComponentEvent>('modelUpdated', { value, oldValue });
 		this.update();
@@ -278,6 +286,14 @@ export abstract class Component<
 		return false;
 	}
 
+	public setClassIf<T extends string>(cssClass: T | T[], conditional: boolean) {
+		if (conditional) {
+			this.addClass(cssClass);
+		} else {
+			this.removeClass(cssClass);
+		}
+	}
+
 	public addClass<T extends string>(cssClass: T | T[]) {
 		const { classList } = this.element;
 		for (const cls of asArray(cssClass)) {
@@ -307,8 +323,8 @@ export abstract class Component<
 		this._classes.length = 0;
 	}
 
-	public querySelector<T extends HTMLElement>(cssSelector: string): T | null {
-		return this.element.querySelector<T>(cssSelector);
+	public querySelector<T extends HTMLElement>(cssSelector: string): T {
+		return this.element.querySelector<T>(cssSelector) as T;
 	}
 
 	public querySelectorAll<T extends HTMLElement>(cssSelector: string): T[] {
@@ -332,7 +348,7 @@ export abstract class Component<
 		return behavior;
 	}
 
-	public addChild(child: Component<HTMLElement, unknown>) {
+	public addChild(child: Component<HTMLElement, object>) {
 		this.children.push(child);
 		this.appendChildElement(child.element);
 		child.emit<ComponentEvent>('addedToParent', this.asComponent());
@@ -343,7 +359,7 @@ export abstract class Component<
 		this.element.appendChild(element);
 	}
 
-	public removeChild(child: Component<HTMLElement, unknown>) {
+	public removeChild(child: Component<HTMLElement, object>) {
 		const index = this.children.indexOf(child);
 		if (index > -1) {
 			child.emit<ComponentEvent>('removingFromParent', this.asComponent());

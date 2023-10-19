@@ -36,7 +36,7 @@ export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
 	}
 }
 
-export abstract class ListItem<T> extends Component<HTMLLIElement, T> {
+export abstract class ListItem<T extends object> extends Component<HTMLLIElement, T> {
 	static componentId = 'list-item';
 
 	public template(): string {
@@ -47,7 +47,7 @@ export abstract class ListItem<T> extends Component<HTMLLIElement, T> {
 		return String(this.model);
 	}
 
-	protected updateElement(): void {
+	protected render(): void {
 		this.element.textContent = this.toString();
 	}
 }

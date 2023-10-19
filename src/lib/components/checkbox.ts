@@ -1,22 +1,30 @@
 import { ButtonBehavior } from '$lib/behaviors/button';
 import { Component } from '../component';
 
-export class Checkbox extends Component<HTMLInputElement, boolean> {
+export interface CheckboxModel {
+	label: string;
+	isChecked: boolean;
+}
+
+export class Checkbox extends Component<HTMLInputElement, CheckboxModel> {
 	static componentId = 'checkbox';
 
 	protected init(): void {
 		this.addBehavior(new ButtonBehavior());
 	}
 
-	protected defaultModel(): boolean {
-		return false;
+	protected defaultModel(): CheckboxModel {
+		return {
+			label: '',
+			isChecked: false,
+		};
 	}
 
 	public template(): string {
 		return `<input type="checkbox" />`;
 	}
 
-	protected updateElement(): void {
-		this.element.checked = this.model;
+	protected render(): void {
+		this.element.checked = this.model.isChecked;
 	}
 }

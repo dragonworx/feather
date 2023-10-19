@@ -9,13 +9,21 @@ export class TestBehavior extends Behavior {
 
 export type TestComponentEvent = 'testEvent' | 'appendChildElement';
 
-export class TestComponent extends Component<HTMLDivElement, string> {
+export interface TestComponentModel {
+	foo: string;
+	bar: number;
+}
+
+export class TestComponent extends Component<HTMLDivElement, TestComponentModel> {
 	getBehaviors() {
 		return this.behaviors;
 	}
 
-	protected defaultModel(): string {
-		return 'default';
+	public defaultModel(): TestComponentModel {
+		return {
+			foo: 'default',
+			bar: 0
+		}
 	}
 
 	public template(): string {

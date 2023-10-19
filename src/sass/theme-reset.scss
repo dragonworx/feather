@@ -22,6 +22,7 @@
 	&.button {
 		border: 1px outset #ccc;
 		border-radius: 3px;
+		width: 50px;
 
 		&:hover.down {
 			@include control_down;
@@ -47,6 +48,27 @@
 	&.checkbox {
 		&.down {
 			outline: 1px solid blue;
+		}
+	}
+
+	&.flow-layout {
+		display: flex;
+		outline: 1px solid red;
+
+		&.horizontal {
+			width: 100%;
+			flex-direction: row;
+			flex-wrap: wrap;
+			justify-content: start;
+			align-items: start;
+		}
+
+		&.vertical {
+			height: 100%;
+			flex-direction: column;
+			flex-wrap: wrap;
+			justify-content: start;
+			align-items: start;
 		}
 	}
 }

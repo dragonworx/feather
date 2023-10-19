@@ -5,18 +5,21 @@ describe('Component', () => {
 	describe('Model', () => {
 		it('should initialise with default model if none passed', () => {
 			const component = new TestComponent();
-			expect(component.value).toBe('default');
+			expect(component.get('foo')).toBe(component.defaultModel().foo);
+			expect(component.get('bar')).toBe(component.defaultModel().bar);
 		});
 
 		it('should initialise with a given model', () => {
-			const component = new TestComponent('foo');
-			expect(component.value).toBe('foo');
+			const component = new TestComponent({ foo: 'bar', bar: 5 });
+			expect(component.get('foo')).toBe('bar');
+			expect(component.get('bar')).toBe(5);
 		});
 
-		it('should update model when given new value', () => {
+		it('should update model when given new partial value', () => {
 			const component = new TestComponent();
-			component.value = 'bar';
-			expect(component.value).toBe('bar');
+			component.set({ foo: 'bar' });
+			expect(component.get('foo')).toBe('bar');
+			expect(component.get('bar')).toBe(component.defaultModel().bar);
 		});
 
 		it('should fire event when new value given', (done) => {
@@ -26,7 +29,7 @@ describe('Component', () => {
 				expect(e.detail.oldValue).toBe('default');
 				done();
 			});
-			component.value = 'bar';
+			component.set({ foo: 'bar' });
 		});
 	});
 
