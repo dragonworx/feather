@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Behavior } from './behavior';
-import { collectIds, type ComponentCtor, type HTMLElementWithMetaData } from './const';
 import { asArray, html, uniqueId } from './util';
 
 interface CustomEventListener {
@@ -10,6 +9,29 @@ interface CustomEventListener {
 export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
 
 export type ComponentEvent = 'rendered' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
+
+const attributePrefix = 'fx';
+const metaPrefix = `${attributePrefix}-component`;
+
+export type ComponentCtor = {
+	new (...args: unknown[]): Component;
+	componentId: string;
+	descriptor: ComponentDescriptor<object>;
+	owner: () => HTMLElementWithMetaData;
+};
+
+export type HTMLElementWithMetaData = HTMLElement & { [metaPrefix]: Component };
+
+export interface ComponentTemplate<ModelType> {
+	model: ModelType;
+	html: string;
+}
+
+export type ComponentDescriptor<ModelType extends object> = {
+	id: string;
+	model: ModelType;
+	html: string;
+}
 
 export abstract class Component<
 	ElementType extends HTMLElement = HTMLElement,
@@ -27,34 +49,51 @@ export abstract class Component<
 	public readonly element: ElementType;
 	public readonly _uid = uniqueId();
 
-	// must be overwritten by subclasses
+	public static descriptor: ComponentDescriptor<object> = {
+		id: 'component',
+		model: {},
+		html: '',
+	}
+
+	// must be overwritten by subclasses!
 	public static componentId = 'component';
-	
-	public static dataAttribute = 'data-com';
 
 	public static elementOwner(source: Event | EventTarget | null): Component | null {
 		const element = source instanceof Event ? source.target : source;
 		if (
 			element &&
-			'__feather_component' in element &&
-			element.__feather_component instanceof Component
+			metaPrefix in element &&
+			element[metaPrefix] instanceof Component
 		) {
-			return element.__feather_component;
+			return element[metaPrefix];
 		}
 		return null;
 	}
 
 	constructor(model?: Partial<ModelType>) {
 		this._id = collectIds(this.constructor as ComponentCtor);
+		const descriptors = getDescriptors(this.constructor as ComponentCtor);
+		debugger
+
+		// get template
+		const template = this.template;
+
+		// init model
 		this.model = {
-			...this.defaultModel(),
+			...template.model,
 			...model,
 		};
-		this.element = this.createElement();
 
-		this.initElement();
+		// create element and initialise it
+		const element = this.element = html(template.html);
+		element.classList.add(...this._id.map(id => `${attributePrefix}-${id}`));
+		element.setAttribute(`${attributePrefix}-id`, this._uid);
+		(element as unknown as HTMLElementWithMetaData)[metaPrefix] = this as unknown as Component;
+
+		// call init for subclasses
 		this.init();
 
+		// run one full update cycle to update the element
 		this.set(this.model);
 	}
 
@@ -82,17 +121,10 @@ export abstract class Component<
 		this.clearClasses();
 	}
 
-	public defaultModel(): ModelType {
-		return {} as ModelType;
-	}
-
-	public template(): string {
-		return '<div></div>';
-	}
-
-	protected createElement(): ElementType {
-		return html(this.template());
-	}
+	public template: ComponentTemplate<ModelType> = {
+		model: {} as ModelType,
+		html: '',
+	};
 
 	protected update() {
 		this.render();
@@ -102,14 +134,6 @@ export abstract class Component<
 
 	protected onRendered() {
 		// override
-	}
-
-	private initElement(): void {
-		const { element, _id } = this;
-		element.classList.add(..._id);
-		element.setAttribute(Component.dataAttribute, _id[_id.length - 1]);
-		element.setAttribute(`${Component.dataAttribute}-id`, this._uid);
-		(element as unknown as HTMLElementWithMetaData).__feather_component = this as unknown as Component;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -373,4 +397,54 @@ export abstract class Component<
 	public getChildren() {
 		return [...this.children];
 	}
+}
+
+export function collectIds<T extends ComponentCtor>(ctor: T): string[] {
+	const ids: string[] = [];
+	let currentCtor: ComponentCtor = ctor;
+
+	while (currentCtor) {
+		if (currentCtor.componentId) {
+			ids.unshift(currentCtor.componentId);
+		}
+
+		const newCtor = Object.getPrototypeOf(currentCtor);
+
+		if ((currentCtor as unknown) === Component) {
+			break;
+		}
+
+		if (newCtor.id === currentCtor.componentId) {
+			throw new Error(`${currentCtor.name} is missing static "id" property`);
+		}
+
+		currentCtor = newCtor;
+	}
+
+	return ids;
+}
+
+export function getDescriptors<T extends ComponentCtor>(ctor: T): ComponentDescriptor<object>[] {
+	const descriptors: ComponentDescriptor<object>[] = [];
+	let currentCtor: ComponentCtor = ctor;
+
+	while (currentCtor) {
+		if (currentCtor.descriptor) {
+			descriptors.unshift(currentCtor.descriptor);
+		}
+
+		const newCtor = Object.getPrototypeOf(currentCtor) as ComponentCtor;
+
+		if ((currentCtor as unknown) === Component) {
+			break;
+		}
+
+		if (newCtor.descriptor.id === currentCtor.descriptor.id) {
+			throw new Error(`${currentCtor.name} is missing unique descriptor "id" property`);
+		}
+
+		currentCtor = newCtor;
+	}
+
+	return descriptors;
 }

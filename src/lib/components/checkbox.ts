@@ -1,5 +1,5 @@
 import { ButtonBehavior } from '$lib/behaviors/button';
-import { Component } from '../component';
+import { Component, type ComponentDescriptor, type ComponentTemplate } from '../component';
 
 export interface CheckboxModel {
 	label: string;
@@ -7,21 +7,27 @@ export interface CheckboxModel {
 }
 
 export class Checkbox extends Component<HTMLInputElement, CheckboxModel> {
-	static componentId = 'checkbox';
+	static descriptor: ComponentDescriptor<CheckboxModel> = {
+		id: 'button',
+		model: {
+			label: '',
+			isChecked: false,
+		},
+		html: '<input type="checkbox" />',
+	}
+
+	public static componentId = 'checkbox';
+
+	public template: ComponentTemplate<CheckboxModel> = {
+		model: {
+			label: '',
+			isChecked: false,
+		},
+		html: '<input type="checkbox" />',
+	}
 
 	protected init(): void {
 		this.addBehavior(new ButtonBehavior());
-	}
-
-	protected defaultModel(): CheckboxModel {
-		return {
-			label: '',
-			isChecked: false,
-		};
-	}
-
-	public template(): string {
-		return `<input type="checkbox" />`;
 	}
 
 	protected render(): void {
