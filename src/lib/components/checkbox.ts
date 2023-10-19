@@ -8,7 +8,7 @@ export interface CheckboxModel {
 
 export class Checkbox extends Component<HTMLInputElement, CheckboxModel> {
 	static descriptor: ComponentDescriptor<CheckboxModel> = {
-		id: 'component',
+		id: 'checkbox',
 		model: {
 			label: '',
 			isChecked: false,

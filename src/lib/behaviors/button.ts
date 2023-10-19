@@ -14,7 +14,7 @@ export interface ButtonBehaviorOptions {
 
 export type ButtonBehaviorEvents = 'down' | 'up' | 'upOutside' | 'toggle';
 
-const css = {
+const _css = {
 	down: 'down'
 };
 
@@ -59,7 +59,7 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 
 		this._isDown = true;
 		window.addEventListener('mouseup', this.onMouseUp);
-		this.component.addClass(css.down);
+		this.component.addClass(_css.down);
 		this.emit('down');
 		if (this.options.isToggle) {
 			this._isToggled = !this._isToggled;
@@ -75,8 +75,8 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 	protected onMouseUp = (e: MouseEvent) => {
 		this._isDown = false;
 		window.removeEventListener('mouseup', this.onMouseUp);
-		this.component.removeClass(css.down);
-		if (e.target === this.component.element) {
+		this.component.removeClass(_css.down);
+		if (e.target === this.element) {
 			this.emit('up');
 		} else {
 			this.emit('upOutside');
