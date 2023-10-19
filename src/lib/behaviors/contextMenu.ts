@@ -21,7 +21,7 @@ export class ContextMenuBehavior extends Behavior<
 
 		document.addEventListener('contextmenu', (e) => {
 			for (const listener of ContextMenuBehavior.listeners) {
-				if (listener.component.element === e.target) {
+				if (listener.element === e.target) {
 					e.preventDefault();
 					listener.onContext(e);
 				}

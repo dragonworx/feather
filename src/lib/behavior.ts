@@ -28,6 +28,10 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		return this._component;
 	}
 
+	public get element(): HTMLElement {
+		return this.component.element;
+	}
+
 	public init(component: Component): void {
 		this._component = component;
 		component.on<ComponentEvent>('modelUpdated', this.onModelChanged);

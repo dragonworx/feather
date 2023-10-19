@@ -30,10 +30,10 @@
 		button2.mount(main);
 		checkbox.mount(main);
 		// list.mount(main);
-		// for (let i = 0; i < 50; i++) {
-		// 	const debug = new Debug({ label: `${i}` });
-		// 	flowLayout.addChild(debug);
-		// }
+		for (let i = 0; i < 5; i++) {
+			const debug = new Debug({ label: `${i}` });
+			debug.mount(main);
+		}
 		// attach to internal behavior events (requires documentation)
 		// button1
 		// 	.on<ButtonBehaviorEvents>('down', () => console.log('down'))

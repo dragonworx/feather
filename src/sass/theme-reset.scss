@@ -18,6 +18,14 @@
 	font-size: 14px;
 	user-select: none;
 
+	/* Debug */
+	&.fx-debug {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		outline: 1px dotted white;
+	}
+
 	/* Button */
 	&.fx-button {
 		border: 1px outset #ccc;

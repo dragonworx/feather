@@ -33,9 +33,9 @@ export abstract class Component<
 	ModelType extends object = object,
 > {
 	private _id: string;
-	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
 	private _listeners: Map<string, ComponentEventHandler[]> = new Map(); // track custom event listeners internally
+	private _behaviorsById: Map<string, Behavior> = new Map();
 
 	protected behaviors: Behavior[] = [];
 	protected model: ModelType;
@@ -106,10 +106,7 @@ export abstract class Component<
 		}
 		this._listeners.clear();
 
-		// clean up styles
-		for (const key of Object.keys(this._styles)) {
-			this.clearStyle(key as keyof CSSStyleDeclaration);
-		}
+	
 
 		// clean up classes
 		this.clearClasses();
@@ -240,27 +237,6 @@ export abstract class Component<
 		return this._listeners.get(type) ?? [];
 	}
 
-	public style(styles: Partial<CSSStyleDeclaration>) {
-		this._styles = { ...this._styles, ...styles };
-		Object.assign(this.element.style, styles);
-	}
-
-	public hasStyle(key: keyof CSSStyleDeclaration, value?: string) {
-		return key in this._styles && (value === undefined || this._styles[key] === value);
-	}
-
-	public clearStyle(key?: keyof CSSStyleDeclaration) {
-		if (key) {
-			this.element.style.removeProperty(String(key));
-			delete this._styles[key];
-			return;
-		}
-		for (const key of Object.keys(this._styles)) {
-			this.element.style.removeProperty(key);
-		}
-		this._styles = {};
-	}
-
 	public mount(parent: HTMLElement | Component) {
 		// todo: fire this.onBeforeMount + behaviors.onBeforeMount
 		this.onBeforeMount();
@@ -344,8 +320,15 @@ export abstract class Component<
 		return [...this.element.querySelectorAll<T>(cssSelector).values()];
 	}
 
-	public addBehavior(behavior: Behavior) {
+	public behavior<T extends Behavior>(id: string) {
+		return this._behaviorsById.get(id) as unknown as T;
+	}
+
+	public addBehavior(behavior: Behavior, id?: string) {
 		this.behaviors.push(behavior);
+		if (id) {
+			this._behaviorsById.set(id, behavior);
+		}
 		behavior.init(this.asComponent());
 	}
 
