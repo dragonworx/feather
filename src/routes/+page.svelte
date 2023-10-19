@@ -3,7 +3,6 @@
 	import { Checkbox } from '$lib/components/checkbox';
 	import { Button } from '$lib/components/button';
 	import { StringList } from '$lib/components/list';
-	import { FlowLayout } from '$lib/components/layout/flow';
 	import { Debug } from '$lib/components/debug';
 	import type { ButtonBehaviorEvents } from '$lib/behaviors/button';
 	import type { ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
@@ -15,50 +14,31 @@
 
 	console.clear();
 
-	class Foo {
-		public fooMethod() {
-			console.log('fooMethod!');
-		}
-
-		private _fooMethod() {
-			console.log('_fooMethod!');
-		}
-	}
-
-	const foo = new Foo();
-
-	(window as any).foo = foo;
-	console.log(foo);
-
 	let main: HTMLElement;
-	// let button1 = new Button({ label: 'Button' });
-	// let button2 = new Button({ label: 'Button' });
-	// let checkbox = new Checkbox();
+	let button1 = new Button({ label: 'Button' });
+	let button2 = new Button({ label: 'Button' });
+	let checkbox = new Checkbox();
 	// let list = new StringList(['test1', 'test2', 'test3']);
-	let flowLayout = new FlowLayout();
 
 	onMount(() => {
 		// mount components
-		flowLayout.mount(main);
 		// flowLayout.addChild(button1);
 		// flowLayout.addChild(button2);
 		// flowLayout.addChild(checkbox);
 		// flowLayout.addChild(list);
-		// button1.mount(main);
-		// button2.mount(main);
-		// checkbox.mount(main);
+		button1.mount(main);
+		button2.mount(main);
+		checkbox.mount(main);
 		// list.mount(main);
-		for (let i = 0; i < 50; i++) {
-			const debug = new Debug({ label: `${i}` });
-			flowLayout.addChild(debug);
-		}
-
+		// for (let i = 0; i < 50; i++) {
+		// 	const debug = new Debug({ label: `${i}` });
+		// 	flowLayout.addChild(debug);
+		// }
 		// attach to internal behavior events (requires documentation)
 		// button1
 		// 	.on<ButtonBehaviorEvents>('down', () => console.log('down'))
 		// 	.on('up', () => console.log('up'))
 		// 	.on('upOutside', () => console.log('upOutside'));
-
 		// // add additional behavior
 		// button2.addBehavior(new DragBehavior());
 		// button2
@@ -73,7 +53,9 @@
 	});
 </script>
 
-<main bind:this={main} />
+<main>
+	<div bind:this={main} />
+</main>
 
 <style>
 	main {

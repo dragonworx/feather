@@ -1,4 +1,4 @@
-[data-com] {
+.fx-component {
   color: white;
   background: #666;
   box-sizing: border-box;
@@ -8,34 +8,19 @@
   /* Button */
   /* List */
   /* Checkbox */ }
-  [data-com].button {
+  .fx-component.fx-button {
     border: 1px outset #ccc;
     border-radius: 3px;
     width: 50px; }
-    [data-com].button:hover.down {
+    .fx-component.fx-button:hover.down {
       background: red; }
-    [data-com].button.toggled {
+    .fx-component.fx-button.toggled {
       background: green; }
-  [data-com].list {
+  .fx-component.fx-list {
     list-style: none;
     margin: 0;
     padding: 0; }
-    [data-com].list .list-item {
+    .fx-component.fx-list .list-item {
       text-align: center; }
-  [data-com].checkbox.down {
+  .fx-component.fx-checkbox.down {
     outline: 1px solid blue; }
-  [data-com].flow-layout {
-    display: flex;
-    outline: 1px solid red; }
-    [data-com].flow-layout.horizontal {
-      width: 100%;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: start;
-      align-items: start; }
-    [data-com].flow-layout.vertical {
-      height: 100%;
-      flex-direction: column;
-      flex-wrap: wrap;
-      justify-content: start;
-      align-items: start; }

@@ -11,7 +11,7 @@
 	background: green;
 }
 
-[data-com] {
+.fx-component {
 	@include control;
 	box-sizing: border-box;
 	font-family: sans-serif;
@@ -19,7 +19,7 @@
 	user-select: none;
 
 	/* Button */
-	&.button {
+	&.fx-button {
 		border: 1px outset #ccc;
 		border-radius: 3px;
 		width: 50px;
@@ -34,7 +34,7 @@
 	}
 
 	/* List */
-	&.list {
+	&.fx-list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -45,30 +45,9 @@
 	}
 
 	/* Checkbox */
-	&.checkbox {
+	&.fx-checkbox {
 		&.down {
 			outline: 1px solid blue;
-		}
-	}
-
-	&.flow-layout {
-		display: flex;
-		outline: 1px solid red;
-
-		&.horizontal {
-			width: 100%;
-			flex-direction: row;
-			flex-wrap: wrap;
-			justify-content: start;
-			align-items: start;
-		}
-
-		&.vertical {
-			height: 100%;
-			flex-direction: column;
-			flex-wrap: wrap;
-			justify-content: start;
-			align-items: start;
 		}
 	}
 }

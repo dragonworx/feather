@@ -19,5 +19,5 @@ export function asArray<T>(value: T | T[]) {
 let _id = 0;
 
 export function uniqueId() {
-	return `#${++_id}`;
+	return `${++_id}`;
 }
