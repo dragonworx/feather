@@ -31,14 +31,14 @@ export abstract class Behavior<T extends object = object, E extends string = str
 	public init(component: Component): void {
 		this._component = component;
 		component.on<ComponentEvent>('modelUpdated', this.onModelChanged);
-		component.on<ComponentEvent>('elementUpdated', this.onElementUpdated);
+		component.on<ComponentEvent>('rendered', this.onRendered);
 		this.install();
 	}
 
 	public dispose(): void {
 		const { component } = this;
 		component.off<ComponentEvent>('modelUpdated', this.onModelChanged);
-		component.off<ComponentEvent>('elementUpdated', this.onElementUpdated);
+		component.off<ComponentEvent>('rendered', this.onRendered);
 		this.uninstall();
 		this._component = null;
 		this.options = {} as T;
@@ -67,7 +67,7 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		// override
 	}) as ComponentEventHandler;
 
-	protected onElementUpdated = () => {
+	protected onRendered = () => {
 		// override
 	};
 

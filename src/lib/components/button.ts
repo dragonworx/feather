@@ -2,19 +2,25 @@ import { ButtonBehavior } from '$lib/behaviors/button';
 import { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
 import { Component } from '../component';
 
-export class Button extends Component<HTMLButtonElement, string> {
+export interface ButtonModel {
+	label: string;
+}
+
+export class Button extends Component<HTMLButtonElement, ButtonModel> {
 	static componentId = 'button';
 
-	protected defaultModel(): string {
-		return '';
+	protected defaultModel(): ButtonModel {
+		return {
+			label: '',
+		};
 	}
 
 	public template(): string {
 		return `<button type="button"></button>`;
 	}
 
-	protected updateElement(): void {
-		this.element.textContent = this.model;
+	protected render(): void {
+		this.element.textContent = this.model.label
 	}
 
 	protected init() {
