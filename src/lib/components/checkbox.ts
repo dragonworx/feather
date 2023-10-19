@@ -1,5 +1,5 @@
 import { ButtonBehavior } from '$lib/behaviors/button';
-import { Component, type ComponentDescriptor, type ComponentTemplate } from '../component';
+import { Component, type ComponentDescriptor } from '../component';
 
 export interface CheckboxModel {
 	label: string;
@@ -8,17 +8,7 @@ export interface CheckboxModel {
 
 export class Checkbox extends Component<HTMLInputElement, CheckboxModel> {
 	static descriptor: ComponentDescriptor<CheckboxModel> = {
-		id: 'button',
-		model: {
-			label: '',
-			isChecked: false,
-		},
-		html: '<input type="checkbox" />',
-	}
-
-	public static componentId = 'checkbox';
-
-	public template: ComponentTemplate<CheckboxModel> = {
+		id: 'component',
 		model: {
 			label: '',
 			isChecked: false,

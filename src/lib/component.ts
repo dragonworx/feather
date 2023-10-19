@@ -10,8 +10,8 @@ export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomE
 
 export type ComponentEvent = 'rendered' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
 
-const attributePrefix = 'fx';
-const metaPrefix = `${attributePrefix}-component`;
+const _attributePrefix = 'fx';
+const _metaPrefix = `${_attributePrefix}-component`;
 
 export type ComponentCtor = {
 	new (...args: unknown[]): Component;
@@ -20,14 +20,9 @@ export type ComponentCtor = {
 	owner: () => HTMLElementWithMetaData;
 };
 
-export type HTMLElementWithMetaData = HTMLElement & { [metaPrefix]: Component };
+export type HTMLElementWithMetaData = HTMLElement & { [_metaPrefix]: Component };
 
-export interface ComponentTemplate<ModelType> {
-	model: ModelType;
-	html: string;
-}
-
-export type ComponentDescriptor<ModelType extends object> = {
+export type ComponentDescriptor<ModelType extends object = object> = {
 	id: string;
 	model: ModelType;
 	html: string;
@@ -37,7 +32,7 @@ export abstract class Component<
 	ElementType extends HTMLElement = HTMLElement,
 	ModelType extends object = object,
 > {
-	private _id: string[];
+	private _id: string;
 	private _styles: Partial<CSSStyleDeclaration> = {};
 	private _classes: string[] = [];
 	private _listeners: Map<string, ComponentEventHandler[]> = new Map(); // track custom event listeners internally
@@ -49,7 +44,7 @@ export abstract class Component<
 	public readonly element: ElementType;
 	public readonly _uid = uniqueId();
 
-	public static descriptor: ComponentDescriptor<object> = {
+	public static descriptor: ComponentDescriptor = {
 		id: 'component',
 		model: {},
 		html: '',
@@ -62,33 +57,32 @@ export abstract class Component<
 		const element = source instanceof Event ? source.target : source;
 		if (
 			element &&
-			metaPrefix in element &&
-			element[metaPrefix] instanceof Component
+			_metaPrefix in element &&
+			element[_metaPrefix] instanceof Component
 		) {
-			return element[metaPrefix];
+			return element[_metaPrefix];
 		}
 		return null;
 	}
 
 	constructor(model?: Partial<ModelType>) {
-		this._id = collectIds(this.constructor as ComponentCtor);
 		const descriptors = getDescriptors(this.constructor as ComponentCtor);
-		debugger
 
 		// get template
-		const template = this.template;
+		const descriptor = descriptors[descriptors.length - 1] as ComponentDescriptor<ModelType>;
+		this._id = descriptor.id;
 
 		// init model
 		this.model = {
-			...template.model,
+			...descriptor.model,
 			...model,
 		};
 
 		// create element and initialise it
-		const element = this.element = html(template.html);
-		element.classList.add(...this._id.map(id => `${attributePrefix}-${id}`));
-		element.setAttribute(`${attributePrefix}-id`, this._uid);
-		(element as unknown as HTMLElementWithMetaData)[metaPrefix] = this as unknown as Component;
+		const element = this.element = html(descriptor.html);
+		element.classList.add(...descriptors.map(descriptor => `${_attributePrefix}-${descriptor.id}`));
+		element.setAttribute(`${_attributePrefix}-id`, this._uid);
+		(element as unknown as HTMLElementWithMetaData)[_metaPrefix] = this as unknown as Component;
 
 		// call init for subclasses
 		this.init();
@@ -120,11 +114,6 @@ export abstract class Component<
 		// clean up classes
 		this.clearClasses();
 	}
-
-	public template: ComponentTemplate<ModelType> = {
-		model: {} as ModelType,
-		html: '',
-	};
 
 	protected update() {
 		this.render();
@@ -399,35 +388,11 @@ export abstract class Component<
 	}
 }
 
-export function collectIds<T extends ComponentCtor>(ctor: T): string[] {
-	const ids: string[] = [];
-	let currentCtor: ComponentCtor = ctor;
-
-	while (currentCtor) {
-		if (currentCtor.componentId) {
-			ids.unshift(currentCtor.componentId);
-		}
-
-		const newCtor = Object.getPrototypeOf(currentCtor);
-
-		if ((currentCtor as unknown) === Component) {
-			break;
-		}
-
-		if (newCtor.id === currentCtor.componentId) {
-			throw new Error(`${currentCtor.name} is missing static "id" property`);
-		}
-
-		currentCtor = newCtor;
-	}
-
-	return ids;
-}
-
 export function getDescriptors<T extends ComponentCtor>(ctor: T): ComponentDescriptor<object>[] {
 	const descriptors: ComponentDescriptor<object>[] = [];
 	let currentCtor: ComponentCtor = ctor;
 
+	// walk up prototype chain and collect descriptors
 	while (currentCtor) {
 		if (currentCtor.descriptor) {
 			descriptors.unshift(currentCtor.descriptor);
@@ -439,11 +404,17 @@ export function getDescriptors<T extends ComponentCtor>(ctor: T): ComponentDescr
 			break;
 		}
 
-		if (newCtor.descriptor.id === currentCtor.descriptor.id) {
-			throw new Error(`${currentCtor.name} is missing unique descriptor "id" property`);
-		}
-
 		currentCtor = newCtor;
+	}
+
+	// check that all descriptors in array have unique ids
+	const ids = new Set<string>();
+
+	for (const descriptor of descriptors) {
+		if (ids.has(descriptor.id)) {
+			throw new Error(`duplicate component descriptor id '${descriptor.id}'`);
+		}
+		ids.add(descriptor.id);
 	}
 
 	return descriptors;

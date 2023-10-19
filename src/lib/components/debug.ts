@@ -1,4 +1,4 @@
-import { Component } from '../component';
+import { Component, type ComponentDescriptor } from '../component';
 
 export interface DebugComponentModel {
     label: string;
@@ -8,20 +8,16 @@ export interface DebugComponentModel {
 }
 
 export class Debug extends Component<HTMLDivElement, DebugComponentModel> {
-    public static componentId = 'debug';
 
-    public defaultModel(): DebugComponentModel
-    {
-        return {
+    public static descriptor: ComponentDescriptor<DebugComponentModel> = {
+        id: 'debug',
+        model: {
             label: '',
             color: 'red',
             width: 100,
             height: 100
-        }
-    }
-
-    public template(): string {
-        return `<div><span/></div>`;
+        },
+        html: '<div><span/></div>'
     }
 
     public render(): void {
