@@ -1,6 +1,6 @@
 /* Panel */
 /* Button */
-.fx-component {
+.ctl-control {
   color: white;
   background: #666;
   box-sizing: border-box;
@@ -11,61 +11,61 @@
   /* Button */
   /* List */
   /* Checkbox */ }
-  .fx-component.fx-debug {
+  .ctl-control.ctl-debug {
     display: flex;
     justify-content: center;
     align-items: center;
     outline: 1px dotted white; }
-  .fx-component.fx-button {
+  .ctl-control.ctl-button {
     border: 1px outset #ccc;
     border-radius: 3px;
     width: 50px; }
-    .fx-component.fx-button:hover.down {
+    .ctl-control.ctl-button:hover.down {
       background: red; }
-    .fx-component.fx-button.toggled {
+    .ctl-control.ctl-button.toggled {
       background: green; }
-  .fx-component.fx-list {
+  .ctl-control.ctl-list {
     list-style: none;
     margin: 0;
     padding: 0; }
-    .fx-component.fx-list .list-item {
+    .ctl-control.ctl-list .list-item {
       text-align: center; }
-  .fx-component.fx-checkbox.down {
+  .ctl-control.ctl-checkbox.down {
     outline: 1px solid blue; }
-  .fx-component.fx-panel {
+  .ctl-control.ctl-panel {
     border: 1px solid #ccc;
     border-radius: 3px;
     padding: 5px;
     margin: 5px;
     display: flex;
     flex-wrap: nowrap; }
-    .fx-component.fx-panel.vertical {
+    .ctl-control.ctl-panel.vertical {
       flex-direction: column; }
-    .fx-component.fx-panel.horizontal {
+    .ctl-control.ctl-panel.horizontal {
       flex-direction: row; }
-    .fx-component.fx-panel.wrap {
+    .ctl-control.ctl-panel.wrap {
       flex-wrap: wrap; }
-    .fx-component.fx-panel.justify-start {
+    .ctl-control.ctl-panel.justify-start {
       justify-content: flex-start; }
-    .fx-component.fx-panel.justify-end {
+    .ctl-control.ctl-panel.justify-end {
       justify-content: flex-end; }
-    .fx-component.fx-panel.justify-center {
+    .ctl-control.ctl-panel.justify-center {
       justify-content: center; }
-    .fx-component.fx-panel.justify-space-around {
+    .ctl-control.ctl-panel.justify-space-around {
       justify-content: space-around; }
-    .fx-component.fx-panel.justify-space-between {
+    .ctl-control.ctl-panel.justify-space-between {
       justify-content: space-between; }
-    .fx-component.fx-panel.justify-space-evenly {
+    .ctl-control.ctl-panel.justify-space-evenly {
       justify-content: space-between; }
-    .fx-component.fx-panel.justify-stretch {
+    .ctl-control.ctl-panel.justify-stretch {
       justify-content: stretch; }
-    .fx-component.fx-panel.align-start {
+    .ctl-control.ctl-panel.align-start {
       align-items: flex-start; }
-    .fx-component.fx-panel.align-end {
+    .ctl-control.ctl-panel.align-end {
       align-items: flex-end; }
-    .fx-component.fx-panel.align-center {
+    .ctl-control.ctl-panel.align-center {
       align-items: center; }
-    .fx-component.fx-panel.align-baseline {
+    .ctl-control.ctl-panel.align-baseline {
       align-items: baseline; }
-    .fx-component.fx-panel.align-stretch {
+    .ctl-control.ctl-panel.align-stretch {
       align-items: stretch; }

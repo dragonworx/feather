@@ -2,7 +2,7 @@
 @import 'components/panel';
 @import 'components/button';
 
-.fx-component {
+.ctl-control {
 	@include control;
 	box-sizing: border-box;
 	font-family: sans-serif;
@@ -10,7 +10,7 @@
 	user-select: none;
 
 	/* Debug */
-	&.fx-debug {
+	&.ctl-debug {
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -18,12 +18,12 @@
 	}
 
 	/* Button */
-	&.fx-button {
+	&.ctl-button {
 		@include button;
 	}
 
 	/* List */
-	&.fx-list {
+	&.ctl-list {
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -34,13 +34,13 @@
 	}
 
 	/* Checkbox */
-	&.fx-checkbox {
+	&.ctl-checkbox {
 		&.down {
 			outline: 1px solid blue;
 		}
 	}
 
-	&.fx-panel {
+	&.ctl-panel {
 		@include panel;
 	}
 }

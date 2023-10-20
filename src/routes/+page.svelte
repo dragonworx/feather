@@ -19,6 +19,8 @@
 
 	// let list = new StringList(['test1', 'test2', 'test3']);
 
+	// todo: rename to Control? Ctrl?
+
 	onMount(() => {
 		const panel = new Panel();
 		const button1 = new Button({ label: 'Button' });
