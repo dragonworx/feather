@@ -13,7 +13,7 @@ export class Checkbox extends Component<HTMLInputElement, CheckboxModel> {
 			label: '',
 			isChecked: false,
 		},
-		html: '<input type="checkbox" />',
+		html: `<input type="checkbox" />`,
 	}
 
 	protected init(): void {

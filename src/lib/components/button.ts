@@ -13,7 +13,7 @@ export class Button extends Component<HTMLButtonElement, ButtonModel> {
 		model: {
 			label: '',
 		},
-		html: '<button type="button"></button>',
+		html: `<button type="button"></button>`,
 	}
 
 	protected render(): void {

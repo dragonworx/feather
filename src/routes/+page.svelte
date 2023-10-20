@@ -14,6 +14,19 @@
 
 	console.clear();
 
+	function css(strings: TemplateStringsArray, ...values: unknown[]): string {
+		const template = strings.reduce((acc, str, i) => {
+			acc += str;
+			if (values[i] !== undefined) {
+				acc += String(values[i]);
+			}
+			return acc;
+		}, '');
+		return template;
+	}
+
+	const html = css;
+
 	let main: HTMLElement;
 	let button1 = new Button({ label: 'Button' });
 	let button2 = new Button({ label: 'Button' });
@@ -50,6 +63,9 @@
 		// button2.on<ContextMenuBehaviorEvents>('context', (e: CustomEvent<DragBehaviorEvent>) => {
 		// 	console.log('RightClick', e);
 		// });
+
+		// Create a class for the element
+		// Create a class for the element
 	});
 </script>
 
