@@ -4,6 +4,7 @@
 	import { Button } from '$lib/components/button';
 	import { StringList } from '$lib/components/list';
 	import { Debug } from '$lib/components/debug';
+	import { Panel } from '$lib/components/panel';
 	import type { ButtonBehaviorEvents } from '$lib/behaviors/button';
 	import type { ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
 	import {
@@ -14,38 +15,28 @@
 
 	console.clear();
 
-	function css(strings: TemplateStringsArray, ...values: unknown[]): string {
-		const template = strings.reduce((acc, str, i) => {
-			acc += str;
-			if (values[i] !== undefined) {
-				acc += String(values[i]);
-			}
-			return acc;
-		}, '');
-		return template;
-	}
-
-	const html = css;
-
 	let main: HTMLElement;
-	let button1 = new Button({ label: 'Button' });
-	let button2 = new Button({ label: 'Button' });
-	let checkbox = new Checkbox();
+
 	// let list = new StringList(['test1', 'test2', 'test3']);
 
 	onMount(() => {
+		const panel = new Panel();
+		const button1 = new Button({ label: 'Button' });
+		const button2 = new Button({ label: 'Button' });
+		const checkbox = new Checkbox();
+
 		// mount components
-		// flowLayout.addChild(button1);
-		// flowLayout.addChild(button2);
-		// flowLayout.addChild(checkbox);
-		// flowLayout.addChild(list);
-		button1.mount(main);
-		button2.mount(main);
-		checkbox.mount(main);
+		panel.mount(main);
+		panel.addChild(button1);
+		panel.addChild(button2);
+		panel.addChild(checkbox);
+		// button1.mount(main);
+		// button2.mount(main);
+		// checkbox.mount(main);
 		// list.mount(main);
 		for (let i = 0; i < 5; i++) {
 			const debug = new Debug({ label: `${i}` });
-			debug.mount(main);
+			panel.addChild(debug);
 		}
 		// attach to internal behavior events (requires documentation)
 		// button1
@@ -63,9 +54,6 @@
 		// button2.on<ContextMenuBehaviorEvents>('context', (e: CustomEvent<DragBehaviorEvent>) => {
 		// 	console.log('RightClick', e);
 		// });
-
-		// Create a class for the element
-		// Create a class for the element
 	});
 </script>
 

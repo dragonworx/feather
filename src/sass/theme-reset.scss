@@ -1,15 +1,6 @@
-@mixin control {
-	color: white;
-	background: #666;
-}
-
-@mixin control_down {
-	background: red;
-}
-
-@mixin control_toggled {
-	background: green;
-}
+@import 'shared/control';
+@import 'components/panel';
+@import 'components/button';
 
 .fx-component {
 	@include control;
@@ -28,17 +19,7 @@
 
 	/* Button */
 	&.fx-button {
-		border: 1px outset #ccc;
-		border-radius: 3px;
-		width: 50px;
-
-		&:hover.down {
-			@include control_down;
-		}
-
-		&.toggled {
-			@include control_toggled;
-		}
+		@include button;
 	}
 
 	/* List */
@@ -57,5 +38,9 @@
 		&.down {
 			outline: 1px solid blue;
 		}
+	}
+
+	&.fx-panel {
+		@include panel;
 	}
 }
