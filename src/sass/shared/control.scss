@@ -1,0 +1,12 @@
+@mixin control {
+	color: white;
+	background: #666;
+}
+
+@mixin control_down {
+	background: red;
+}
+
+@mixin control_toggled {
+	background: green;
+}

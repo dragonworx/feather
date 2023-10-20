@@ -77,6 +77,9 @@ export abstract class Component<
 		};
 
 		// create element and initialise it
+		if (descriptor.html.trim().length === 0) {
+			throw new Error('html template cannot be empty');
+		}
 		const element = this.element = html(descriptor.html);
 		element.classList.add(...descriptors.map(descriptor => `${_attributePrefix}-${descriptor.id}`));
 		element.setAttribute(`${_attributePrefix}-id`, this.id);
