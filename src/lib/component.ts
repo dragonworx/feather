@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Behavior } from './behavior';
-import { asArray, html, uniqueId } from './util';
+import { asArray, getDescriptors, html, uniqueId } from './util';
 
 interface CustomEventListener {
 	(evt: CustomEvent): void;
@@ -32,17 +32,16 @@ export abstract class Component<
 	ElementType extends HTMLElement = HTMLElement,
 	ModelType extends object = object,
 > {
-	private _id: string;
 	private _classes: string[] = [];
 	private _listeners: Map<string, ComponentEventHandler[]> = new Map(); // track custom event listeners internally
 	private _behaviorsById: Map<string, Behavior> = new Map();
-
+	
 	protected behaviors: Behavior[] = [];
 	protected model: ModelType;
 	protected readonly children: Component<HTMLElement, object>[] = [];
 	
 	public readonly element: ElementType;
-	public readonly _uid = uniqueId();
+	public readonly id = uniqueId();
 
 	public static descriptor: ComponentDescriptor = {
 		id: 'component',
@@ -70,7 +69,6 @@ export abstract class Component<
 
 		// get template
 		const descriptor = descriptors[descriptors.length - 1] as ComponentDescriptor<ModelType>;
-		this._id = descriptor.id;
 
 		// init model
 		this.model = {
@@ -81,7 +79,7 @@ export abstract class Component<
 		// create element and initialise it
 		const element = this.element = html(descriptor.html);
 		element.classList.add(...descriptors.map(descriptor => `${_attributePrefix}-${descriptor.id}`));
-		element.setAttribute(`${_attributePrefix}-id`, this._uid);
+		element.setAttribute(`${_attributePrefix}-id`, this.id);
 		(element as unknown as HTMLElementWithMetaData)[_metaPrefix] = this as unknown as Component;
 
 		// call init for subclasses
@@ -312,6 +310,20 @@ export abstract class Component<
 		this._classes.length = 0;
 	}
 
+	public setStyle(styles: Partial<CSSStyleDeclaration>) {
+		Object.assign(this.element.style, styles);
+		const value = this.element.getAttribute('style')?.replace(/\s*/g, '');
+		value && this.element.setAttribute('style', value);
+	}
+
+	public clearStyle(key?: keyof CSSStyleDeclaration) {
+		if (key) {
+			this.element.style.removeProperty(String(key));
+			return;
+		}
+		this.element.removeAttribute('style');
+	}
+
 	public querySelector<T extends HTMLElement>(cssSelector: string): T {
 		return this.element.querySelector<T>(cssSelector) as T;
 	}
@@ -369,36 +381,4 @@ export abstract class Component<
 	public getChildren() {
 		return [...this.children];
 	}
-}
-
-export function getDescriptors<T extends ComponentCtor>(ctor: T): ComponentDescriptor<object>[] {
-	const descriptors: ComponentDescriptor<object>[] = [];
-	let currentCtor: ComponentCtor = ctor;
-
-	// walk up prototype chain and collect descriptors
-	while (currentCtor) {
-		if (currentCtor.descriptor) {
-			descriptors.unshift(currentCtor.descriptor);
-		}
-
-		const newCtor = Object.getPrototypeOf(currentCtor) as ComponentCtor;
-
-		if ((currentCtor as unknown) === Component) {
-			break;
-		}
-
-		currentCtor = newCtor;
-	}
-
-	// check that all descriptors in array have unique ids
-	const ids = new Set<string>();
-
-	for (const descriptor of descriptors) {
-		if (ids.has(descriptor.id)) {
-			throw new Error(`duplicate component descriptor id '${descriptor.id}'`);
-		}
-		ids.add(descriptor.id);
-	}
-
-	return descriptors;
 }

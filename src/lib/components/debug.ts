@@ -1,4 +1,3 @@
-import { InlineStyleBehavior } from '../behaviors/inlineStyle';
 import { Component, type ComponentDescriptor } from '../component';
 
 export interface DebugComponentModel {
@@ -18,18 +17,13 @@ export class Debug extends Component<HTMLDivElement, DebugComponentModel> {
             width: 100,
             height: 100
         },
-        html: '<div><span/></div>'
-    }
-
-    protected init(): void
-    {
-        this.addBehavior(new InlineStyleBehavior(), 'style');
+        html: `<div><span/></div>`
     }
 
     public render(): void {
         const {label: text,color,width,height} = this.model;
         this.querySelector<HTMLSpanElement>('span').textContent = text;
-        this.behavior<InlineStyleBehavior>('style').setStyle({
+        this.setStyle({
             background: color,
             width: `${width}px`,
             height: `${height}px`,
