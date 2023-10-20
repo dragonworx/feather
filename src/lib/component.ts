@@ -10,7 +10,7 @@ export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomE
 
 export type ComponentEvent = 'rendered' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
 
-const _attributePrefix = 'fx';
+const _attributePrefix = 'ctl';
 const _metaPrefix = `${_attributePrefix}-component`;
 
 export type ComponentCtor = {
@@ -44,7 +44,7 @@ export abstract class Component<
 	public readonly id = uniqueId();
 
 	public static descriptor: ComponentDescriptor = {
-		id: 'component',
+		id: 'control',
 		model: {},
 		html: '',
 	}
@@ -82,7 +82,7 @@ export abstract class Component<
 		}
 		const element = this.element = html(descriptor.html);
 		element.classList.add(...descriptors.map(descriptor => `${_attributePrefix}-${descriptor.id}`));
-		element.setAttribute(`${_attributePrefix}-id`, this.id);
+		element.setAttribute(`data-id`, this.id);
 		(element as unknown as HTMLElementWithMetaData)[_metaPrefix] = this as unknown as Component;
 
 		// call init for subclasses
