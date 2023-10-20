@@ -1,0 +1,6 @@
+/* Checkbox */
+@mixin checkbox {
+	&.down {
+		outline: 1px solid blue;
+	}
+}
