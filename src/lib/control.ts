@@ -8,7 +8,7 @@ interface CustomEventListener {
 	(evt: CustomEvent): void;
 }
 
-type ControlEventHandler = EventListener | CustomEventListener;
+export type ControlEventHandler = EventListener | CustomEventListener;
 
 export type ControlEvent = HTMLEvent | 'rendered' | 'propsChanged' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
 
@@ -171,8 +171,8 @@ export abstract class Control<
 		return this._listeners.get(type)!;
 	}
 
-	on<K extends EventType>(
-		type: K,
+	on<K extends string | undefined = EventType>(
+		type: K extends EventType ? EventType : K extends undefined ? never : EventType,
 		listener: ControlEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this {
@@ -181,8 +181,8 @@ export abstract class Control<
 		return this;
 	}
 
-	public off<K extends EventType>(
-		type: K,
+	off<K extends string | undefined = EventType>(
+		type: K extends EventType ? EventType : K extends undefined ? never : EventType,
 		listener?: ControlEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this {
@@ -327,14 +327,20 @@ export abstract class Control<
 	}
 
 	public behavior<T extends Behavior>(id: string) {
+		if (!this._behaviorsById.has(id)) {
+			throw new Error(`behavior with id '${id}' not found`);
+		}
 		return this._behaviorsById.get(id) as unknown as T;
 	}
 
-	public addBehavior(behavior: Behavior, id?: string) {
+	public addBehavior(behavior: Behavior, id: string = behavior.id) {
 		this.behaviors.push(behavior);
-		if (id) {
-			this._behaviorsById.set(id, behavior);
+
+		if (this._behaviorsById.has(id)) {
+			throw new Error(`behavior with id '${id}' already exists`);
 		}
+		
+		this._behaviorsById.set(id, behavior);
 		behavior.init(this.asComponent());
 	}
 

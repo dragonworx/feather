@@ -1,24 +1,34 @@
-import type { ControlEvent, Control, ControlEventHandler } from './control';
+import type { Control, ControlEvent, ControlEventHandler } from './control';
 import { uniqueId } from './util';
 
-export abstract class Behavior<T extends object = object, E extends string = string> {
+
+export abstract class Behavior<
+	OptionsType extends object = object, 
+	EventsType extends string = string
+> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public static instances: Record<string, any> = {};
 
+	public static id: string;
+
 	private _component: Control | null = null;
 	protected _behaviors: Behavior[] = [];
-	public options: T;
+	public options: OptionsType;
 	public readonly _uid = uniqueId();
 
-	constructor(options: Partial<T> = {}) {
+	constructor(options: Partial<OptionsType> = {}) {
 		this.options = {
 			...this.defaultOptions(),
 			...options
-		} as T;
+		} as OptionsType;
 	}
 
-	protected defaultOptions(): T {
-		return {} as T;
+	public get id() {
+		return (this.constructor as unknown as {id:string}).id;
+	}
+
+	protected defaultOptions(): OptionsType {
+		return {} as OptionsType;
 	}
 
 	public get component(): Control {
@@ -34,18 +44,18 @@ export abstract class Behavior<T extends object = object, E extends string = str
 
 	public init(component: Control): void {
 		this._component = component;
-		component.on<ControlEvent>('modelUpdated', this.onModelChanged);
-		component.on<ControlEvent>('rendered', this.onRendered);
+		component.on('propsChanged', this.onModelChanged);
+		component.on('rendered', this.onRendered);
 		this.install();
 	}
 
 	public dispose(): void {
 		const { component } = this;
-		component.off<ControlEvent>('modelUpdated', this.onModelChanged);
-		component.off<ControlEvent>('rendered', this.onRendered);
+		component.off('propsChanged', this.onModelChanged);
+		component.off('rendered', this.onRendered);
 		this.uninstall();
 		this._component = null;
-		this.options = {} as T;
+		this.options = {} as OptionsType;
 		for (const behavior of this._behaviors) {
 			behavior.dispose();
 		}
@@ -59,7 +69,17 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		// override
 	}
 
-	protected emit(eventName: E, detail?: unknown): this {
+	public on(eventName: EventsType, handler: ControlEventHandler): this {
+		this.component.on(eventName as ControlEvent, handler);
+		return this;
+	}
+
+	public off(eventName: EventsType, handler: ControlEventHandler): this {
+		this.component.off(eventName as ControlEvent, handler);
+		return this;
+	}
+
+	protected emit(eventName: EventsType, detail?: unknown): this {
 		this.component.emit(eventName, detail);
 		return this;
 	}
@@ -75,9 +95,9 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		// override
 	};
 
-	public addBehavior(behavior: Behavior) {
+	public addBehavior(behavior: Behavior, id?: string) {
 		this._behaviors.push(behavior);
-		return this.component.addBehavior(behavior);
+		return this.component.addBehavior(behavior, id);
 	}
 
 	public removeBehavior(behavior: Behavior): Behavior {

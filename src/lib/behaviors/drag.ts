@@ -13,6 +13,8 @@ export interface DragBehaviorEvent {
 export type DragBehaviorEvents = 'start' | 'move' | 'end';
 
 export class DragBehavior extends Behavior<DragBehaviorOptions, DragBehaviorEvents> {
+	public static id = 'drag';
+	
 	protected isActive = false;
 	protected startX = 0;
 	protected startY = 0;

@@ -1,6 +1,8 @@
 import { Behavior } from '$lib/behavior';
 
 export class RolloverBehavior extends Behavior {
+	public static id = 'rollover';
+	
 	private _isOver = false;
 
 	// todo: create custom events, options for whether to use enter/leave or over/out

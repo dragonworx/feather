@@ -6,7 +6,7 @@
 	import { Debug } from '$lib/controls/debug';
 	import { Panel } from '$lib/controls/panel';
 	import type { ButtonBehaviorEvent } from '$lib/behaviors/button';
-	import type { ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
+	import { ContextMenuBehavior, type ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
 	import {
 		DragBehavior,
 		type DragBehaviorEvent,
@@ -42,24 +42,22 @@
 		}
 		// attach to internal behavior events (requires documentation)
 		button1
-			.on('', () => console.log(''))
-			// .on<ButtonBehaviorEvents>('', () => console.log(''))
-			// .on('', () => console.log('down'))
-			.on<ButtonBehaviorEvent>('', () => console.log('down'))
+			.on('down', () => console.log('down'))
 			.on('up', () => console.log('up'))
 			.on('upOutside', () => console.log('upOutside'))
-			.on<ButtonBehaviorEvent>('longPress', () => console.log('longPress'));
+			.on('longPress', () => console.log('longPress'));
 		// add additional behavior
-		button2.addBehavior(new DragBehavior());
-		button2
-			.on<DragBehaviorEvents>('start', (e: CustomEvent<DragBehaviorEvent>) =>
-				console.log('start', e.detail)
-			)
+		const drag = new DragBehavior();
+		button2.addBehavior(drag);
+		drag
+			.on('start', (e: CustomEvent<DragBehaviorEvent>) => console.log('start', e.detail))
 			.on('move', (e: CustomEvent<DragBehaviorEvent>) => console.log('move', e.detail))
 			.on('end', (e: CustomEvent<DragBehaviorEvent>) => console.log('end', e));
-		button2.on<ContextMenuBehaviorEvents>('context', (e: CustomEvent<DragBehaviorEvent>) => {
-			console.log('RightClick', e);
-		});
+		button2
+			.behavior<ContextMenuBehavior>(ContextMenuBehavior.id)
+			.on('context', (e: CustomEvent<DragBehaviorEvent>) => {
+				console.log('rightClick', e);
+			});
 	});
 </script>
 
