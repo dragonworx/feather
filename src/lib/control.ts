@@ -6,74 +6,70 @@ interface CustomEventListener {
 	(evt: CustomEvent): void;
 }
 
-export type ComponentEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
+export type ControlEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
 
-export type ComponentEvent = 'rendered' | 'modelUpdated' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
+export type ControlEvent = 'rendered' | 'propsChanged' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
 
 const _attributePrefix = 'ctl';
-const _metaPrefix = `${_attributePrefix}-component`;
+const _metaPrefix = `${_attributePrefix}-control`;
 
-export type ComponentCtor = {
-	new (...args: unknown[]): Component;
-	componentId: string;
-	descriptor: ComponentDescriptor<object>;
+export type ControlCtor = {
+	new (...args: unknown[]): Control;
+	descriptor: ControlDescriptor<object>;
 	owner: () => HTMLElementWithMetaData;
 };
 
-export type HTMLElementWithMetaData = HTMLElement & { [_metaPrefix]: Component };
+export type HTMLElementWithMetaData = HTMLElement & { [_metaPrefix]: Control };
 
-export type ComponentDescriptor<ModelType extends object = object> = {
+export type ControlDescriptor<Properties extends object = object> = {
 	id: string;
-	model: ModelType;
+	props: Properties;
 	html: string;
 }
 
-export abstract class Component<
+export abstract class Control<
 	ElementType extends HTMLElement = HTMLElement,
-	ModelType extends object = object,
+	PropertiesType extends object = object,
 > {
 	private _classes: string[] = [];
-	private _listeners: Map<string, ComponentEventHandler[]> = new Map(); // track custom event listeners internally
+	private _listeners: Map<string, ControlEventHandler[]> = new Map(); // track custom event listeners internally
 	private _behaviorsById: Map<string, Behavior> = new Map();
 	
 	protected behaviors: Behavior[] = [];
-	protected model: ModelType;
-	protected readonly children: Component<HTMLElement, object>[] = [];
+	protected _props: PropertiesType;
+	protected readonly children: Control<HTMLElement, object>[] = [];
 	
 	public readonly element: ElementType;
 	public readonly id = uniqueId();
 
-	public static descriptor: ComponentDescriptor = {
+	public static descriptor: ControlDescriptor = {
 		id: 'control',
-		model: {},
+		props: {},
 		html: '',
 	}
 
-	// must be overwritten by subclasses!
-	public static componentId = 'component';
-
-	public static elementOwner(source: Event | EventTarget | null): Component | null {
+	public static elementOwner(source: Event | EventTarget | null): Control | null {
 		const element = source instanceof Event ? source.target : source;
 		if (
 			element &&
 			_metaPrefix in element &&
-			element[_metaPrefix] instanceof Component
+			element[_metaPrefix] instanceof Control
 		) {
 			return element[_metaPrefix];
 		}
 		return null;
 	}
 
-	constructor(model?: Partial<ModelType>) {
-		const descriptors = getDescriptors(this.constructor as ComponentCtor);
+	constructor(props?: Partial<PropertiesType>) {
+		const descriptors = getDescriptors(this.constructor as ControlCtor);
 
 		// get template
-		const descriptor = descriptors[descriptors.length - 1] as ComponentDescriptor<ModelType>;
+		const descriptor = descriptors[descriptors.length - 1] as ControlDescriptor<PropertiesType>;
 
-		// init model
-		this.model = {
-			...descriptor.model,
-			...model,
+		// init props
+		this._props = {
+			...descriptor.props,
+			...props,
 		};
 
 		// create element and initialise it
@@ -83,13 +79,13 @@ export abstract class Component<
 		const element = this.element = html(descriptor.html);
 		element.classList.add(...descriptors.map(descriptor => `${_attributePrefix}-${descriptor.id}`));
 		element.setAttribute(`data-id`, this.id);
-		(element as unknown as HTMLElementWithMetaData)[_metaPrefix] = this as unknown as Component;
+		(element as unknown as HTMLElementWithMetaData)[_metaPrefix] = this as unknown as Control;
 
 		// call init for subclasses
 		this.init();
 
 		// run one full update cycle to update the element
-		this.set(this.model);
+		this.update(this._props);
 	}
 
 	public dispose() {
@@ -113,10 +109,10 @@ export abstract class Component<
 		this.clearClasses();
 	}
 
-	protected update() {
+	protected refresh() {
 		this.render();
 		this.onRendered();
-		this.emit<ComponentEvent>('rendered');
+		this.emit<ControlEvent>('rendered');
 	}
 
 	protected onRendered() {
@@ -124,7 +120,7 @@ export abstract class Component<
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	protected onModelChanged(value: Partial<ModelType>, oldValue: Partial<ModelType>): void {
+	protected onPropsChanged(value: Partial<PropertiesType>, oldValue: Partial<PropertiesType>): void {
 		String(value);
 		String(oldValue);
 		// override
@@ -138,27 +134,31 @@ export abstract class Component<
 		// override
 	}
 
-	public get<K extends keyof ModelType>(key: K): ModelType[K] {
-		return this.model[key];
+	public prop<K extends keyof PropertiesType>(key: K): PropertiesType[K] {
+		return this._props[key];
 	}
 
-	public set(value: Partial<ModelType>) {
+	public get props() {
+		return { ...this._props };
+	}
+
+	public update(value: Partial<PropertiesType>) {
 		// get old values from value keys
 		const oldValue = Object.keys(value).reduce((acc, key) => {
-			acc[key as keyof ModelType] = this.model[key as keyof ModelType];
+			acc[key as keyof PropertiesType] = this._props[key as keyof PropertiesType];
 			return acc;
-		}, {} as Partial<ModelType>);
-		this.model = {
-			...this.model,
+		}, {} as Partial<PropertiesType>);
+		this._props = {
+			...this._props,
 			...value
 		};
-		this.onModelChanged(value, oldValue);
-		this.emit<ComponentEvent>('modelUpdated', { value, oldValue });
-		this.update();
+		this.onPropsChanged(value, oldValue);
+		this.emit<ControlEvent>('propsChanged', { value, oldValue });
+		this.refresh();
 	}
 
 	public asComponent() {
-		return this as unknown as Component;
+		return this as unknown as Control;
 	}
 
 	private listenersForType(type: string) {
@@ -171,12 +171,12 @@ export abstract class Component<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public on<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener: ComponentEventHandler,
+		listener: ControlEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this;
 	public on(
 		type: string,
-		listener: ComponentEventHandler,
+		listener: ControlEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this {
 		this.listenersForType(type).push(listener);
@@ -187,12 +187,12 @@ export abstract class Component<
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public off<K extends string>(
 		type: K | keyof HTMLElementEventMap,
-		listener?: ComponentEventHandler,
+		listener?: ControlEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this;
 	public off(
 		type: string,
-		listener?: ComponentEventHandler,
+		listener?: ControlEventHandler,
 		options?: boolean | EventListenerOptions
 	): this {
 		if (!this._listeners.has(type)) {
@@ -238,16 +238,16 @@ export abstract class Component<
 		return this._listeners.get(type) ?? [];
 	}
 
-	public mount(parent: HTMLElement | Component) {
+	public mount(parent: HTMLElement | Control) {
 		// todo: fire this.onBeforeMount + behaviors.onBeforeMount
 		this.onBeforeMount();
-		this.emit<ComponentEvent>('beforeMount');
+		this.emit<ControlEvent>('beforeMount');
 		(parent instanceof HTMLElement ? parent : parent.element).appendChild(this.element);
 	}
 
 	public unmount(dispose = true) {
 		this.onBeforeUnMount();
-		this.emit<ComponentEvent>('beforeUnmount');
+		this.emit<ControlEvent>('beforeUnmount');
 		// todo: allow behaviors to prevent element from being removed so they can do it async?
 		this.element.remove();
 		if (dispose) {
@@ -359,10 +359,10 @@ export abstract class Component<
 		return behavior;
 	}
 
-	public addChild(child: Component<HTMLElement, object>) {
+	public addChild(child: Control<HTMLElement, object>) {
 		this.children.push(child);
 		this.appendChildElement(child.element);
-		child.emit<ComponentEvent>('addedToParent', this.asComponent());
+		child.emit<ControlEvent>('addedToParent', this.asComponent());
 	}
 
 	protected appendChildElement(element: HTMLElement) {
@@ -370,10 +370,10 @@ export abstract class Component<
 		this.element.appendChild(element);
 	}
 
-	public removeChild(child: Component<HTMLElement, object>) {
+	public removeChild(child: Control<HTMLElement, object>) {
 		const index = this.children.indexOf(child);
 		if (index > -1) {
-			child.emit<ComponentEvent>('removingFromParent', this.asComponent());
+			child.emit<ControlEvent>('removingFromParent', this.asComponent());
 			this.children.splice(index, 1);
 			child.element.remove();
 		} else {

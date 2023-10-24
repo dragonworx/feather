@@ -10,9 +10,10 @@ export interface ButtonBehaviorOptions {
 	buttons: ButtonFlag;
 	isToggle: boolean;
 	isToggled: boolean;
+	longPressTime: number;
 }
 
-export type ButtonBehaviorEvents = 'down' | 'up' | 'upOutside' | 'toggle';
+export type ButtonBehaviorEvents = 'down' | 'up' | 'upOutside' | 'toggle' | 'longPress';
 
 const _css = {
 	down: 'down'
@@ -25,12 +26,14 @@ function checkFlag(flag: number, mode: ButtonFlag): boolean {
 export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehaviorEvents> {
 	private _isDown = false;
 	private _isToggled = false;
+	private _longPressTimeout = 0;
 
 	protected defaultOptions(): ButtonBehaviorOptions {
 		return {
 			buttons: ButtonFlag.Left,
 			isToggle: true,
 			isToggled: false,
+			longPressTime: 500,
 		};
 	}
 
@@ -58,9 +61,17 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 		}
 
 		this._isDown = true;
+		clearTimeout(this._longPressTimeout);
+
+		this._longPressTimeout = setTimeout(() => {
+			this.emit('longPress');
+		}, this.options.longPressTime) as unknown as number;
+
 		window.addEventListener('mouseup', this.onMouseUp);
+
 		this.component.addClass(_css.down);
 		this.emit('down');
+
 		if (this.options.isToggle) {
 			this._isToggled = !this._isToggled;
 			if (this._isToggled) {
@@ -74,6 +85,7 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 
 	protected onMouseUp = (e: MouseEvent) => {
 		this._isDown = false;
+		clearTimeout(this._longPressTimeout);
 		window.removeEventListener('mouseup', this.onMouseUp);
 		this.component.removeClass(_css.down);
 		if (e.target === this.element) {

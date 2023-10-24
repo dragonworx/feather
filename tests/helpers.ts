@@ -1,5 +1,5 @@
 import { Behavior } from '../src/lib/behavior';
-import { Component } from '../src/lib/component';
+import { Control } from '../src/lib/control';
 
 export class TestBehavior extends Behavior {
 	getBehaviors() {
@@ -14,7 +14,7 @@ export interface TestComponentModel {
 	bar: number;
 }
 
-export class TestComponent extends Component<HTMLDivElement, TestComponentModel> {
+export class TestComponent extends Control<HTMLDivElement, TestComponentModel> {
 	getBehaviors() {
 		return this.behaviors;
 	}

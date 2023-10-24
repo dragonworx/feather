@@ -1,10 +1,10 @@
-import { Component } from '../component';
+import { Control } from '../control';
 
-export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
+export abstract class List<IM, IV extends ListItem<unknown>> extends Control<
 	HTMLUListElement,
 	IM[]
 > {
-	static componentId = 'list';
+	// static controlId = 'list';
 
 	protected defaultModel(): IM[] {
 		return [];
@@ -16,35 +16,35 @@ export abstract class List<IM, IV extends ListItem<unknown>> extends Component<
 
 	protected abstract createItem(itemModel: IM): IV;
 
-	protected onModelChanged(): void {
+	protected onPropsChanged(): void {
 		this.element.innerHTML = '';
 
-		for (const item of this.model) {
+		for (const item of this._props) {
 			const listItem = this.createItem(item);
 			this.element.appendChild(listItem.element);
 		}
 	}
 
 	public insertItem(item: IM, index: number): void {
-		this.model.splice(index, 0, item);
+		this._props.splice(index, 0, item);
 		const listItem = this.createItem(item);
 		this.element.insertBefore(listItem.element, this.element.children[index]);
 	}
 
 	public addItem(item: IM): void {
-		this.insertItem(item, this.model.length);
+		this.insertItem(item, this._props.length);
 	}
 }
 
-export abstract class ListItem<T extends object> extends Component<HTMLLIElement, T> {
-	static componentId = 'list-item';
+export abstract class ListItem<T extends object> extends Control<HTMLLIElement, T> {
+	// static controlId = 'list-item';
 
 	public template(): string {
 		return `<li></li>`;
 	}
 
 	public toString(): string {
-		return String(this.model);
+		return String(this._props);
 	}
 
 	protected render(): void {
@@ -53,19 +53,19 @@ export abstract class ListItem<T extends object> extends Component<HTMLLIElement
 }
 
 export class StringListItem extends ListItem<string> {
-	static componentId = 'string-list-item';
+	// static controlId = 'string-list-item';
 
 	protected defaultModel(): string {
 		return '';
 	}
 
 	protected init(): void {
-		this.on('mouseenter', () => this.emit('hover', this.model));
+		this.on('mouseenter', () => this.emit('hover', this._props));
 	}
 }
 
 export class StringList extends List<string, StringListItem> {
-	static componentId = 'string-list';
+	// static controlId = 'string-list';
 
 	protected createItem(itemModel: string): StringListItem {
 		return new StringListItem(itemModel);

@@ -1,11 +1,11 @@
-import type { ComponentEvent, Component, ComponentEventHandler } from './component';
+import type { ControlEvent, Control, ControlEventHandler } from './control';
 import { uniqueId } from './util';
 
 export abstract class Behavior<T extends object = object, E extends string = string> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	public static instances: Record<string, any> = {};
 
-	private _component: Component | null = null;
+	private _component: Control | null = null;
 	protected _behaviors: Behavior[] = [];
 	public options: T;
 	public readonly _uid = uniqueId();
@@ -21,7 +21,7 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		return {} as T;
 	}
 
-	public get component(): Component {
+	public get component(): Control {
 		if (!this._component) {
 			throw new Error('Component not initialized');
 		}
@@ -32,17 +32,17 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		return this.component.element;
 	}
 
-	public init(component: Component): void {
+	public init(component: Control): void {
 		this._component = component;
-		component.on<ComponentEvent>('modelUpdated', this.onModelChanged);
-		component.on<ComponentEvent>('rendered', this.onRendered);
+		component.on<ControlEvent>('modelUpdated', this.onModelChanged);
+		component.on<ControlEvent>('rendered', this.onRendered);
 		this.install();
 	}
 
 	public dispose(): void {
 		const { component } = this;
-		component.off<ComponentEvent>('modelUpdated', this.onModelChanged);
-		component.off<ComponentEvent>('rendered', this.onRendered);
+		component.off<ControlEvent>('modelUpdated', this.onModelChanged);
+		component.off<ControlEvent>('rendered', this.onRendered);
 		this.uninstall();
 		this._component = null;
 		this.options = {} as T;
@@ -69,7 +69,7 @@ export abstract class Behavior<T extends object = object, E extends string = str
 		String(value);
 		String(oldValue);
 		// override
-	}) as ComponentEventHandler;
+	}) as ControlEventHandler;
 
 	protected onRendered = () => {
 		// override

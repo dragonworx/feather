@@ -1,15 +1,15 @@
 import { ButtonBehavior } from '$lib/behaviors/button';
-import { Component, type ComponentDescriptor } from '../component';
+import { Control, type ControlDescriptor } from '../control';
 
 export interface CheckboxModel {
 	label: string;
 	isChecked: boolean;
 }
 
-export class Checkbox extends Component<HTMLInputElement, CheckboxModel> {
-	static descriptor: ComponentDescriptor<CheckboxModel> = {
+export class Checkbox extends Control<HTMLInputElement, CheckboxModel> {
+	static descriptor: ControlDescriptor<CheckboxModel> = {
 		id: 'checkbox',
-		model: {
+		props: {
 			label: '',
 			isChecked: false,
 		},
@@ -21,6 +21,6 @@ export class Checkbox extends Component<HTMLInputElement, CheckboxModel> {
 	}
 
 	protected render(): void {
-		this.element.checked = this.model.isChecked;
+		this.element.checked = this._props.isChecked;
 	}
 }

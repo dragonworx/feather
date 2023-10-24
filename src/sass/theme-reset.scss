@@ -8,22 +8,18 @@
 .ctl-control {
 	@include control;
 
-	/* Debug */
 	&.ctl-debug {
 		@include debug;
 	}
 
-	/* Button */
 	&.ctl-button {
 		@include button;
 	}
 
-	/* List */
 	&.ctl-list {
 		@include list;
 	}
 
-	/* Checkbox */
 	&.ctl-checkbox {
 		@include checkbox;
 	}

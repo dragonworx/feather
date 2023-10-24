@@ -1,4 +1,4 @@
-import { Component, type ComponentDescriptor } from '../component';
+import { Control, type ControlDescriptor } from '../control';
 
 export interface PanelModel {
 	direction: 'horizontal' | 'vertical';
@@ -7,10 +7,10 @@ export interface PanelModel {
 	align: 'start' | 'end' | 'center' | 'baseline' | 'stretch';
 }
 
-export class Panel extends Component<HTMLDivElement, PanelModel> {
-	static descriptor: ComponentDescriptor<PanelModel> = {
+export class Panel extends Control<HTMLDivElement, PanelModel> {
+	static descriptor: ControlDescriptor<PanelModel> = {
 		id: 'panel',
-		model: {
+		props: {
 			direction: 'horizontal',
 			wrap: true,
 			justify: 'start',
@@ -20,7 +20,7 @@ export class Panel extends Component<HTMLDivElement, PanelModel> {
 	}
 
 	protected render(): void {
-		const { direction, wrap, justify, align } = this.model;
+		const { direction, wrap, justify, align } = this._props;
 		this.setClassIf('horizontal', direction === 'horizontal');
 		this.setClassIf('vertical', direction === 'vertical');
 		this.setClassIf('wrap', wrap);
