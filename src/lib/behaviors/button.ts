@@ -45,8 +45,12 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 
 	public install(): void {
 		const { component } = this;
+
 		component.on('mousedown', this.onMouseDown);
+		component.on('mouseleave', this.onMouseLeave);
+
 		this._isToggled = this.options.isToggled;
+
 		if (this.options.isToggle && this._isToggled) {
 			this.component.addClass('toggled');
 		}
@@ -55,6 +59,7 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 	public uninstall(): void {
 		const { component } = this;
 		component.off('mousedown', this.onMouseDown);
+		component.off('mouseleave', this.onMouseLeave);
 	}
 
 	protected onMouseDown = ((e: MouseEvent) => {
@@ -83,6 +88,10 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 			}
 			this.emit('toggle', this._isToggled);
 		}
+	}) as EventListener;
+
+	protected onMouseLeave = (() => {
+		clearTimeout(this._longPressTimeout);
 	}) as EventListener;
 
 	protected onMouseUp = (e: MouseEvent) => {

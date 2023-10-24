@@ -56,7 +56,7 @@
 		button2
 			.behavior<ContextMenuBehavior>(ContextMenuBehavior.id)
 			.on('context', (e: CustomEvent<DragBehaviorEvent>) => {
-				console.log('rightClick', e);
+				console.log('context', e);
 			});
 	});
 </script>
