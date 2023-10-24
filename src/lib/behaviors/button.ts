@@ -28,6 +28,8 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 	private _isToggled = false;
 	private _longPressTimeout = 0;
 
+	public static id = 'button';
+
 	protected defaultOptions(): ButtonBehaviorOptions {
 		return {
 			buttons: ButtonFlag.Left,

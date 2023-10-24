@@ -8,6 +8,8 @@ export class ContextMenuBehavior extends Behavior<
 	ContextMenuBehaviorOptions,
 	ContextMenuBehaviorEvents
 > {
+	public static id = 'contextMenu';
+	
 	private static hasInstalledHook = false;
 
 	private static listeners: ContextMenuBehavior[] = [];
