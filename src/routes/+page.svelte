@@ -42,10 +42,10 @@
 		}
 		// attach to internal behavior events (requires documentation)
 		button1
-			// .on('', () => console.log(''))
+			.on('', () => console.log(''))
 			// .on<ButtonBehaviorEvents>('', () => console.log(''))
 			// .on('', () => console.log('down'))
-			.on<ButtonBehaviorEvents>('down', () => console.log('down'))
+			.on<ButtonBehaviorEvents>('', () => console.log('down'))
 			.on('up', () => console.log('up'))
 			.on('upOutside', () => console.log('upOutside'))
 			.on<ButtonBehaviorEvents>('longPress', () => console.log('longPress'));
