@@ -1,22 +1,14 @@
 // Define HTMLEventMap to hold base HTMLEvent type definitions.
-type HTMLEvents = keyof HTMLElementEventMap;
+type HTMLEvent = keyof HTMLElementEventMap;
 
-// Define custom EventMap for Control class
+type ControlEvent = HTMLEvent | 'customControlEvent';
 
-// type ExtendEventMap<Base, Custom> = Base | Custom;
-
-// type ControlEventMap = ExtendEventMap<HTMLEvents, {
-//     customControlEvent: CustomEvent;
-// }>;
-
-type ControlEventMap = HTMLEvents | 'customControlEvent';
-
-const a: ControlEventMap = 'customControlEvent';
+const a: ControlEvent = 'customControlEvent';
 
 class Control<
     ElementType extends HTMLElement,
     PropsType extends object,
-    EventType extends string
+    EventType extends string = ControlEvent
 > {
     protected element: ElementType;
     protected props: PropsType;
@@ -43,15 +35,11 @@ class Control<
     }
 }
 
-// Define custom EventMap for Button class
-// interface ButtonEventMap {
-//     buttonClicked: CustomEvent;
-// }
 
-type ButtonEventType = ControlEventMap | 'buttonClicked';
-const a: ButtonEventType = 'buttonClicked'
+type ButtonEvent = ControlEvent | 'buttonClicked';
+const a: ButtonEvent = 'buttonClicked'
 
-class Button extends Control<HTMLButtonElement, {}, ButtonEventType> {
+class Button extends Control<HTMLButtonElement, {}, ButtonEvent> {
     constructor(element: HTMLButtonElement, props: {}) {
         super(element, props);
     }
@@ -66,7 +54,7 @@ class Button extends Control<HTMLButtonElement, {}, ButtonEventType> {
 const buttonElement = document.createElement('button');
 const myButton = new Button(buttonElement, {});
 
-myButton.on('butto', (event) => {
+myButton.on('but', (event) => {
     console.log('Button Clicked', event);
 });
 

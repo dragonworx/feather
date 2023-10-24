@@ -5,7 +5,7 @@
 	import { StringList } from '$lib/controls/list';
 	import { Debug } from '$lib/controls/debug';
 	import { Panel } from '$lib/controls/panel';
-	import type { ButtonBehaviorEvents } from '$lib/behaviors/button';
+	import type { ButtonBehaviorEvent } from '$lib/behaviors/button';
 	import type { ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
 	import {
 		DragBehavior,
@@ -45,10 +45,10 @@
 			.on('', () => console.log(''))
 			// .on<ButtonBehaviorEvents>('', () => console.log(''))
 			// .on('', () => console.log('down'))
-			.on<ButtonBehaviorEvents>('', () => console.log('down'))
+			.on<ButtonBehaviorEvent>('', () => console.log('down'))
 			.on('up', () => console.log('up'))
 			.on('upOutside', () => console.log('upOutside'))
-			.on<ButtonBehaviorEvents>('longPress', () => console.log('longPress'));
+			.on<ButtonBehaviorEvent>('longPress', () => console.log('longPress'));
 		// add additional behavior
 		button2.addBehavior(new DragBehavior());
 		button2
