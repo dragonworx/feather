@@ -1,4 +1,4 @@
-import { Component, type ComponentDescriptor } from '../component';
+import { Control, type ControlDescriptor } from '../control';
 
 export interface DebugComponentModel {
     label: string;
@@ -7,11 +7,11 @@ export interface DebugComponentModel {
     height: number;
 }
 
-export class Debug extends Component<HTMLDivElement, DebugComponentModel> {
+export class Debug extends Control<HTMLDivElement, DebugComponentModel> {
 
-    public static descriptor: ComponentDescriptor<DebugComponentModel> = {
+    public static descriptor: ControlDescriptor<DebugComponentModel> = {
         id: 'debug',
-        model: {
+        props: {
             label: '',
             color: 'red',
             width: 100,
@@ -21,7 +21,7 @@ export class Debug extends Component<HTMLDivElement, DebugComponentModel> {
     }
 
     public render(): void {
-        const {label: text,color,width,height} = this.model;
+        const {label: text,color,width,height} = this._props;
         this.querySelector<HTMLSpanElement>('span').textContent = text;
         this.setStyle({
             background: color,

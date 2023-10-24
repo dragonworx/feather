@@ -1,35 +1,35 @@
-import { Component, type ComponentEvent } from '../src/lib/component';
+import { Control, type ControlEvent } from '../src/lib/control';
 import { TestComponent, type TestComponentEvent } from './helpers';
 
 describe('Component', () => {
 	describe('Model', () => {
 		it('should initialise with default model if none passed', () => {
 			const component = new TestComponent();
-			expect(component.get('foo')).toBe(component.defaultModel().foo);
-			expect(component.get('bar')).toBe(component.defaultModel().bar);
+			expect(component.prop('foo')).toBe(component.defaultModel().foo);
+			expect(component.prop('bar')).toBe(component.defaultModel().bar);
 		});
 
 		it('should initialise with a given model', () => {
 			const component = new TestComponent({ foo: 'bar', bar: 5 });
-			expect(component.get('foo')).toBe('bar');
-			expect(component.get('bar')).toBe(5);
+			expect(component.prop('foo')).toBe('bar');
+			expect(component.prop('bar')).toBe(5);
 		});
 
 		it('should update model when given new partial value', () => {
 			const component = new TestComponent();
-			component.set({ foo: 'bar' });
-			expect(component.get('foo')).toBe('bar');
-			expect(component.get('bar')).toBe(component.defaultModel().bar);
+			component.update({ foo: 'bar' });
+			expect(component.prop('foo')).toBe('bar');
+			expect(component.prop('bar')).toBe(component.defaultModel().bar);
 		});
 
 		it('should fire event when new value given', (done) => {
 			const component = new TestComponent();
-			component.on<ComponentEvent>('modelUpdated', (e: CustomEvent) => {
+			component.on<ControlEvent>('modelUpdated', (e: CustomEvent) => {
 				expect(e.detail.value).toBe('bar');
 				expect(e.detail.oldValue).toBe('default');
 				done();
 			});
-			component.set({ foo: 'bar' });
+			component.update({ foo: 'bar' });
 		});
 	});
 
@@ -51,7 +51,7 @@ describe('Component', () => {
 
 		it('should detect element owner', () => {
 			const component = new TestComponent();
-			expect(Component.elementOwner(component.element)).toBe(component);
+			expect(Control.elementOwner(component.element)).toBe(component);
 		});
 	});
 

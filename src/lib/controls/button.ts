@@ -1,23 +1,24 @@
 import { ButtonBehavior } from '$lib/behaviors/button';
 import { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
-import { Component, type ComponentDescriptor } from '../component';
+import { Control, type ControlDescriptor } from '../control';
 
 export interface ButtonModel {
 	label: string;
+	// todo: if pass menu, make use of contextMenuBehavior optional
 }
 
-export class Button extends Component<HTMLButtonElement, ButtonModel> {
+export class Button extends Control<HTMLButtonElement, ButtonModel> {
 	
-	static descriptor: ComponentDescriptor<ButtonModel> = {
+	static descriptor: ControlDescriptor<ButtonModel> = {
 		id: 'button',
-		model: {
+		props: {
 			label: '',
 		},
 		html: `<button type="button"></button>`,
 	}
 
 	protected render(): void {
-		this.element.textContent = this.model.label
+		this.element.textContent = this._props.label
 	}
 
 	protected init() {

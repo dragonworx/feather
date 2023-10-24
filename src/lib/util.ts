@@ -1,4 +1,4 @@
-import { type ComponentCtor, type ComponentDescriptor, Component } from './component';
+import { type ControlCtor, type ControlDescriptor, Control } from './control';
 
 export function html<T extends HTMLElement>(htmlStr: string): T {
 	const parser = new DOMParser();
@@ -24,9 +24,9 @@ export function uniqueId() {
 	return `${++_id}`;
 }
 
-export function getDescriptors<T extends ComponentCtor>(ctor: T): ComponentDescriptor<object>[] {
-	const descriptors: ComponentDescriptor<object>[] = [];
-	let currentCtor: ComponentCtor = ctor;
+export function getDescriptors<T extends ControlCtor>(ctor: T): ControlDescriptor<object>[] {
+	const descriptors: ControlDescriptor<object>[] = [];
+	let currentCtor: ControlCtor = ctor;
 
 	// walk up prototype chain and collect descriptors
 	while (currentCtor) {
@@ -34,9 +34,9 @@ export function getDescriptors<T extends ComponentCtor>(ctor: T): ComponentDescr
 			descriptors.unshift(currentCtor.descriptor);
 		}
 
-		const newCtor = Object.getPrototypeOf(currentCtor) as ComponentCtor;
+		const newCtor = Object.getPrototypeOf(currentCtor) as ControlCtor;
 
-		if ((currentCtor as unknown) === Component) {
+		if ((currentCtor as unknown) === Control) {
 			break;
 		}
 
@@ -48,7 +48,7 @@ export function getDescriptors<T extends ComponentCtor>(ctor: T): ComponentDescr
 
 	for (const descriptor of descriptors) {
 		if (ids.has(descriptor.id)) {
-			throw new Error(`duplicate component descriptor id '${descriptor.id}'`);
+			throw new Error(`duplicate control descriptor id '${descriptor.id}'`);
 		}
 		ids.add(descriptor.id);
 	}
