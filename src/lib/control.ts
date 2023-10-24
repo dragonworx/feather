@@ -2,13 +2,15 @@
 import type { Behavior } from './behavior';
 import { asArray, getDescriptors, html, uniqueId } from './util';
 
+type HTMLEvent = keyof HTMLElementEventMap;
+
 interface CustomEventListener {
 	(evt: CustomEvent): void;
 }
 
-export type ControlEventHandler = EventListenerOrEventListenerObject | CustomEventListener;
+type ControlEventHandler = EventListener | CustomEventListener;
 
-export type ControlEvent = 'rendered' | 'propsChanged' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
+export type ControlEvent = HTMLEvent | 'rendered' | 'propsChanged' | 'beforeMount' | 'beforeUnmount' | 'addedToParent' | 'removingFromParent';
 
 const _attributePrefix = 'ctl';
 const _metaPrefix = `${_attributePrefix}-control`;
@@ -30,6 +32,7 @@ export type ControlDescriptor<Properties extends object = object> = {
 export abstract class Control<
 	ElementType extends HTMLElement = HTMLElement,
 	PropertiesType extends object = object,
+	EventType extends string = ControlEvent
 > {
 	private _classes: string[] = [];
 	private _listeners: Map<string, ControlEventHandler[]> = new Map(); // track custom event listeners internally
@@ -112,7 +115,7 @@ export abstract class Control<
 	protected refresh() {
 		this.render();
 		this.onRendered();
-		this.emit<ControlEvent>('rendered');
+		this.emit('rendered');
 	}
 
 	protected onRendered() {
@@ -168,14 +171,8 @@ export abstract class Control<
 		return this._listeners.get(type)!;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public on<K extends string>(
-		type: K | keyof HTMLElementEventMap,
-		listener: ControlEventHandler,
-		options?: boolean | AddEventListenerOptions
-	): this;
-	public on(
-		type: string,
+	on<K extends EventType>(
+		type: K,
 		listener: ControlEventHandler,
 		options?: boolean | AddEventListenerOptions
 	): this {
@@ -184,16 +181,10 @@ export abstract class Control<
 		return this;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	public off<K extends string>(
-		type: K | keyof HTMLElementEventMap,
+	public off<K extends EventType>(
+		type: K,
 		listener?: ControlEventHandler,
 		options?: boolean | AddEventListenerOptions
-	): this;
-	public off(
-		type: string,
-		listener?: ControlEventHandler,
-		options?: boolean | EventListenerOptions
 	): this {
 		if (!this._listeners.has(type)) {
 			return this;

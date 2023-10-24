@@ -13,7 +13,7 @@ export interface ButtonBehaviorOptions {
 	longPressTime: number;
 }
 
-export type ButtonBehaviorEvents = 'down' | 'up' | 'upOutside' | 'toggle' | 'longPress';
+export type ButtonBehaviorEvent = 'down' | 'up' | 'upOutside' | 'toggle' | 'longPress';
 
 const _css = {
 	down: 'down'
@@ -23,7 +23,7 @@ function checkFlag(flag: number, mode: ButtonFlag): boolean {
 	return (flag & mode) !== 0;
 }
 
-export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehaviorEvents> {
+export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehaviorEvent> {
 	private _isDown = false;
 	private _isToggled = false;
 	private _longPressTimeout = 0;

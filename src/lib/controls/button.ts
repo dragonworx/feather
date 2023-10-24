@@ -1,13 +1,15 @@
-import { ButtonBehavior } from '$lib/behaviors/button';
+import { ButtonBehavior, type ButtonBehaviorEvent } from '$lib/behaviors/button';
 import { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
-import { Control, type ControlDescriptor } from '../control';
+import { Control, type ControlDescriptor, type ControlEvent } from '../control';
 
 export interface ButtonModel {
 	label: string;
 	// todo: if pass menu, make use of contextMenuBehavior optional
 }
 
-export class Button extends Control<HTMLButtonElement, ButtonModel> {
+export type ButtonEvent = ControlEvent | ButtonBehaviorEvent;
+
+export class Button extends Control<HTMLButtonElement, ButtonModel, ButtonEvent> {
 	
 	static descriptor: ControlDescriptor<ButtonModel> = {
 		id: 'button',
