@@ -1,6 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+interface IDescriptor<T> {
+    id: string;
+    props: T;
+}
+
 /** Base class for all controls */
 class Control<P extends object = object> {
     public props: P;
+
+    public static descriptor: IDescriptor<object> = {
+        id: 'control',
+        props: {},
+    };
 
     constructor(props: P) {
         this.props = props;
@@ -22,6 +33,13 @@ interface SubProps { subControlProp: string }
 
 /** Example sub control */
 class SubControl extends Control<SubProps> {
+    public static descriptor: IDescriptor<SubProps> = {
+        id: 'subControl',
+        props: {
+            subControlProp: 'sub control prop',
+        },
+    };
+    
     public subControlMethod() {
         console.log('sub control method');
     }
