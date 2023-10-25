@@ -68,9 +68,12 @@ class Behavior2 extends Behavior implements IBehavior2 {
 }
 
 type Constructor<T = object> = new (...args: any[]) => T;
+type ConstructorWithProps<T, P> = new (props?: Partial<P>) => T;
+type ConstructorWithDescriptor<T> = Constructor<T> & { descriptor: IDescriptor<object> };
 
-function withBehaviors<T extends Constructor<Control>, B extends Constructor<Behavior>[]>(ControlClass: T, ...behaviors: B) {
+function withBehaviors<T extends ConstructorWithDescriptor<Control>, B extends Constructor<Behavior>[]>(ControlClass: T, ...behaviors: B) {
   // Define an anonymous class extending ControlClass
+  type Props = typeof ControlClass.descriptor.props;
   return class extends ControlClass {
     // Mix in behaviors in the constructor
     constructor(...args: any[]) {
@@ -79,15 +82,14 @@ function withBehaviors<T extends Constructor<Control>, B extends Constructor<Beh
         Object.assign(this, new BehaviorClass());
       });
     }
-  } as unknown as Constructor<InstanceType<T> & UnionToIntersection<InstanceType<B[number]>>>;
+  } as unknown as ConstructorWithProps<InstanceType<T> & UnionToIntersection<InstanceType<B[number]>>, Props>;
 }
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
 
-
 const SubControlWithBehaviors = withBehaviors(SubControl, Behavior1, Behavior2);
 
-const subControl = new SubControlWithBehaviors();
+const subControl = new SubControlWithBehaviors()
 subControl.controlMethod(); // <-- works
 subControl.subControlMethod(); // <-- works
 subControl.behaviorMethod(); // <-- works
