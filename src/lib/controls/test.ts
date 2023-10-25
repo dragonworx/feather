@@ -67,29 +67,31 @@ class Behavior2 extends Behavior implements IBehavior2 {
     }
 }
 
-type Constructor<T = object> = new (...args: any[]) => T;
-type ConstructorWithProps<T, P> = new (props?: Partial<P>) => T;
-type ConstructorWithDescriptor<T> = Constructor<T> & { descriptor: IDescriptor<object> };
-
-function withBehaviors<T extends ConstructorWithDescriptor<Control>, B extends Constructor<Behavior>[]>(ControlClass: T, ...behaviors: B) {
-  // Define an anonymous class extending ControlClass
-  type Props = typeof ControlClass.descriptor.props;
-  return class extends ControlClass {
-    // Mix in behaviors in the constructor
-    constructor(...args: any[]) {
-      super(...args);
-      behaviors.forEach(BehaviorClass => {
-        Object.assign(this, new BehaviorClass());
-      });
-    }
-  } as unknown as ConstructorWithProps<InstanceType<T> & UnionToIntersection<InstanceType<B[number]>>, Props>;
-}
-
+type SimpleConstructor<T = object> = new (...args: any[]) => T;
+type Constructor<T = object, P = object> = new (props: P) => T;
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
+
+function withBehaviors<
+    T extends Control<P>,
+    P extends object,
+    B extends SimpleConstructor<Behavior>[]
+>(
+    ControlClass: Constructor<T, P> & { descriptor: IDescriptor<P> },
+    ...behaviors: B
+) {
+    return class extends (ControlClass as any) {
+        constructor(props: P) {
+            super(props);
+            behaviors.forEach((BehaviorClass) => {
+                Object.assign(this, new BehaviorClass());
+            });
+        }
+    } as Constructor<T & UnionToIntersection<InstanceType<B[number]>>, P>;
+}
 
 const SubControlWithBehaviors = withBehaviors(SubControl, Behavior1, Behavior2);
 
-const subControl = new SubControlWithBehaviors()
+const subControl = new SubControlWithBehaviors({subControlProp: 'sub control prop'})
 subControl.controlMethod(); // <-- works
 subControl.subControlMethod(); // <-- works
 subControl.behaviorMethod(); // <-- works
