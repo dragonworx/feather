@@ -26,7 +26,7 @@ export type HTMLElementWithMetaData = HTMLElement & { [_metaPrefix]: Control };
 export type ControlDescriptor<Properties extends object = object> = {
 	id: string;
 	props: Properties;
-	html: string;
+	template: string;
 }
 
 export abstract class Control<
@@ -48,7 +48,7 @@ export abstract class Control<
 	public static descriptor: ControlDescriptor = {
 		id: 'control',
 		props: {},
-		html: '',
+		template: '',
 	}
 
 	public static elementOwner(source: Event | EventTarget | null): Control | null {
@@ -76,10 +76,10 @@ export abstract class Control<
 		};
 
 		// create element and initialise it
-		if (descriptor.html.trim().length === 0) {
+		if (descriptor.template.trim().length === 0) {
 			throw new Error('html template cannot be empty');
 		}
-		const element = this.element = html(descriptor.html);
+		const element = this.element = html(descriptor.template);
 		element.classList.add(...descriptors.map(descriptor => `${_attributePrefix}-${descriptor.id}`));
 		element.setAttribute(`data-id`, this.id);
 		(element as unknown as HTMLElementWithMetaData)[_metaPrefix] = this as unknown as Control;
@@ -342,17 +342,21 @@ export abstract class Control<
 		
 		this._behaviorsById.set(id, behavior);
 		behavior.init(this.asComponent());
+
+		return behavior;
 	}
 
 	public removeBehavior(behavior: Behavior): Behavior {
 		const { behaviors: _behaviors } = this;
 		const index = _behaviors.indexOf(behavior);
+
 		if (index > -1) {
 			behavior.dispose();
 			this.behaviors.splice(index, 1);
 		} else {
 			throw new Error('behavior not found');
 		}
+
 		return behavior;
 	}
 

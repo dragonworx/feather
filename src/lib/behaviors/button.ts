@@ -33,7 +33,7 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 	protected defaultOptions(): ButtonBehaviorOptions {
 		return {
 			buttons: ButtonFlag.Left,
-			isToggle: true,
+			isToggle: false,
 			isToggled: false,
 			longPressTime: 500,
 		};
@@ -78,16 +78,6 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 
 		this.component.addClass(_css.down);
 		this.emit('down');
-
-		if (this.options.isToggle) {
-			this._isToggled = !this._isToggled;
-			if (this._isToggled) {
-				this.component.addClass('toggled');
-			} else {
-				this.component.removeClass('toggled');
-			}
-			this.emit('toggle', this._isToggled);
-		}
 	}) as EventListener;
 
 	protected onMouseLeave = (() => {
@@ -96,11 +86,23 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 
 	protected onMouseUp = (e: MouseEvent) => {
 		this._isDown = false;
+
 		clearTimeout(this._longPressTimeout);
 		window.removeEventListener('mouseup', this.onMouseUp);
 		this.component.removeClass(_css.down);
-		if (e.target === this.element) {
+
+		if (e.target === this.element || this.element.contains(e.target as Node)) {
 			this.emit('up');
+
+			if (this.options.isToggle) {
+				this._isToggled = !this._isToggled;
+				if (this._isToggled) {
+					this.component.addClass('toggled');
+				} else {
+					this.component.removeClass('toggled');
+				}
+				this.emit('toggle', this._isToggled);
+			}
 		} else {
 			this.emit('upOutside');
 		}

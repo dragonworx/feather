@@ -17,7 +17,7 @@ export class Debug extends Control<HTMLDivElement, DebugComponentModel> {
             width: 100,
             height: 100
         },
-        html: `<div><span/></div>`
+        template: `<div><span/></div>`
     }
 
     public render(): void {
