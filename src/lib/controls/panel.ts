@@ -16,7 +16,7 @@ export class Panel extends Control<HTMLDivElement, PanelModel> {
 			justify: 'start',
 			align: 'start',
 		},
-		html: `<div></div>`,
+		template: `<div></div>`,
 	}
 
 	protected render(): void {

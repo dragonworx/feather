@@ -24,6 +24,9 @@ export function uniqueId() {
 	return `${++_id}`;
 }
 
+const _controlIds = new Set<string>();
+const _validatedControls = new Set<ControlCtor>();
+
 export function getDescriptors<T extends ControlCtor>(ctor: T): ControlDescriptor<object>[] {
 	const descriptors: ControlDescriptor<object>[] = [];
 	let currentCtor: ControlCtor = ctor;
@@ -52,6 +55,18 @@ export function getDescriptors<T extends ControlCtor>(ctor: T): ControlDescripto
 		}
 		ids.add(descriptor.id);
 	}
+
+	// check control id is unique
+	if (!_validatedControls.has(ctor)) {
+		const topDescriptor = descriptors[descriptors.length - 1];
+		if (_controlIds.has(topDescriptor.id)) {
+			throw new Error(`duplicate control id '${topDescriptor.id}'`);
+		}
+		_controlIds.add(topDescriptor.id);
+	}
+
+	// add to validated controls so we don't have to validate again
+	_validatedControls.add(ctor);
 
 	return descriptors;
 }
