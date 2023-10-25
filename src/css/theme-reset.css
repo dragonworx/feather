@@ -9,7 +9,8 @@
   box-sizing: border-box;
   font-family: sans-serif;
   font-size: 11px;
-  user-select: none; }
+  user-select: none;
+  transition: opacity 150ms ease-in-out, background 150ms ease-in-out; }
   .ctl-control.ctl-debug {
     display: flex;
     justify-content: center;
@@ -21,11 +22,22 @@
     border-right: 1px solid #999;
     border-bottom: 1px solid #999;
     border-radius: 3px;
-    width: 50px; }
-    .ctl-control.ctl-button:hover.down {
+    width: 50px;
+    height: 20px; }
+    .ctl-control.ctl-button.disabled {
+      opacity: 0.35;
+      color: #ccc;
+      font-style: italic; }
+    .ctl-control.ctl-button.down label, .ctl-control.ctl-button.toggled label {
+      position: relative;
+      left: 1px;
+      top: 1px; }
+    .ctl-control.ctl-button.down {
       background: #444; }
     .ctl-control.ctl-button.toggled {
       background: #555; }
+    .ctl-control.ctl-button.down.toggled {
+      background: #333; }
   .ctl-control.ctl-list {
     list-style: none;
     margin: 0;
@@ -36,8 +48,7 @@
     border: 1px outset #ccc;
     border-radius: 3px;
     width: 20px;
-    height: 20px;
-    transition: opacity 150ms ease-in-out; }
+    height: 20px; }
     .ctl-control.ctl-checkbox svg {
       position: relative;
       left: -1px;

@@ -16,15 +16,35 @@ export class Button extends Control<HTMLButtonElement, ButtonProps, ButtonEvent>
 		props: {
 			label: '',
 		},
-		template: `<button type="button"></button>`,
+		template: `<button type="button"><label /></button>`,
+	}
+
+	public get buttonBehavior(): ButtonBehavior {
+		return this.behavior<ButtonBehavior>(ButtonBehavior.id);
 	}
 
 	protected render(): void {
-		this.element.textContent = this._props.label
+		this.querySelector('label').textContent = this._props.label
 	}
 
 	protected init() {
 		this.addBehavior(new ButtonBehavior());
 		this.addBehavior(new ContextMenuBehavior());
+	}
+
+	public get isToggle(): boolean {
+		return this.buttonBehavior.isToggle;
+	}
+
+	public set isToggle(value: boolean) {
+		this.buttonBehavior.isToggle = value;
+	}
+
+	public get isToggled(): boolean {
+		return this.buttonBehavior.isToggled;
+	}
+
+	public set isToggled(value: boolean) {
+		this.buttonBehavior.isToggled = value;
 	}
 }

@@ -27,6 +27,7 @@ export type ControlDescriptor<Properties extends object = object> = {
 	id: string;
 	props: Properties;
 	template: string;
+	canHaveChildren?: boolean;
 }
 
 export abstract class Control<
@@ -37,6 +38,7 @@ export abstract class Control<
 	private _classes: string[] = [];
 	private _listeners: Map<string, ControlEventHandler[]> = new Map(); // track custom event listeners internally
 	private _behaviorsById: Map<string, Behavior> = new Map();
+	private _isDisabled = false;
 	
 	protected behaviors: Behavior[] = [];
 	protected _props: PropertiesType;
@@ -89,6 +91,10 @@ export abstract class Control<
 
 		// run one full update cycle to update the element
 		this.update(this._props);
+	}
+
+	protected get descriptor() {
+		return (this.constructor as ControlCtor).descriptor;
 	}
 
 	public dispose() {
@@ -361,17 +367,23 @@ export abstract class Control<
 	}
 
 	public addChild(child: Control<HTMLElement, object>) {
+		if (this.descriptor.canHaveChildren === false) {
+			throw new Error(`Control '${this.descriptor.id}' cannot have children`);
+		}
 		this.children.push(child);
-		this.appendChildElement(child.element);
+		this.appendChild(child.element);
 		child.emit<ControlEvent>('addedToParent', this.asComponent());
 	}
 
-	protected appendChildElement(element: HTMLElement) {
+	protected appendChild(element: HTMLElement) {
 		// override in subclass for more specific child element targetting
 		this.element.appendChild(element);
 	}
 
 	public removeChild(child: Control<HTMLElement, object>) {
+		if (this.descriptor.canHaveChildren === false) {
+			throw new Error(`Control '${this.descriptor.id}' cannot have children`);
+		}
 		const index = this.children.indexOf(child);
 		if (index > -1) {
 			child.emit<ControlEvent>('removingFromParent', this.asComponent());
@@ -384,5 +396,14 @@ export abstract class Control<
 
 	public getChildren() {
 		return [...this.children];
+	}
+
+	public get isEnabled() {
+		return !this._isDisabled;
+	}
+
+	public set isEnabled(value: boolean) {
+		this._isDisabled = !value;
+		this.setClassIf('disabled', !value);
 	}
 }

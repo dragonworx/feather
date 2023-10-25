@@ -34,7 +34,7 @@ export class TestComponent extends Control<HTMLDivElement, TestComponentModel> {
 		this.emit<TestComponentEvent>('testEvent', detail);
 	}
 
-	protected appendChildElement(element: HTMLElement) {
+	protected appendChild(element: HTMLElement) {
 		this.querySelector('b')!.appendChild(element);
 		this.emit<TestComponentEvent>('appendChildElement', element);
 	}

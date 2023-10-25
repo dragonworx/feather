@@ -5,6 +5,7 @@
 	font-family: sans-serif;
 	font-size: 11px;
 	user-select: none;
+	transition: opacity 150ms ease-in-out, background 150ms ease-in-out;
 }
 
 @mixin control_down {
@@ -13,4 +14,16 @@
 
 @mixin control_toggled {
 	background: #555;
+}
+
+@mixin control_down_toggled {
+	background: #333;
+}
+
+@mixin control_disabled {
+	&.disabled {
+		opacity: 0.35;
+		color: #ccc;
+		font-style: italic;
+	}
 }
