@@ -49,7 +49,7 @@
 			.on('longPress', () => console.log('longPress'));
 
 		// modify button2 behavior
-		button2.behavior<ButtonBehavior>(ButtonBehavior.id).options.isToggle = true;
+		button2.isToggle = true;
 
 		// add additional behavior
 		const drag = new DragBehavior();
@@ -58,11 +58,9 @@
 			.on('start', (e: CustomEvent<DragBehaviorEvent>) => console.log('start', e.detail))
 			.on('move', (e: CustomEvent<DragBehaviorEvent>) => console.log('move', e.detail))
 			.on('end', (e: CustomEvent<DragBehaviorEvent>) => console.log('end', e));
-		button2
-			.behavior<ContextMenuBehavior>(ContextMenuBehavior.id)
-			.on('context', (e: CustomEvent<DragBehaviorEvent>) => {
-				console.log('context', e);
-			});
+		button2.contextMenuBehavior.on('context', (e: CustomEvent<DragBehaviorEvent>) => {
+			console.log('context', e);
+		});
 
 		(window as any).button1 = button1;
 		(window as any).button2 = button2;

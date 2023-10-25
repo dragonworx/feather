@@ -4,6 +4,7 @@ import { Control, type ControlDescriptor, type ControlEvent } from '../control';
 
 export interface ButtonProps {
 	label: string;
+	isRound: boolean;
 	// todo: if pass menu, make use of contextMenuBehavior optional
 }
 
@@ -15,12 +16,17 @@ export class Button extends Control<HTMLButtonElement, ButtonProps, ButtonEvent>
 		id: 'button',
 		props: {
 			label: '',
+			isRound: false,
 		},
 		template: `<button type="button"><label /></button>`,
 	}
 
 	public get buttonBehavior(): ButtonBehavior {
 		return this.behavior<ButtonBehavior>(ButtonBehavior.id);
+	}
+
+	public get contextMenuBehavior(): ContextMenuBehavior {
+		return this.behavior<ContextMenuBehavior>(ContextMenuBehavior.id);
 	}
 
 	protected render(): void {
