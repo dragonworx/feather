@@ -6,12 +6,28 @@
 	border-bottom: 1px solid #999;
 	border-radius: 3px;
 	width: 50px;
+	height: 20px;
 
-	&:hover.down {
+	@include control_disabled;
+
+	&.down,
+	&.toggled {
+		label {
+			position: relative;
+			left: 1px;
+			top: 1px;
+		}
+	}
+
+	&.down {
 		@include control_down;
 	}
 
 	&.toggled {
 		@include control_toggled;
+	}
+
+	&.down.toggled {
+		@include control_down_toggled;
 	}
 }

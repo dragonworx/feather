@@ -5,7 +5,7 @@
 	import { StringList } from '$lib/controls/list';
 	import { Debug } from '$lib/controls/debug';
 	import { Panel } from '$lib/controls/panel';
-	import type { ButtonBehaviorEvent } from '$lib/behaviors/button';
+	import { ButtonBehavior, type ButtonBehaviorEvent } from '$lib/behaviors/button';
 	import { ContextMenuBehavior, type ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
 	import {
 		DragBehavior,
@@ -40,12 +40,17 @@
 			const debug = new Debug({ label: `${i}` });
 			panel.addChild(debug);
 		}
+
 		// attach to internal behavior events (requires documentation)
 		button1
 			.on('down', () => console.log('down'))
 			.on('up', () => console.log('up'))
 			.on('upOutside', () => console.log('upOutside'))
 			.on('longPress', () => console.log('longPress'));
+
+		// modify button2 behavior
+		button2.behavior<ButtonBehavior>(ButtonBehavior.id).options.isToggle = true;
+
 		// add additional behavior
 		const drag = new DragBehavior();
 		button2.addBehavior(drag);
@@ -58,6 +63,9 @@
 			.on('context', (e: CustomEvent<DragBehaviorEvent>) => {
 				console.log('context', e);
 			});
+
+		(window as any).button1 = button1;
+		(window as any).button2 = button2;
 	});
 </script>
 

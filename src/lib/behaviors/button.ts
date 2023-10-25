@@ -94,17 +94,33 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 		if (e.target === this.element || this.element.contains(e.target as Node)) {
 			this.emit('up');
 
-			if (this.options.isToggle) {
-				this._isToggled = !this._isToggled;
-				if (this._isToggled) {
-					this.component.addClass('toggled');
-				} else {
-					this.component.removeClass('toggled');
-				}
-				this.emit('toggle', this._isToggled);
-			}
+			this.isToggled = !this.isToggled;
 		} else {
 			this.emit('upOutside');
 		}
 	};
+
+	public get isToggle(): boolean {
+		return this.options.isToggle;
+	}
+
+	public set isToggle(value: boolean) {
+		this.options.isToggle = value;
+	}
+
+	public get isToggled(): boolean {
+		return this._isToggled;
+	}
+
+	public set isToggled(value: boolean) {
+		if (this.options.isToggle && this._isToggled !== value) {
+			this._isToggled = value;
+			if (this._isToggled) {
+				this.component.addClass('toggled');
+			} else {
+				this.component.removeClass('toggled');
+			}
+			this.emit('toggle', this._isToggled);
+		}
+	}
 }
