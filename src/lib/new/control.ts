@@ -1,5 +1,5 @@
 import { Behavior } from './behavior';
-import { getDescriptors } from './util';
+import { getDescriptors, type ControlCtorWithDescriptor } from './util';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ControlDescriptor<P>
@@ -39,6 +39,10 @@ export class Control<P extends object = object> {
             ...descriptor.props,
             ...props,
         };
+    }
+
+    protected get id() {
+        return (this.constructor as unknown as ControlCtorWithDescriptor<P>).descriptor.id;
     }
 
     protected as<T>()
@@ -124,5 +128,13 @@ export class Control<P extends object = object> {
         {
             listener(event);
         }
+    }
+
+    public mount() {
+        console.log('control mount');
+    }
+
+    public unmount() {
+        console.log('control unmount');
     }
 }

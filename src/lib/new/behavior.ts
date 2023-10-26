@@ -12,4 +12,12 @@ export class Behavior extends Control
     {
         console.log('behavior method');
     }
+
+    public mount() {
+        console.log('behavior mount', this.id);
+    }
+
+    public unmount() {
+        console.log('behavior unmount', this.id);
+    }
 }
