@@ -9,10 +9,14 @@ export function test()
         props: T;
     }
 
+    type EventListener<T> = (event: T) => void;
+
     /** Base class for all controls */
     class Control<P extends object = object> {
         public props: P;
         protected _map: Map<string, any> = new Map();
+
+        protected listeners: Map<string, EventListener<any>[]> = new Map();
 
         public static descriptor: ControlDescriptor<object> = {
             id: 'control',
@@ -79,7 +83,8 @@ export function test()
             return this._map.get(key);
         }
 
-        protected setMap(key: string, value: any) {
+        protected setMap(key: string, value: any)
+        {
             this._map.set(key, value);
         }
 
@@ -91,6 +96,31 @@ export function test()
         public testRead(key: string)
         {
             return this.getMap(key);
+        }
+
+        protected addListener<T extends object>(key: string, listener: EventListener<T>)
+        {
+            if (!this.listeners.has(key))
+            {
+                this.listeners.set(key, []);
+            }
+
+            this.listeners.get(key)!.push(listener);
+
+            return this;
+        }
+
+        public emit<T>(key: string, event: T)
+        {
+            if (!this.listeners.has(key))
+            {
+                return;
+            }
+
+            for (const listener of this.listeners.get(key)!)
+            {
+                listener(event);
+            }
         }
     }
 
@@ -129,6 +159,10 @@ export function test()
         }
     }
 
+    type Behavior2Event = {
+        x: string;
+    }
+
     /** Example behavior 2 */
     class Behavior2 extends Behavior
     {
@@ -143,8 +177,14 @@ export function test()
             console.log('behavior2 method', this.props);
         }
 
-        public get behavior2Prop() {
+        public get behavior2Prop()
+        {
             return 'behavior2 prop';
+        }
+
+        public onTest(listener: EventListener<Behavior2Event>)
+        {
+            return this.addListener('test', listener);
         }
     }
 
@@ -294,10 +334,20 @@ export function test()
     subControl.behaviorMethod(); // <-- works
     subControl.behavior1Method(); // <-- works
     subControl.behavior2Method(); // <-- works
+    subControl.onTest((value) =>
+    {
+        console.log(`test event: ${value.x}`)
+    });
+
     console.log(subControl.behavior2Prop); // <-- works
     console.log(subControl.testRead('foo1')); // <-- works
     console.log(subControl2.testRead('foo2')); // <-- works
 
     (window as any).subControl = subControl;
     console.log(subControl);
+
+    setTimeout(() =>
+    {
+        subControl.emit<Behavior2Event>('test', { x: 'xxx' });
+    }, 1000)
 }
