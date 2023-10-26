@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Behavior } from './behavior';
 import { Control, type ControlDescriptor, type EventHandler } from './control';
 import { CreateControl } from './util';
 
 export function test()
 {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-
     /** Example behavior 1 */
     class Behavior1 extends Behavior
     {
@@ -98,10 +98,10 @@ export function test()
     }
 
     const subControl = new SubControlWithBehaviors({ subControlProp: 'foo2' });
-    const subControl2 = new SubSubControl({ subControlProp: 'foo3' });
+    // const subControl2 = new SubSubControl({ subControlProp: 'foo3' });
 
     subControl.testWrite('foo1', 'bar1');
-    subControl2.testWrite('foo2', 'bar2');
+    // subControl2.testWrite('foo2', 'bar2');
 
     subControl.controlMethod(); // <-- works
     subControl.subControlMethod(); // <-- works
@@ -115,13 +115,16 @@ export function test()
 
     console.log(subControl.behavior2Prop); // <-- works
     console.log(subControl.testRead('foo1')); // <-- works
-    console.log(subControl2.testRead('foo2')); // <-- works
+    // console.log(subControl2.testRead('foo2')); // <-- works
 
     (window as any).subControl = subControl;
     console.log(subControl);
 
+    subControl.mount();
+
     setTimeout(() =>
     {
         subControl.emit<Behavior2Event>('test', { x: 'xxx' });
+        subControl.unmount();
     }, 1000)
 }

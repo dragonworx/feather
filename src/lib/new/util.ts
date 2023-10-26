@@ -2,9 +2,9 @@
 import type { Behavior } from './behavior';
 import { Control, type ControlDescriptor } from './control';
 
+export type ControlCtor<P extends object = object, T extends Control = Control> = new (props?: Partial<P>) => T;
+export type ControlCtorWithDescriptor<P extends object = object, T extends Control = Control> = ControlCtor<P, T> & { descriptor: ControlDescriptor<P> };
 type GeneralCtor<T = object> = new (...args: any[]) => T;
-type ControlCtor<T extends Control = Control, P = object> = new (props?: Partial<P>) => T;
-type ControlCtorWithDescriptor<T extends Control = Control, P = object> = ControlCtor<T, P> & { descriptor: ControlDescriptor<P> };
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
 
 /**
@@ -57,10 +57,10 @@ const _validatedControls = new Set<ControlCtor>();
  * @param ctor The `Control` constructor to get descriptors for.
  * @returns An array of `ControlDescriptor` objects for the `Control` constructor and its prototype chain.
  */
-export function getDescriptors<T extends ControlCtorWithDescriptor<Control, object>>(ctor: T): ControlDescriptor<object>[]
+export function getDescriptors<T extends ControlCtorWithDescriptor>(ctor: T): ControlDescriptor<object>[]
 {
     const descriptors: ControlDescriptor<object>[] = [];
-    let currentCtor: ControlCtorWithDescriptor<Control, object> = ctor;
+    let currentCtor: ControlCtorWithDescriptor = ctor;
 
     // walk up prototype chain and collect descriptors
     while (currentCtor)
@@ -70,7 +70,7 @@ export function getDescriptors<T extends ControlCtorWithDescriptor<Control, obje
             descriptors.unshift(currentCtor.descriptor);
         }
 
-        const newCtor = Object.getPrototypeOf(currentCtor) as ControlCtorWithDescriptor<Control, object>;
+        const newCtor = Object.getPrototypeOf(currentCtor) as ControlCtorWithDescriptor;
 
         if ((currentCtor as unknown) === Control)
         {
@@ -133,9 +133,9 @@ export function CreateControl<
     P extends object,
     B extends GeneralCtor<Behavior>[]
 >(
-    ControlClass: ControlCtorWithDescriptor<T, P>,
+    ControlClass: ControlCtorWithDescriptor<P, T>,
     ...behaviors: B
-): ControlCtorWithDescriptor<T & UnionToIntersection<InstanceType<B[number]>>, P>
+): ControlCtorWithDescriptor<P, T & UnionToIntersection<InstanceType<B[number]>>>
 {
     return class extends (ControlClass as any) {
         public static descriptor: ControlDescriptor<P> = ControlClass.descriptor;
@@ -144,17 +144,19 @@ export function CreateControl<
         {
             super(props);
 
+            const _behaviors: GeneralCtor<Behavior>[] = [];
+
             for (const BehaviorClass of behaviors)
             {
                 let behaviorProto = Object.getPrototypeOf(new BehaviorClass());
 
-                while (behaviorProto && behaviorProto !== Object.prototype)
+                while (behaviorProto && behaviorProto !== Object.prototype && behaviorProto !== Control.prototype)
                 {
                     const propertyDescriptors = Object.getOwnPropertyDescriptors(behaviorProto);
 
                     for (const [key, property] of Object.entries(propertyDescriptors))
                     {
-                        if (key === 'constructor')
+                        if (key === 'constructor' || key === 'mount' || key === 'unmount')
                         {
                             continue;
                         }
@@ -197,9 +199,21 @@ export function CreateControl<
 
                     behaviorProto = Object.getPrototypeOf(behaviorProto);
                 }
+
+                BehaviorClass.prototype.mount.call(this);
+                _behaviors.push(BehaviorClass);
+            }
+
+            const unmount = this.unmount;
+            this.unmount = () => {
+                unmount.call(this);
+                for (const BehaviorClass of _behaviors)
+                {
+                    BehaviorClass.prototype.unmount.call(this);
+                }
             }
         }
-    } as ControlCtorWithDescriptor<T & UnionToIntersection<InstanceType<B[number]>>, P>;
+    } as ControlCtorWithDescriptor<P, T & UnionToIntersection<InstanceType<B[number]>>>;
 }
 
 /**
