@@ -43,7 +43,11 @@ export function getDescriptors<T extends ControlCtor>(ctor: T): ControlDescripto
 			break;
 		}
 
-		currentCtor = newCtor;
+		if (currentCtor.descriptor === newCtor.descriptor) {
+			currentCtor = Object.getPrototypeOf(newCtor);
+		} else {
+			currentCtor = newCtor;
+		}
 	}
 
 	// check that all descriptors in array have unique ids
