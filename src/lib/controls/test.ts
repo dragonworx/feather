@@ -20,6 +20,11 @@ export function test()
 
         constructor(props?: Partial<P>)
         {
+            if (this instanceof Behavior) {
+                this.props = {} as P;
+                return
+            }
+            
             console.log('control constructor');
 
             const descriptors = getDescriptors(this.constructor as any);
@@ -35,6 +40,10 @@ export function test()
         public controlMethod()
         {
             console.log('control method');
+        }
+
+        protected controlProtectedMethod() {
+            return "foo23"
         }
 
         public get foo()
@@ -82,16 +91,12 @@ export function test()
     }
 
     /** Base class for all behaviors */
-    class Behavior
+    class Behavior extends Control
     {
         constructor()
         {
+            super();
             console.log('behavior constructor');
-        }
-
-        protected get control()
-        {
-            return this as unknown as Control;
         }
 
         public behaviorMethod()
@@ -111,7 +116,7 @@ export function test()
 
         public behavior1Method()
         {
-            console.log('behavior1 method');
+            console.log('behavior1 method', this.props, this.controlProtectedMethod());
         }
 
         public get foo()
@@ -131,7 +136,7 @@ export function test()
 
         public behavior2Method()
         {
-            console.log('behavior2 method', this.control.props);
+            console.log('behavior2 method', this.props);
         }
     }
 
@@ -238,7 +243,7 @@ export function test()
     subControl.behaviorMethod(); // <-- works
     subControl.behavior1Method(); // <-- works
     subControl.behavior2Method(); // <-- works
-    
+
     (window as any).subControl = subControl;
     console.log(subControl);
 }
