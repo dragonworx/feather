@@ -12,6 +12,7 @@ export function test()
     /** Base class for all controls */
     class Control<P extends object = object> {
         public props: P;
+        protected _map: Map<string, any> = new Map();
 
         public static descriptor: ControlDescriptor<object> = {
             id: 'control',
@@ -66,6 +67,30 @@ export function test()
         public set bar(value: number)
         {
             console.log('SET2', value);
+        }
+
+        protected getMap(key: string)
+        {
+            if (!this._map.has(key))
+            {
+                this._map.set(key, new Map());
+            }
+
+            return this._map.get(key);
+        }
+
+        protected setMap(key: string, value: any) {
+            this._map.set(key, value);
+        }
+
+        public testWrite(key: string, value: any)
+        {
+            this.setMap(key, value);
+        }
+
+        public testRead(key: string)
+        {
+            return this.getMap(key);
         }
     }
 
@@ -127,14 +152,14 @@ export function test()
     type ControlCtor<T = object, P = object> = new (props?: P) => T;
     type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
 
-    function withBehaviors<
+    function CreateControl<
         T extends Control<P>,
         P extends object,
         B extends GeneralCtor<Behavior>[]
     >(
         ControlClass: ControlCtor<T, P> & { descriptor: ControlDescriptor<P> },
         ...behaviors: B
-    )
+    ): ControlCtor<T & UnionToIntersection<InstanceType<B[number]>>, P> & { descriptor: ControlDescriptor<P> }
     {
         return class extends (ControlClass as any) {
             public static descriptor: ControlDescriptor<P> = ControlClass.descriptor;
@@ -242,9 +267,13 @@ export function test()
         }
     }
 
-    const SubControlWithBehaviors = withBehaviors(SubControl, Behavior1, Behavior2);
+    const SubControlWithBehaviors = CreateControl(SubControl, Behavior1, Behavior2);
 
     const subControl = new SubControlWithBehaviors({ subControlProp: 'foo2' });
+    const subControl2 = new SubControlWithBehaviors({ subControlProp: 'foo3' });
+
+    subControl.testWrite('foo1', 'bar1');
+    subControl2.testWrite('foo2', 'bar2');
 
     subControl.controlMethod(); // <-- works
     subControl.subControlMethod(); // <-- works
@@ -252,6 +281,8 @@ export function test()
     subControl.behavior1Method(); // <-- works
     subControl.behavior2Method(); // <-- works
     console.log(subControl.behavior2Prop); // <-- works
+    console.log(subControl.testRead('foo1')); // <-- works
+    console.log(subControl2.testRead('foo2')); // <-- works
 
     (window as any).subControl = subControl;
     console.log(subControl);
