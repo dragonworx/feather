@@ -25,7 +25,7 @@ export function test()
             const descriptors = getDescriptors(this.constructor as any);
 
             const descriptor = descriptors[descriptors.length - 1] as any;
-            
+
             this.props = {
                 ...descriptor.props,
                 ...props,
@@ -35,6 +35,26 @@ export function test()
         public controlMethod()
         {
             console.log('control method');
+        }
+
+        public get foo()
+        {
+            return 3
+        }
+
+        public set foo(value: number)
+        {
+            console.log('SET', value);
+        }
+
+        public get bar()
+        {
+            return 3
+        }
+
+        public set bar(value: number)
+        {
+            console.log('SET2', value);
         }
     }
 
@@ -52,7 +72,7 @@ export function test()
         constructor(props: Partial<SubProps> = {})
         {
             super(props);
-            console.log('sub control constructor'); 
+            console.log('sub control constructor');
         }
 
         public subControlMethod()
@@ -69,7 +89,8 @@ export function test()
             console.log('behavior constructor');
         }
 
-        protected get control() {
+        protected get control()
+        {
             return this as unknown as Control;
         }
 
@@ -82,25 +103,32 @@ export function test()
     /** Example behavior 1 */
     class Behavior1 extends Behavior
     {
-        constructor() {
-             super();
-              console.log('behavior1 constructor');
-             }
+        constructor()
+        {
+            super();
+            console.log('behavior1 constructor');
+        }
 
         public behavior1Method()
         {
             console.log('behavior1 method');
+        }
+
+        public get foo()
+        {
+            return 4
         }
     }
 
     /** Example behavior 2 */
     class Behavior2 extends Behavior
     {
-        constructor() { 
-            super(); 
-            console.log('behavior1 constructor'); 
+        constructor()
+        {
+            super();
+            console.log('behavior1 constructor');
         }
-        
+
         public behavior2Method()
         {
             console.log('behavior2 method', this.control.props);
@@ -122,7 +150,7 @@ export function test()
     {
         return class extends (ControlClass as any) {
             public static descriptor: IDescriptor<P> = ControlClass.descriptor;
-            
+
             constructor(props: P)
             {
                 super(props);
@@ -135,25 +163,46 @@ export function test()
                     {
                         const propertyDescriptors = Object.getOwnPropertyDescriptors(behaviorProto);
 
-                        for (const [key, property] of Object.entries(propertyDescriptors)) {
-                            if (key === 'constructor') {
+                        for (const [key, property] of Object.entries(propertyDescriptors))
+                        {
+                            if (key === 'constructor')
+                            {
                                 continue;
                             }
-                            if (typeof property.value === 'function') {
+
+                            const currentProperty = findPropertyDescriptorInProtoChain(this, key);
+
+                            if (typeof property.value === 'function')
+                            {
                                 this[key] = property.value.bind(this);
-                            } else if ('get' in property) {
-                                Object.defineProperty(this, key, {
-                                    get: property.get!.bind(this),
-                                    enumerable: property.enumerable,
-                                    configurable: property.configurable,
-                                });
-                                if (property.set) {
+                            } else if ('get' in property)
+                            {
+                                if (typeof property.get === 'function')
+                                {
                                     Object.defineProperty(this, key, {
-                                        set: property.set!.bind(this),
-                                        enumerable: property.enumerable,
-                                        configurable: property.configurable,
+                                        get: property.get!.bind(this),
+                                        set: currentProperty?.set,
+                                        enumerable: true,
+                                        configurable: true,
+                                    });
+                                } else
+                                {
+                                    Object.defineProperty(this, key, {
+                                        get: property.value,
+                                        set: currentProperty?.set,
+                                        enumerable: true,
+                                        configurable: true,
                                     });
                                 }
+                            }
+                            if (property.set)
+                            {
+                                Object.defineProperty(this, key, {
+                                    get: currentProperty?.get,
+                                    set: property.set!.bind(this),
+                                    enumerable: true,
+                                    configurable: true,
+                                });
                             }
                         }
                         behaviorProto = Object.getPrototypeOf(behaviorProto);
@@ -163,15 +212,33 @@ export function test()
         } as Constructor<T & UnionToIntersection<InstanceType<B[number]>>, P> & { descriptor: IDescriptor<P> };
     }
 
+    function findPropertyDescriptorInProtoChain(obj: object, key: string | symbol): PropertyDescriptor | null
+    {
+        let currentProto = Object.getPrototypeOf(obj);
+
+        while (currentProto !== null)
+        {
+            const descriptor = Object.getOwnPropertyDescriptor(currentProto, key);
+            if (descriptor)
+            {
+                return descriptor;
+            }
+            currentProto = Object.getPrototypeOf(currentProto);
+        }
+
+        return null;
+    }
+
     const SubControlWithBehaviors = withBehaviors(SubControl, Behavior1, Behavior2);
 
-    const subControl = new SubControlWithBehaviors({subControlProp: 'foo2'});
+    const subControl = new SubControlWithBehaviors({ subControlProp: 'foo2' });
 
     subControl.controlMethod(); // <-- works
     subControl.subControlMethod(); // <-- works
     subControl.behaviorMethod(); // <-- works
     subControl.behavior1Method(); // <-- works
     subControl.behavior2Method(); // <-- works
+    
     (window as any).subControl = subControl;
     console.log(subControl);
 }
