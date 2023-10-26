@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Checkbox } from '$lib/controls/checkbox';
-	import { Button } from '$lib/controls/button';
-	import { StringList } from '$lib/controls/list';
-	import { Debug } from '$lib/controls/debug';
-	import { Panel } from '$lib/controls/panel';
-	import { ButtonBehavior, type ButtonBehaviorEvent } from '$lib/behaviors/button';
-	import { ContextMenuBehavior, type ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
-	import {
-		DragBehavior,
-		type DragBehaviorEvent,
-		type DragBehaviorEvents
-	} from '$lib/behaviors/drag';
+	// import { Checkbox } from '$lib/controls/checkbox';
+	// import { Button } from '$lib/controls/button';
+	// import { StringList } from '$lib/controls/list';
+	// import { Debug } from '$lib/controls/debug';
+	// import { Panel } from '$lib/controls/panel';
+	// import { ButtonBehavior, type ButtonBehaviorEvent } from '$lib/behaviors/button';
+	// import { ContextMenuBehavior, type ContextMenuBehaviorEvents } from '$lib/behaviors/contextMenu';
+	// import {
+	// 	DragBehavior,
+	// 	type DragBehaviorEvent,
+	// 	type DragBehaviorEvents
+	// } from '$lib/behaviors/drag';
 
 	// import { test } from '$lib/new/test';
-	import { test } from '$lib/controls/test';
+	import { test } from '$lib/new/test';
 
 	// force full reload on hot module reload
 	if (import.meta.hot) {
