@@ -15,7 +15,14 @@
 
 	import { test } from '$lib/controls/test';
 
-	console.clear();
+	// force full reload on hot module reload
+	if (import.meta.hot) {
+		import.meta.hot.accept(() => {
+			import.meta.hot!.invalidate();
+		});
+	}
+
+	// console.clear();
 
 	let main: HTMLElement;
 
