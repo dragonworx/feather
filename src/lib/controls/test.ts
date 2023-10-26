@@ -133,11 +133,27 @@ export function test()
 
                     while (behaviorProto && behaviorProto !== Object.prototype)
                     {
-                        for (const key of Object.getOwnPropertyNames(behaviorProto))
-                        {
-                            if (key !== 'constructor' && typeof behaviorProto[key] === 'function')
-                            {
-                                this[key] = behaviorProto[key].bind(this);
+                        const propertyDescriptors = Object.getOwnPropertyDescriptors(behaviorProto);
+
+                        for (const [key, property] of Object.entries(propertyDescriptors)) {
+                            if (key === 'constructor') {
+                                continue;
+                            }
+                            if (typeof property.value === 'function') {
+                                this[key] = property.value.bind(this);
+                            } else if ('get' in property) {
+                                Object.defineProperty(this, key, {
+                                    get: property.get!.bind(this),
+                                    enumerable: property.enumerable,
+                                    configurable: property.configurable,
+                                });
+                                if (property.set) {
+                                    Object.defineProperty(this, key, {
+                                        set: property.set!.bind(this),
+                                        enumerable: property.enumerable,
+                                        configurable: property.configurable,
+                                    });
+                                }
                             }
                         }
                         behaviorProto = Object.getPrototypeOf(behaviorProto);
@@ -149,7 +165,7 @@ export function test()
 
     const SubControlWithBehaviors = withBehaviors(SubControl, Behavior1, Behavior2);
 
-    const subControl = new SubControlWithBehaviors();
+    const subControl = new SubControlWithBehaviors({subControlProp: 'foo2'});
 
     subControl.controlMethod(); // <-- works
     subControl.subControlMethod(); // <-- works
