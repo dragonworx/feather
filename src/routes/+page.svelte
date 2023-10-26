@@ -13,6 +13,7 @@
 		type DragBehaviorEvents
 	} from '$lib/behaviors/drag';
 
+	// import { test } from '$lib/new/test';
 	import { test } from '$lib/controls/test';
 
 	// force full reload on hot module reload
