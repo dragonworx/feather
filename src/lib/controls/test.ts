@@ -117,6 +117,10 @@ export function test()
         {
             console.log('behavior2 method', this.props);
         }
+
+        public get behavior2Prop() {
+            return 'behavior2 prop';
+        }
     }
 
     type GeneralCtor<T = object> = new (...args: any[]) => T;
@@ -247,6 +251,7 @@ export function test()
     subControl.behaviorMethod(); // <-- works
     subControl.behavior1Method(); // <-- works
     subControl.behavior2Method(); // <-- works
+    console.log(subControl.behavior2Prop); // <-- works
 
     (window as any).subControl = subControl;
     console.log(subControl);
