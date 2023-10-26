@@ -69,29 +69,6 @@ export function test()
         }
     }
 
-    interface SubProps { subControlProp: string }
-
-    /** Example sub control */
-    class SubControl extends Control<SubProps> {
-        public static descriptor: ControlDescriptor<SubProps> = {
-            id: 'subControl',
-            props: {
-                subControlProp: 'sub control prop',
-            },
-        };
-
-        constructor(props: Partial<SubProps> = {})
-        {
-            super(props);
-            console.log('sub control constructor');
-        }
-
-        public subControlMethod()
-        {
-            console.log('sub control method');
-        }
-    }
-
     /** Base class for all behaviors */
     class Behavior extends Control
     {
@@ -237,82 +214,29 @@ export function test()
         return null;
     }
 
-    function getBoundPropertyDescriptor(object: any, property: TypedPropertyDescriptor<any>)
-    {
-        const prop: TypedPropertyDescriptor<any> = {
-            ...property,
-            enumerable: true,
-            configurable: true,
+    /** Example sub control */
+    interface SubProps { subControlProp: string }
+
+
+    class SubControl<P extends SubProps> extends Control<P> {
+        public static descriptor: ControlDescriptor<SubProps> = {
+            id: 'subControl',
+            props: {
+                subControlProp: 'sub control prop',
+            },
         };
 
-        if (typeof prop.get === 'function')
+        constructor(props: Partial<P> = {})
         {
-            prop.get = prop.get.bind(object);
-        }
-        if (typeof prop.set === 'function')
-        {
-            prop.set = prop.set.bind(object);
-        }
-        if (typeof prop.value === 'function')
-        {
-            prop.value = prop.value.bind(object);
+            super(props);
+            console.log('sub control constructor');
         }
 
-        return prop;
-    }
-
-    // Higher-order function to mix in Control functionalities
-    function createControlClass<E extends HTMLElement>(
-        BaseElement: any
-    ): new (...args: any[]) => E & Control
-    {
-        return class extends BaseElement
+        public subControlMethod()
         {
-            constructor(...args: any[])
-            {
-                super(args);
-
-                const propertyDescriptors = Object.getOwnPropertyDescriptors(Control.prototype);
-
-                for (const [key, property] of Object.entries(propertyDescriptors))
-                {
-                    if (key === 'constructor')
-                    {
-                        continue;
-                    }
-
-                    Object.defineProperty(this, key, getBoundPropertyDescriptor(this, property));
-                }
-            }
-
-            // Proxy any other functionalities from Control you need
-        } as unknown as new (...args: any[]) => E & Control;
-    }
-
-    const HTMLDivControl = createControlClass(HTMLDivElement);
-
-    // Extend the new HTMLDivControl class
-    class MyControl extends HTMLDivControl
-    {
-        constructor()
-        {
-            super();
-
-            this.test();
-        }
-
-        public test()
-        {
-            console.log("TESTING");
-            this.controlMethod();
-            console.log(this.foo, this.bar);
-            this.innerHTML = 'foo';
-            (window as any).foo = this;
+            console.log('sub control method');
         }
     }
-
-    customElements.define('custom-foo', MyControl, { extends: 'div' });
-
 
     const SubControlWithBehaviors = withBehaviors(SubControl, Behavior1, Behavior2);
 
@@ -326,11 +250,4 @@ export function test()
 
     (window as any).subControl = subControl;
     console.log(subControl);
-
-    const foo = new MyControl();
-    
-    setTimeout(() =>
-    {
-        document.body.appendChild(foo);
-    }, 1000)
 }
