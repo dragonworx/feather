@@ -74,10 +74,3 @@ export function getDescriptors<T extends ControlCtor>(ctor: T): ControlDescripto
 
 	return descriptors;
 }
-
-// window.onunload = () => {
-// 	console.log("!!");
-// 	_id = 0;
-// 	_controlIds.clear();
-// 	_validatedControls.clear();
-// }
