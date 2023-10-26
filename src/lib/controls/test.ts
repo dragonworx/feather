@@ -98,7 +98,7 @@ export function test()
             return this.getMap(key);
         }
 
-        protected addListener<T extends object>(key: string, listener: EventListener<T>)
+        protected addListener<K extends string>(key: K, listener: EventListener<any>)
         {
             if (!this.listeners.has(key))
             {
@@ -159,9 +159,12 @@ export function test()
         }
     }
 
-    type Behavior2Event = {
+    interface Behavior2Event
+    {
         x: string;
     }
+
+    type BehaviorEvent = 'test';
 
     /** Example behavior 2 */
     class Behavior2 extends Behavior
@@ -184,7 +187,7 @@ export function test()
 
         public onTest(listener: EventListener<Behavior2Event>)
         {
-            return this.addListener('test', listener);
+            return this.addListener<BehaviorEvent>('test', listener);
         }
     }
 
