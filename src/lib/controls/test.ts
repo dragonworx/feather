@@ -3,7 +3,7 @@ import { getDescriptors } from '../util';
 export function test()
 {
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    interface IDescriptor<T>
+    interface ControlDescriptor<T>
     {
         id: string;
         props: T;
@@ -13,18 +13,19 @@ export function test()
     class Control<P extends object = object> {
         public props: P;
 
-        public static descriptor: IDescriptor<object> = {
+        public static descriptor: ControlDescriptor<object> = {
             id: 'control',
             props: {},
         };
 
         constructor(props?: Partial<P>)
         {
-            if (this instanceof Behavior) {
+            if (this instanceof Behavior)
+            {
                 this.props = {} as P;
                 return
             }
-            
+
             console.log('control constructor');
 
             const descriptors = getDescriptors(this.constructor as any);
@@ -42,7 +43,8 @@ export function test()
             console.log('control method');
         }
 
-        protected controlProtectedMethod() {
+        protected controlProtectedMethod()
+        {
             return "foo23"
         }
 
@@ -71,7 +73,7 @@ export function test()
 
     /** Example sub control */
     class SubControl extends Control<SubProps> {
-        public static descriptor: IDescriptor<SubProps> = {
+        public static descriptor: ControlDescriptor<SubProps> = {
             id: 'subControl',
             props: {
                 subControlProp: 'sub control prop',
@@ -140,21 +142,21 @@ export function test()
         }
     }
 
-    type SimpleConstructor<T = object> = new (...args: any[]) => T;
-    type Constructor<T = object, P = object> = new (props?: P) => T;
+    type GeneralCtor<T = object> = new (...args: any[]) => T;
+    type ControlCtor<T = object, P = object> = new (props?: P) => T;
     type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
 
     function withBehaviors<
         T extends Control<P>,
         P extends object,
-        B extends SimpleConstructor<Behavior>[]
+        B extends GeneralCtor<Behavior>[]
     >(
-        ControlClass: Constructor<T, P> & { descriptor: IDescriptor<P> },
+        ControlClass: ControlCtor<T, P> & { descriptor: ControlDescriptor<P> },
         ...behaviors: B
     )
     {
         return class extends (ControlClass as any) {
-            public static descriptor: IDescriptor<P> = ControlClass.descriptor;
+            public static descriptor: ControlDescriptor<P> = ControlClass.descriptor;
 
             constructor(props: P)
             {
@@ -215,7 +217,7 @@ export function test()
                     }
                 }
             }
-        } as Constructor<T & UnionToIntersection<InstanceType<B[number]>>, P> & { descriptor: IDescriptor<P> };
+        } as ControlCtor<T & UnionToIntersection<InstanceType<B[number]>>, P> & { descriptor: ControlDescriptor<P> };
     }
 
     function findPropertyDescriptorInProtoChain(obj: object, key: string | symbol): PropertyDescriptor | null
@@ -235,20 +237,24 @@ export function test()
         return null;
     }
 
-    function getBoundPropertyDescriptor(object: any, property: TypedPropertyDescriptor<any>) {
+    function getBoundPropertyDescriptor(object: any, property: TypedPropertyDescriptor<any>)
+    {
         const prop: TypedPropertyDescriptor<any> = {
             ...property,
             enumerable: true,
             configurable: true,
         };
 
-        if (typeof prop.get === 'function') {
+        if (typeof prop.get === 'function')
+        {
             prop.get = prop.get.bind(object);
         }
-        if (typeof prop.set === 'function') {
+        if (typeof prop.set === 'function')
+        {
             prop.set = prop.set.bind(object);
         }
-        if (typeof prop.value === 'function') {
+        if (typeof prop.value === 'function')
+        {
             prop.value = prop.value.bind(object);
         }
 
@@ -256,62 +262,55 @@ export function test()
     }
 
     // Higher-order function to mix in Control functionalities
-function createControlClass<E extends HTMLElement>(
-    BaseElement: any
-  ): new (...args: any[]) => E & Control {
-    return class extends BaseElement {
-      constructor(...args: any[]) {
-        super(args);
-
-       const propertyDescriptors = Object.getOwnPropertyDescriptors(Control.prototype);
-
-        for (const [key, property] of Object.entries(propertyDescriptors))
+    function createControlClass<E extends HTMLElement>(
+        BaseElement: any
+    ): new (...args: any[]) => E & Control
+    {
+        return class extends BaseElement
         {
-            if (key === 'constructor')
+            constructor(...args: any[])
             {
-                continue;
+                super(args);
+
+                const propertyDescriptors = Object.getOwnPropertyDescriptors(Control.prototype);
+
+                for (const [key, property] of Object.entries(propertyDescriptors))
+                {
+                    if (key === 'constructor')
+                    {
+                        continue;
+                    }
+
+                    Object.defineProperty(this, key, getBoundPropertyDescriptor(this, property));
+                }
             }
 
-            Object.defineProperty(this, key, getBoundPropertyDescriptor(this, property));
+            // Proxy any other functionalities from Control you need
+        } as unknown as new (...args: any[]) => E & Control;
+    }
+
+    const HTMLDivControl = createControlClass(HTMLDivElement);
+
+    // Extend the new HTMLDivControl class
+    class MyControl extends HTMLDivControl
+    {
+        constructor()
+        {
+            super();
+
+            this.test();
         }
-      }
-  
-      // Proxy any other functionalities from Control you need
-    } as unknown as new (...args: any[]) => E & Control;
-  }
 
-  const HTMLDivControl = createControlClass(HTMLDivElement);
-
-// Extend the new HTMLDivControl class
-class MyControl extends HTMLDivControl {
-    constructor() {
-        super();
-
-        this.test();
+        public test()
+        {
+            console.log("TESTING");
+            this.controlMethod();
+            console.log(this.foo, this.bar);
+            this.innerHTML = 'foo';
+            (window as any).foo = this;
+        }
     }
 
-    public test() {
-        console.log("TESTING");
-        this.controlMethod();
-        console.log(this.foo, this.bar);
-        this.innerHTML = 'foo';
-        (window as any).foo = this;
-    }
-}
-
-//   customElements.define('custom-foo1', MyControl, { extends: 'div' });
-
-//     class Foo extends HTMLDivElement {
-//         constructor() {
-//             super();
-//             this.test();
-//         }
-    
-//         public test() {
-//             this.innerHTML = 'foo';
-//         }
-//     }
-    
     customElements.define('custom-foo', MyControl, { extends: 'div' });
 
 
@@ -329,7 +328,9 @@ class MyControl extends HTMLDivControl {
     console.log(subControl);
 
     const foo = new MyControl();
-    setTimeout(() => {
+    
+    setTimeout(() =>
+    {
         document.body.appendChild(foo);
     }, 1000)
 }
