@@ -149,7 +149,7 @@ export function test()
     }
 
     type GeneralCtor<T = object> = new (...args: any[]) => T;
-    type ControlCtor<T = object, P = object> = new (props?: P) => T;
+    type ControlCtor<T = object, P = object> = new (props?: Partial<P>) => T;
     type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
 
     function CreateControl<
@@ -164,7 +164,7 @@ export function test()
         return class extends (ControlClass as any) {
             public static descriptor: ControlDescriptor<P> = ControlClass.descriptor;
 
-            constructor(props: P)
+            constructor(props?: Partial<P>)
             {
                 super(props);
 
@@ -247,7 +247,7 @@ export function test()
     interface SubProps { subControlProp: string }
 
 
-    class SubControl<P extends SubProps> extends Control<P> {
+    class SubControl extends Control<SubProps> {
         public static descriptor: ControlDescriptor<SubProps> = {
             id: 'subControl',
             props: {
@@ -255,7 +255,7 @@ export function test()
             },
         };
 
-        constructor(props: Partial<P> = {})
+        constructor(props?: Partial<SubProps>)
         {
             super(props);
             console.log('sub control constructor');
@@ -269,8 +269,22 @@ export function test()
 
     const SubControlWithBehaviors = CreateControl(SubControl, Behavior1, Behavior2);
 
+    class SubSubControl extends SubControlWithBehaviors
+    {
+        public static descriptor: ControlDescriptor<SubProps> = {
+            ...SubControl.descriptor,
+            id: 'subSubControl',
+        };
+
+        constructor(props?: Partial<SubProps>)
+        {
+            super(props);
+            console.log('sub sub control constructor');
+        }
+    }
+
     const subControl = new SubControlWithBehaviors({ subControlProp: 'foo2' });
-    const subControl2 = new SubControlWithBehaviors({ subControlProp: 'foo3' });
+    const subControl2 = new SubSubControl({ subControlProp: 'foo3' });
 
     subControl.testWrite('foo1', 'bar1');
     subControl2.testWrite('foo2', 'bar2');
