@@ -210,6 +210,7 @@ export function test()
                                 });
                             }
                         }
+
                         behaviorProto = Object.getPrototypeOf(behaviorProto);
                     }
                 }
@@ -234,6 +235,86 @@ export function test()
         return null;
     }
 
+    function getBoundPropertyDescriptor(object: any, property: TypedPropertyDescriptor<any>) {
+        const prop: TypedPropertyDescriptor<any> = {
+            ...property,
+            enumerable: true,
+            configurable: true,
+        };
+
+        if (typeof prop.get === 'function') {
+            prop.get = prop.get.bind(object);
+        }
+        if (typeof prop.set === 'function') {
+            prop.set = prop.set.bind(object);
+        }
+        if (typeof prop.value === 'function') {
+            prop.value = prop.value.bind(object);
+        }
+
+        return prop;
+    }
+
+    // Higher-order function to mix in Control functionalities
+function createControlClass<E extends HTMLElement>(
+    BaseElement: any
+  ): new (...args: any[]) => E & Control {
+    return class extends BaseElement {
+      constructor(...args: any[]) {
+        super(args);
+
+       const propertyDescriptors = Object.getOwnPropertyDescriptors(Control.prototype);
+
+        for (const [key, property] of Object.entries(propertyDescriptors))
+        {
+            if (key === 'constructor')
+            {
+                continue;
+            }
+
+            Object.defineProperty(this, key, getBoundPropertyDescriptor(this, property));
+        }
+      }
+  
+      // Proxy any other functionalities from Control you need
+    } as unknown as new (...args: any[]) => E & Control;
+  }
+
+  const HTMLDivControl = createControlClass(HTMLDivElement);
+
+// Extend the new HTMLDivControl class
+class MyControl extends HTMLDivControl {
+    constructor() {
+        super();
+
+        this.test();
+    }
+
+    public test() {
+        console.log("TESTING");
+        this.controlMethod();
+        console.log(this.foo, this.bar);
+        this.innerHTML = 'foo';
+        (window as any).foo = this;
+    }
+}
+
+//   customElements.define('custom-foo1', MyControl, { extends: 'div' });
+
+//     class Foo extends HTMLDivElement {
+//         constructor() {
+//             super();
+//             this.test();
+//         }
+    
+//         public test() {
+//             this.innerHTML = 'foo';
+//         }
+//     }
+    
+    customElements.define('custom-foo', MyControl, { extends: 'div' });
+
+
     const SubControlWithBehaviors = withBehaviors(SubControl, Behavior1, Behavior2);
 
     const subControl = new SubControlWithBehaviors({ subControlProp: 'foo2' });
@@ -246,4 +327,9 @@ export function test()
 
     (window as any).subControl = subControl;
     console.log(subControl);
+
+    const foo = new MyControl();
+    setTimeout(() => {
+        document.body.appendChild(foo);
+    }, 1000)
 }
