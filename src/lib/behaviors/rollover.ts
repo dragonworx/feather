@@ -1,17 +1,20 @@
-import { Behavior } from '$lib/behavior';
+import { Behavior } from '$lib/behavior_orig';
 
-export class RolloverBehavior extends Behavior {
+export class RolloverBehavior extends Behavior
+{
 	public static id = 'rollover';
-	
+
 	private _isOver = false;
 
 	// todo: create custom events, options for whether to use enter/leave or over/out
 
-	public get isOver() {
+	public get isOver()
+	{
 		return this._isOver;
 	}
 
-	public install(): void {
+	public install(): void
+	{
 		const { component } = this;
 		component.on('mouseover', this.onMouseOver);
 		component.on('mouseout', this.onMouseOut);
@@ -19,7 +22,8 @@ export class RolloverBehavior extends Behavior {
 		component.on('mouseleave', this.onMouseLeave);
 	}
 
-	public uninstall(): void {
+	public uninstall(): void
+	{
 		const { component } = this;
 		component.off('mouseover', this.onMouseOver);
 		component.off('mouseout', this.onMouseOut);
@@ -27,19 +31,23 @@ export class RolloverBehavior extends Behavior {
 		component.off('mouseleave', this.onMouseLeave);
 	}
 
-	protected onMouseOver = () => {
+	protected onMouseOver = () =>
+	{
 		this._isOver = true;
 	};
 
-	protected onMouseOut = () => {
+	protected onMouseOut = () =>
+	{
 		this._isOver = false;
 	};
 
-	protected onMouseEnter = () => {
+	protected onMouseEnter = () =>
+	{
 		this._isOver = true;
 	};
 
-	protected onMouseLeave = () => {
+	protected onMouseLeave = () =>
+	{
 		this._isOver = false;
 	};
 }

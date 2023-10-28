@@ -49,8 +49,7 @@ export function uniqueId()
     return `${++_id}`;
 }
 
-const _controlIds = new Set<string>();
-const _validatedControls = new Set<ControlCtor>();
+const _validatedControls = new Map<string, ControlCtorWithDescriptor>();
 
 /**
  * Returns an array of `ControlDescriptor` objects for a `Control` constructor and its prototype chain.
@@ -61,10 +60,13 @@ export function getDescriptors<T extends ControlCtorWithDescriptor>(ctor: T): Co
 {
     const descriptors: ControlDescriptor<object>[] = [];
     let currentCtor: ControlCtorWithDescriptor = ctor;
+    let prototypeCount = 0;
 
     // walk up prototype chain and collect descriptors
     while (currentCtor)
     {
+        prototypeCount++;
+
         if (currentCtor.descriptor)
         {
             descriptors.unshift(currentCtor.descriptor);
@@ -95,22 +97,25 @@ export function getDescriptors<T extends ControlCtorWithDescriptor>(ctor: T): Co
         {
             throw new Error(`duplicate control descriptor id '${descriptor.id}'`);
         }
+
         ids.add(descriptor.id);
     }
 
     // check control id is unique
-    if (!_validatedControls.has(ctor))
+    const topDescriptor = descriptors[descriptors.length - 1];
+
+    if (_validatedControls.has(topDescriptor.id) && _validatedControls.get(topDescriptor.id) !== ctor)
     {
-        const topDescriptor = descriptors[descriptors.length - 1];
-        if (_controlIds.has(topDescriptor.id))
-        {
-            throw new Error(`duplicate control id '${topDescriptor.id}'`);
-        }
-        _controlIds.add(topDescriptor.id);
+        throw new Error(`control id '${topDescriptor.id}' is already defined by ${_validatedControls.get(topDescriptor.id)?.name}`);
     }
 
-    // add to validated controls so we don't have to validate again
-    _validatedControls.add(ctor);
+    _validatedControls.set(topDescriptor.id, ctor);
+
+    // check there's a descriptor for each prototype
+    if (prototypeCount !== descriptors.length)
+    {
+        throw new Error('missing control descriptor');
+    }
 
     return descriptors;
 }
@@ -128,7 +133,7 @@ export function getDescriptors<T extends ControlCtorWithDescriptor>(ctor: T): Co
  * @returns {ControlCtorWithDescriptor<T & UnionToIntersection<InstanceType<B[number]>>, P>}
  * A new control class that extends the original control class and incorporates the specified behaviors.
  */
-export function CreateControl<
+export function Mixin<
     T extends Control<P>,
     P extends object,
     B extends GeneralCtor<Behavior>[]
@@ -200,12 +205,19 @@ export function CreateControl<
                     behaviorProto = Object.getPrototypeOf(behaviorProto);
                 }
 
-                BehaviorClass.prototype.mount.call(this);
                 _behaviors.push(BehaviorClass);
             }
 
+            Control.prototype.mount.call(this);
+
+            for (const BehaviorClass of _behaviors)
+            {
+                BehaviorClass.prototype.mount.call(this);
+            }
+
             const unmount = this.unmount;
-            this.unmount = () => {
+            this.unmount = () =>
+            {
                 unmount.call(this);
                 for (const BehaviorClass of _behaviors)
                 {
@@ -240,3 +252,4 @@ function findPropertyDescriptorInProtoChain(obj: object, key: string | symbol): 
 
     return null;
 }
+

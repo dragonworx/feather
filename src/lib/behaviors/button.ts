@@ -1,12 +1,14 @@
-import { Behavior } from '$lib/behavior';
+import { Behavior } from '$lib/behavior_orig';
 
-export enum ButtonFlag {
+export enum ButtonFlag
+{
 	Left = 1,
 	Middle = 4,
 	Right = 2
 }
 
-export interface ButtonBehaviorOptions {
+export interface ButtonBehaviorOptions
+{
 	buttons: ButtonFlag;
 	isToggle: boolean;
 	isToggled: boolean;
@@ -19,7 +21,8 @@ const _css = {
 	down: 'down'
 };
 
-function checkFlag(flag: number, mode: ButtonFlag): boolean {
+function checkFlag(flag: number, mode: ButtonFlag): boolean
+{
 	return (flag & mode) !== 0;
 }
 
@@ -30,7 +33,8 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 
 	public static id = 'button';
 
-	protected defaultOptions(): ButtonBehaviorOptions {
+	protected defaultOptions(): ButtonBehaviorOptions
+	{
 		return {
 			buttons: ButtonFlag.Left,
 			isToggle: false,
@@ -39,11 +43,13 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 		};
 	}
 
-	public get isDown() {
+	public get isDown()
+	{
 		return this._isDown;
 	}
 
-	public install(): void {
+	public install(): void
+	{
 		const { component } = this;
 
 		component.on('mousedown', this.onMouseDown);
@@ -51,26 +57,31 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 
 		this._isToggled = this.options.isToggled;
 
-		if (this.options.isToggle && this._isToggled) {
+		if (this.options.isToggle && this._isToggled)
+		{
 			this.component.addClass('toggled');
 		}
 	}
 
-	public uninstall(): void {
+	public uninstall(): void
+	{
 		const { component } = this;
 		component.off('mousedown', this.onMouseDown);
 		component.off('mouseleave', this.onMouseLeave);
 	}
 
-	protected onMouseDown = ((e: MouseEvent) => {
-		if (!checkFlag(e.buttons, this.options.buttons)) {
+	protected onMouseDown = ((e: MouseEvent) =>
+	{
+		if (!checkFlag(e.buttons, this.options.buttons))
+		{
 			return;
 		}
 
 		this._isDown = true;
 		clearTimeout(this._longPressTimeout);
 
-		this._longPressTimeout = setTimeout(() => {
+		this._longPressTimeout = setTimeout(() =>
+		{
 			this.emit('longPress');
 		}, this.options.longPressTime) as unknown as number;
 
@@ -80,44 +91,55 @@ export class ButtonBehavior extends Behavior<ButtonBehaviorOptions, ButtonBehavi
 		this.emit('down');
 	}) as EventListener;
 
-	protected onMouseLeave = (() => {
+	protected onMouseLeave = (() =>
+	{
 		clearTimeout(this._longPressTimeout);
 	}) as EventListener;
 
-	protected onMouseUp = (e: MouseEvent) => {
+	protected onMouseUp = (e: MouseEvent) =>
+	{
 		this._isDown = false;
 
 		clearTimeout(this._longPressTimeout);
 		window.removeEventListener('mouseup', this.onMouseUp);
 		this.component.removeClass(_css.down);
 
-		if (e.target === this.element || this.element.contains(e.target as Node)) {
+		if (e.target === this.element || this.element.contains(e.target as Node))
+		{
 			this.emit('up');
 
 			this.isToggled = !this.isToggled;
-		} else {
+		} else
+		{
 			this.emit('upOutside');
 		}
 	};
 
-	public get isToggle(): boolean {
+	public get isToggle(): boolean
+	{
 		return this.options.isToggle;
 	}
 
-	public set isToggle(value: boolean) {
+	public set isToggle(value: boolean)
+	{
 		this.options.isToggle = value;
 	}
 
-	public get isToggled(): boolean {
+	public get isToggled(): boolean
+	{
 		return this._isToggled;
 	}
 
-	public set isToggled(value: boolean) {
-		if (this.options.isToggle && this._isToggled !== value) {
+	public set isToggled(value: boolean)
+	{
+		if (this.options.isToggle && this._isToggled !== value)
+		{
 			this._isToggled = value;
-			if (this._isToggled) {
+			if (this._isToggled)
+			{
 				this.component.addClass('toggled');
-			} else {
+			} else
+			{
 				this.component.removeClass('toggled');
 			}
 			this.emit('toggle', this._isToggled);

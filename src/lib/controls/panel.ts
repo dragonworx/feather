@@ -1,6 +1,7 @@
-import { Control, type ControlDescriptor } from '../control';
+import { Control, type ControlDescriptor } from '../control_orig';
 
-export interface PanelModel {
+export interface PanelModel
+{
 	direction: 'horizontal' | 'vertical';
 	wrap: boolean;
 	justify: 'start' | 'end' | 'center' | 'space-around' | 'space-between' | 'space-evenly' | 'stretch';
@@ -19,7 +20,8 @@ export class Panel extends Control<HTMLDivElement, PanelModel> {
 		template: `<div></div>`,
 	}
 
-	protected render(): void {
+	protected render(): void
+	{
 		const { direction, wrap, justify, align } = this._props;
 		this.setClassIf('horizontal', direction === 'horizontal');
 		this.setClassIf('vertical', direction === 'vertical');

@@ -2,7 +2,7 @@
 
 import { Behavior } from './behavior';
 import { Control, type ControlDescriptor, type EventHandler } from './control';
-import { CreateControl } from './util';
+import { Mixin } from './util';
 
 export function test()
 {
@@ -17,7 +17,7 @@ export function test()
 
         public behavior1Method()
         {
-            console.log('behavior1 method', this.props, this.controlProtectedMethod());
+            console.log('behavior1 method', this._props, this.controlProtectedMethod());
         }
 
         public get foo()
@@ -39,12 +39,12 @@ export function test()
         constructor()
         {
             super();
-            console.log('behavior1 constructor');
+            console.log('behavior2 constructor');
         }
 
         public behavior2Method()
         {
-            console.log('behavior2 method', this.props);
+            console.log('behavior2 method', this._props);
         }
 
         public get behavior2Prop()
@@ -54,7 +54,7 @@ export function test()
 
         public onTest(listener: EventHandler<Behavior2Event>)
         {
-            return this.addListener<BehaviorEvent>('test', listener);
+            return this.on<BehaviorEvent>('test', listener);
         }
     }
 
@@ -81,7 +81,7 @@ export function test()
         }
     }
 
-    const SubControlWithBehaviors = CreateControl(SubControl, Behavior1, Behavior2);
+    const SubControlWithBehaviors = Mixin(SubControl, Behavior1, Behavior2);
 
     class SubSubControl extends SubControlWithBehaviors
     {
@@ -100,22 +100,24 @@ export function test()
     const subControl = new SubControlWithBehaviors({ subControlProp: 'foo2' });
     // const subControl2 = new SubSubControl({ subControlProp: 'foo3' });
 
-    subControl.testWrite('foo1', 'bar1');
-    // subControl2.testWrite('foo2', 'bar2');
+    console.log('----------');
 
-    subControl.controlMethod(); // <-- works
-    subControl.subControlMethod(); // <-- works
-    subControl.behaviorMethod(); // <-- works
-    subControl.behavior1Method(); // <-- works
-    subControl.behavior2Method(); // <-- works
-    subControl.onTest((value) =>
-    {
-        console.log(`test event: ${value.x}`)
-    });
+    // subControl.testWrite('foo1', 'bar1');
+    // // subControl2.testWrite('foo2', 'bar2');
 
-    console.log(subControl.behavior2Prop); // <-- works
-    console.log(subControl.testRead('foo1')); // <-- works
-    // console.log(subControl2.testRead('foo2')); // <-- works
+    // subControl.controlMethod(); // <-- works
+    // subControl.subControlMethod(); // <-- works
+    // subControl.behaviorMethod(); // <-- works
+    // subControl.behavior1Method(); // <-- works
+    // subControl.behavior2Method(); // <-- works
+    // subControl.onTest((value) =>
+    // {
+    //     console.log(`test event: ${value.x}`)
+    // });
+
+    // console.log(subControl.behavior2Prop); // <-- works
+    // console.log(subControl.testRead('foo1')); // <-- works
+    // // console.log(subControl2.testRead('foo2')); // <-- works
 
     (window as any).subControl = subControl;
     console.log(subControl);

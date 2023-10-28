@@ -1,6 +1,7 @@
-import { Control, type ControlDescriptor } from '../control';
+import { Control, type ControlDescriptor } from '../control_orig';
 
-export interface DebugComponentModel {
+export interface DebugComponentModel
+{
     label: string;
     color: string;
     width: number;
@@ -20,8 +21,9 @@ export class Debug extends Control<HTMLDivElement, DebugComponentModel> {
         template: `<div><span/></div>`
     }
 
-    public render(): void {
-        const {label: text,color,width,height} = this._props;
+    public render(): void
+    {
+        const { label: text, color, width, height } = this._props;
         this.querySelector<HTMLSpanElement>('span').textContent = text;
         this.setStyle({
             background: color,
