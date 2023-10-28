@@ -1,6 +1,6 @@
-import { Behavior } from '$lib/behavior';
+import { Behavior } from '$lib/behavior_orig';
 
-export interface ContextMenuBehaviorOptions {}
+export interface ContextMenuBehaviorOptions { }
 
 export type ContextMenuBehaviorEvents = 'context';
 
@@ -9,21 +9,26 @@ export class ContextMenuBehavior extends Behavior<
 	ContextMenuBehaviorEvents
 > {
 	public static id = 'contextMenu';
-	
+
 	private static hasInstalledHook = false;
 
 	private static listeners: ContextMenuBehavior[] = [];
 
-	private static installHook(behavior: ContextMenuBehavior) {
+	private static installHook(behavior: ContextMenuBehavior)
+	{
 		ContextMenuBehavior.listeners.push(behavior);
 
-		if (ContextMenuBehavior.hasInstalledHook) {
+		if (ContextMenuBehavior.hasInstalledHook)
+		{
 			return;
 		}
 
-		document.addEventListener('contextmenu', (e) => {
-			for (const listener of ContextMenuBehavior.listeners) {
-				if (listener.element === e.target) {
+		document.addEventListener('contextmenu', (e) =>
+		{
+			for (const listener of ContextMenuBehavior.listeners)
+			{
+				if (listener.element === e.target)
+				{
 					e.preventDefault();
 					listener.onContext(e);
 				}
@@ -33,11 +38,13 @@ export class ContextMenuBehavior extends Behavior<
 		ContextMenuBehavior.hasInstalledHook = true;
 	}
 
-	public install(): void {
+	public install(): void
+	{
 		ContextMenuBehavior.installHook(this);
 	}
 
-	public onContext(e: MouseEvent) {
+	public onContext(e: MouseEvent)
+	{
 		this.emit('context', e);
 	}
 }

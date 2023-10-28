@@ -2,22 +2,16 @@ import { Control } from './control';
 
 export class Behavior extends Control
 {
-    constructor()
+    protected isBehavior()
     {
-        super();
-        console.log('behavior constructor');
+        return true;
     }
 
-    public behaviorMethod()
+    public mount()
     {
-        console.log('behavior method');
     }
 
-    public mount() {
-        console.log('behavior mount', this.id);
-    }
-
-    public unmount() {
-        console.log('behavior unmount', this.id);
+    public unmount()
+    {
     }
 }

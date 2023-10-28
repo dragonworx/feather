@@ -1,8 +1,9 @@
 import { ButtonBehavior, type ButtonBehaviorEvent } from '$lib/behaviors/button';
 import { ContextMenuBehavior } from '$lib/behaviors/contextMenu';
-import { Control, type ControlDescriptor, type ControlEvent } from '../control';
+import { Control, type ControlDescriptor, type ControlEvent } from '../control_orig';
 
-export interface ButtonProps {
+export interface ButtonProps
+{
 	label: string;
 	isRound: boolean;
 	// todo: if pass menu, make use of contextMenuBehavior optional
@@ -11,7 +12,7 @@ export interface ButtonProps {
 export type ButtonEvent = ControlEvent | ButtonBehaviorEvent;
 
 export class Button extends Control<HTMLButtonElement, ButtonProps, ButtonEvent> {
-	
+
 	static descriptor: ControlDescriptor<ButtonProps> = {
 		id: 'button',
 		props: {
@@ -21,36 +22,44 @@ export class Button extends Control<HTMLButtonElement, ButtonProps, ButtonEvent>
 		template: `<button type="button"><label /></button>`,
 	}
 
-	public get buttonBehavior(): ButtonBehavior {
+	public get buttonBehavior(): ButtonBehavior
+	{
 		return this.behavior<ButtonBehavior>(ButtonBehavior.id);
 	}
 
-	public get contextMenuBehavior(): ContextMenuBehavior {
+	public get contextMenuBehavior(): ContextMenuBehavior
+	{
 		return this.behavior<ContextMenuBehavior>(ContextMenuBehavior.id);
 	}
 
-	protected render(): void {
+	protected render(): void
+	{
 		this.querySelector('label').textContent = this._props.label
 	}
 
-	protected init() {
+	protected init()
+	{
 		this.addBehavior(new ButtonBehavior());
 		this.addBehavior(new ContextMenuBehavior());
 	}
 
-	public get isToggle(): boolean {
+	public get isToggle(): boolean
+	{
 		return this.buttonBehavior.isToggle;
 	}
 
-	public set isToggle(value: boolean) {
+	public set isToggle(value: boolean)
+	{
 		this.buttonBehavior.isToggle = value;
 	}
 
-	public get isToggled(): boolean {
+	public get isToggled(): boolean
+	{
 		return this.buttonBehavior.isToggled;
 	}
 
-	public set isToggled(value: boolean) {
+	public set isToggled(value: boolean)
+	{
 		this.buttonBehavior.isToggled = value;
 	}
 }

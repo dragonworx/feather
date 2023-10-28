@@ -1,140 +1,127 @@
-import { Behavior } from './behavior';
-import { getDescriptors, type ControlCtorWithDescriptor } from './util';
+// import { Behavior } from './behavior';
+import { getDescriptors, type ControlCtorWithDescriptor, html } from './util';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ControlDescriptor<P>
 {
     id: string;
     props: P;
+    template: string;
 }
 
 export type EventHandler<P> = (event: P) => void;
 
-export class Control<P extends object = object> {
-    public props: P;
-    protected _map: Map<string, any> = new Map();
+export const attributePrefix = 'ctl';
+export const metaPrefix = `${attributePrefix}-control`;
 
-    protected listeners: Map<string, EventHandler<any>[]> = new Map();
+export type HTMLElementWithMetaData = HTMLElement & { [metaPrefix]: Control };
+
+export abstract class Control<P extends object = object, E extends HTMLElement = HTMLElement> {
+    protected _props: P;
+    protected _element?: E;
+
+    protected _map: Map<string, any> = new Map();
+    protected _listeners: Map<string, EventHandler<any>[]> = new Map();
 
     public static descriptor: ControlDescriptor<object> = {
         id: 'control',
         props: {},
+        template: '',
     };
+
+    public static elementOwner(source: Event | HTMLElement): Control | null
+    {
+        const element = source instanceof Event ? source.target : source;
+        if (
+            element &&
+            metaPrefix in element &&
+            element[metaPrefix] instanceof Control
+        )
+        {
+            return element[metaPrefix];
+        }
+        return null;
+    }
 
     constructor(props?: Partial<P>)
     {
-        if (this instanceof Behavior)
+        if ('isBehavior' in this)
         {
-            this.props = {} as P;
+            this._props = {} as P;
             return
         }
-
-        console.log('control constructor');
 
         const descriptors = getDescriptors(this.constructor as any);
 
         const descriptor = descriptors[descriptors.length - 1] as any;
 
-        this.props = {
+        this._props = {
             ...descriptor.props,
             ...props,
         };
-    }
 
-    protected get id() {
-        return (this.constructor as unknown as ControlCtorWithDescriptor<P>).descriptor.id;
-    }
-
-    protected as<T>()
-    {
-        return this as unknown as T;
-    }
-
-    public controlMethod()
-    {
-        console.log('control method');
-    }
-
-    protected controlProtectedMethod()
-    {
-        return "foo23"
-    }
-
-    public get foo()
-    {
-        return 3
-    }
-
-    public set foo(value: number)
-    {
-        console.log('SET', value);
-    }
-
-    public get bar()
-    {
-        return 3
-    }
-
-    public set bar(value: number)
-    {
-        console.log('SET2', value);
-    }
-
-    protected getMap(key: string)
-    {
-        if (!this._map.has(key))
+        if (descriptor.template.trim().length === 0)
         {
-            this._map.set(key, new Map());
+            throw new Error('html template cannot be empty');
         }
 
-        return this._map.get(key);
+        const element = this._element = html(descriptor.template);
+        element.classList.add(...descriptors.map(descriptor => `${attributePrefix}-${descriptor.id}`));
+        (element as unknown as HTMLElementWithMetaData)[metaPrefix] = this as unknown as Control;
     }
 
-    protected setMap(key: string, value: any)
+    public descriptors(): ControlDescriptor<object>[]
     {
-        this._map.set(key, value);
+        return getDescriptors(this.constructor as any);
     }
 
-    public testWrite(key: string, value: any)
+    public get descriptor()
     {
-        this.setMap(key, value);
+        return (this.constructor as unknown as ControlCtorWithDescriptor<P>).descriptor;
     }
 
-    public testRead(key: string)
+    public get props(): P
     {
-        return this.getMap(key);
+        return {
+            ...this._props
+        };
     }
 
-    protected addListener<K extends string>(key: K, listener: EventHandler<any>)
+    public get element(): E
     {
-        if (!this.listeners.has(key))
+        return this._element as E;
+    }
+
+    public on<K extends string>(key: K, listener: EventHandler<any>)
+    {
+        if (!this._listeners.has(key))
         {
-            this.listeners.set(key, []);
+            this._listeners.set(key, []);
         }
 
-        this.listeners.get(key)!.push(listener);
+        this._listeners.get(key)!.push(listener);
 
         return this;
     }
 
     public emit<T>(key: string, event: T)
     {
-        if (!this.listeners.has(key))
+        if (!this._listeners.has(key))
         {
             return;
         }
 
-        for (const listener of this.listeners.get(key)!)
+        for (const listener of this._listeners.get(key)!)
         {
             listener(event);
         }
     }
 
-    public mount() {
-        console.log('control mount');
+    public mount()
+    {
     }
 
-    public unmount() {
-        console.log('control unmount');
+    public unmount()
+    {
     }
 }
