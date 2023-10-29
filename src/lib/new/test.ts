@@ -32,12 +32,11 @@ export function test()
         mixins: M;
     }
 
-    function createDescriptor<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>): Descriptor<P, M>
+    function Control<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>)
     {
-        return desc;
+        return createControlClass(desc);
     }
-
-    class Control<P extends object> {
+    abstract class ControlBase<P extends object> {
         protected _props: P;
         protected _eventHandlers: Record<string, EventHandler[]> = {};
 
@@ -64,13 +63,13 @@ export function test()
         }
     }
 
-    function CreateControl<P extends object, M extends Array<MixinFunction<any, any, any>>>(descriptor: Descriptor<P, M>)
+    function createControlClass<P extends object, M extends Array<MixinFunction<any, any, any>>>(descriptor: Descriptor<P, M>)
     {
         type MixedProps = P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>;
         type MixedEvents = MixinsEvents<M>;
         type MixedApi = MixinsApi<M>;
 
-        return class MixedControl extends Control<MixedProps> {
+        return class MixedControl extends ControlBase<MixedProps> {
             public descriptor = descriptor;
 
             constructor(props: Partial<MixedProps> = {})
@@ -89,7 +88,7 @@ export function test()
                 });
             }
         } as unknown as (new (props: Partial<MixedProps>) =>
-            Control<MixedProps>
+            ControlBase<MixedProps>
             & MixedApi
             & {
                 on: (event: MixedEvents, handler: EventHandler) => void;
@@ -141,8 +140,7 @@ export function test()
             };
         };
 
-    // Create descriptor using utility function
-    const descriptor = createDescriptor({
+    const ControlClass = Control({
         id: 'test',
         defaultProps: {
             foo: 'bar',
@@ -152,7 +150,6 @@ export function test()
         mixins: [mixin1, mixin2],
     });
 
-    const ControlClass = CreateControl(descriptor);
     const control = new ControlClass({
         foo: 'foo',
         mixin1: 'test',
