@@ -34,18 +34,19 @@ export function test()
 
     function Control<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>)
     {
-        return createControlClass(desc);
+        return createMixedControlClass(desc);
     }
-    abstract class ControlBase<P extends object> {
-        protected _props: P;
-        protected _eventHandlers: Record<string, EventHandler[]> = {};
+
+    abstract class ControlBase<P extends object, E extends string = string> {
+        private _eventHandlers: Record<string, EventHandler[]> = {};
+        protected props: P;
 
         constructor(props: Partial<P> = {})
         {
-            this._props = props as P;
+            this.props = props as P;
         }
 
-        on(event: string, handler: EventHandler): void
+        on(event: E, handler: EventHandler): void
         {
             if (!this._eventHandlers[event])
             {
@@ -54,22 +55,27 @@ export function test()
             this._eventHandlers[event].push(handler);
         }
 
-        emit(event: string, data?: any): void
+        emit(event: E, data?: any): void
         {
             if (this._eventHandlers[event])
             {
                 this._eventHandlers[event].forEach((handler) => handler(data));
             }
         }
+
+        protected init()
+        {
+            //
+        }
     }
 
-    function createControlClass<P extends object, M extends Array<MixinFunction<any, any, any>>>(descriptor: Descriptor<P, M>)
+    function createMixedControlClass<P extends object, M extends Array<MixinFunction<any, any, any>>>(descriptor: Descriptor<P, M>)
     {
         type MixedProps = P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>;
         type MixedEvents = MixinsEvents<M>;
         type MixedApi = MixinsApi<M>;
 
-        return class MixedControl extends ControlBase<MixedProps> {
+        return class MixedControl extends ControlBase<MixedProps, MixedEvents> {
             public descriptor = descriptor;
 
             constructor(props: Partial<MixedProps> = {})
@@ -79,16 +85,18 @@ export function test()
                     ...props,
                 });
 
-                descriptor.mixins.forEach((mixinFunc) =>
+                for (const mixinFunc of descriptor.mixins)
                 {
-                    const partialProps: Partial<MixedProps> = this._props as any;
+                    const partialProps: Partial<MixedProps> = this.props as any;
                     const mixin = mixinFunc(this, partialProps);
-                    Object.assign(this._props, mixin.defaultProps);
+                    // Object.assign(this.props, mixin.defaultProps); // <-- Error here
                     Object.assign(this, mixin.api);
-                });
+                }
+
+                this.init();
             }
         } as unknown as (new (props: Partial<MixedProps>) =>
-            ControlBase<MixedProps>
+            ControlBase<MixedProps, MixedEvents>
             & MixedApi
             & {
                 on: (event: MixedEvents, handler: EventHandler) => void;
@@ -140,7 +148,7 @@ export function test()
             };
         };
 
-    const ControlClass = Control({
+    class MixedControlClass extends Control({
         id: 'test',
         defaultProps: {
             foo: 'bar',
@@ -148,18 +156,33 @@ export function test()
         },
         template: '<div></div>',
         mixins: [mixin1, mixin2],
-    });
+    }) {
+        protected init(): void
+        {
+            console.log("MixedControlClass.init!", this.props)
+        }
+    }
 
-    const control = new ControlClass({
-        foo: 'foo',
+    const mixedControl = new MixedControlClass({
+        foo: 'baz',
         mixin1: 'test',
     });
 
-    control.on('mixin1Event', () => { /* handle */ });
-    control.on('mixin2Event', () => { /* handle */ });
+    mixedControl.on('mixin1Event', (a) => { console.log(a) });
+    mixedControl.on('mixin2Event', () => { /* handle */ });
 
-    console.log(control.mixin1Method());  // Outputs: foo
-    console.log(control.mixin2Method());  // Outputs: bar
+    console.log(mixedControl.mixin1Method());  // Outputs: foo
+    console.log(mixedControl.mixin2Method());  // Outputs: bar
+
+    class PlainControl extends ControlBase<{ x: number }, 'test'> {
+        protected init(): void
+        {
+            console.log("PlainControl.init!", this.props)
+        }
+    }
+
+    const plainControl = new PlainControl({ x: 1 });
+    plainControl.on('test', () => { /* handle */ });
 
     debugger;
 }
