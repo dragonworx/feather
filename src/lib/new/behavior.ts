@@ -1,6 +1,6 @@
 import { Control } from './control';
 
-export class Behavior extends Control
+export class Behavior<P extends object = object> extends Control<P>
 {
     protected isBehavior()
     {

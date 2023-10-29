@@ -1,6 +1,8 @@
-import { Behavior } from '../src/lib/new/behavior';
-import { Control, type ControlDescriptor } from '../src/lib/new/control';
-import { Mixin } from '../src/lib/new/util';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { Behavior } from './behavior';
+import { Control, type ControlDescriptor } from './control';
+import { Mixin } from './util';
 
 /** Test Control Props */
 export type TestControlProps = {
@@ -163,3 +165,11 @@ export class TestBehavior2 extends Behavior
 
 /** Test Mixin */
 export const SubControlWithBehaviors = Mixin(SubControl, TestBehavior1, TestBehavior2)
+
+
+export function test()
+{
+    const control = new SubControlWithBehaviors();
+    console.log(control.publicTestControlMethod())
+    debugger
+}
