@@ -7,7 +7,7 @@ export function test()
     type EventHandler<T = any> = (event: T) => void;
 
     type MixinFunction<PropsType extends object, Api extends Record<string, any>, EventType extends string> =
-        (control: any) => Mixin<PropsType, Api, EventType>;
+        (control: any, props: Partial<PropsType>) => Mixin<PropsType, Api, EventType>;
 
     type Mixin<PropsType extends object = object, Api extends Record<string, any> = object, EventType extends string = string> = {
         id: string;
@@ -70,8 +70,7 @@ export function test()
         type MixedEvents = MixinsEvents<M>;
         type MixedApi = MixinsApi<M>;
 
-        return class MixedControl extends Control<MixedProps>
-        {
+        return class MixedControl extends Control<MixedProps> {
             public descriptor = descriptor;
 
             constructor(props: Partial<MixedProps> = {})
@@ -83,13 +82,12 @@ export function test()
 
                 descriptor.mixins.forEach((mixinFunc) =>
                 {
-                    const mixin = mixinFunc(this);
+                    const partialProps: Partial<MixedProps> = this._props as any;
+                    const mixin = mixinFunc(this, partialProps);
                     Object.assign(this._props, mixin.defaultProps);
                     Object.assign(this, mixin.api);
                 });
             }
-
-
         } as unknown as (new (props: Partial<MixedProps>) =>
             Control<MixedProps>
             & MixedApi
@@ -100,16 +98,17 @@ export function test()
     }
 
     // Example Mixin1
-    type Mixin1Props = { mixin1: string };
-    type Mixin1Api = { mixin1Method(): string };
-    type Mixin1Events = 'mixin1Event';
-    const mixin1 = (props: Partial<Mixin1Props>) =>
-    {
-        return (control: any): Mixin<Mixin1Props, Mixin1Api, Mixin1Events> =>
+    const mixin1: MixinFunction<
+        { mixin1: string },
+        { mixin1Method(): string },
+        'mixin1Event'
+    > = (control, props) =>
         {
+            console.log('mixin1', control, props);
+
             return {
                 id: 'mixin1',
-                defaultProps: { mixin1: 'mixin1', ...props },
+                defaultProps: { mixin1: 'mixin1' },
                 api: {
                     mixin1Method()
                     {
@@ -118,17 +117,20 @@ export function test()
                 },
                 events: ['mixin1Event'],
             };
-        }
-    };
+        };
 
     // Example Mixin2
-    const mixin2 = (props: Partial<{ mixin2: string }>) =>
-    {
-        return (control: any): Mixin<{ mixin2: string }, { mixin2Method(): string }, 'mixin2Event'> =>
+    const mixin2: MixinFunction<
+        { mixin2: string },
+        { mixin2Method(): string },
+        'mixin2Event'
+    > = (control, props) =>
         {
+            console.log('mixin2', control, props);
+
             return {
                 id: 'mixin2',
-                defaultProps: { mixin2: 'mixin2', ...props },
+                defaultProps: { mixin2: 'mixin2' },
                 api: {
                     mixin2Method()
                     {
@@ -137,8 +139,7 @@ export function test()
                 },
                 events: ['mixin2Event'],
             };
-        }
-    };
+        };
 
     // Create descriptor using utility function
     const descriptor = createDescriptor({
@@ -148,7 +149,7 @@ export function test()
             bar: 1,
         },
         template: '<div></div>',
-        mixins: [mixin1({ mixin1: 'custom1' }), mixin2({ mixin2: 'custom2' })],
+        mixins: [mixin1, mixin2],
     });
 
     const ControlClass = CreateControl(descriptor);
@@ -163,5 +164,5 @@ export function test()
     console.log(control.mixin1Method());  // Outputs: foo
     console.log(control.mixin2Method());  // Outputs: bar
 
-    debugger
+    debugger;
 }
