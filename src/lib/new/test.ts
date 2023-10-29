@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export function test()
 {
     type EventHandler<T = any> = (event: T) => void;
@@ -110,12 +108,16 @@ export function test()
     type Props<T> = T extends new (props: infer P) => any ? P : never;
 
     // Example Mixin1
-    type Mixin1Event = { x: number };
+    type Mixin1Props = { mixin1: string };
+    type Mixin1Public = { mixin1Method(): string };
+    type Mixin1Events = {
+        mixin1Event: { x: number };
+    }
 
     const mixin1: MixinFunction<
-        { mixin1: string },
-        { mixin1Method(): string },
-        'mixin1Event'
+        Mixin1Props,
+        Mixin1Public,
+        keyof Mixin1Events
     > = (control) =>
         {
             console.log('mixin1', control, control.props);
@@ -126,7 +128,7 @@ export function test()
                 public: {
                     mixin1Method()
                     {
-                        control.emit<Mixin1Event>('mixin1Event', { x: 123 });
+                        control.emit<Mixin1Events['mixin1Event']>('mixin1Event', { x: 123 });
                         return 'foo';
                     },
                 },
@@ -167,7 +169,7 @@ export function test()
     });
 
 
-    class MixedControlClass extends MixedBase
+    class MixedControl extends MixedBase
     {
         constructor(props: Partial<Props<typeof MixedBase>>)
         {
@@ -180,12 +182,12 @@ export function test()
         }
     }
 
-    const mixedControl = new MixedControlClass({
+    const mixedControl = new MixedControl({
         foo: 'baz',
         mixin1: 'test',
     });
 
-    mixedControl.on<Mixin1Event>('mixin1Event', (data) => { console.log('on:mixin1Event', data.x) });
+    mixedControl.on<Mixin1Events['mixin1Event']>('mixin1Event', (data) => { console.log('on:mixin1Event', data.x) });
     mixedControl.on('mixin2Event', () => { /* handle */ });
 
     console.log(mixedControl.mixin1Method());  // Outputs: foo
@@ -200,7 +202,7 @@ export function test()
         template: '<div></div>'
     });
 
-    class PlainControlClass extends PlainBase
+    class PlainControl extends PlainBase
     {
         constructor(props: Partial<Props<typeof PlainBase>>)
         {
@@ -213,7 +215,7 @@ export function test()
         }
     }
 
-    const plainControl = new PlainControlClass({
+    const plainControl = new PlainControl({
         foo: 'baz',
     });
 
