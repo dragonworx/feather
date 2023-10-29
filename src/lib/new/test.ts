@@ -12,7 +12,7 @@ export function test()
     type Mixin<PropsType extends object = object, Api extends Record<string, any> = object, EventType extends string = string> = {
         id: string;
         defaultProps: PropsType;
-        api: Api;
+        public: Api;
         events: EventType[];
     };
 
@@ -29,7 +29,7 @@ export function test()
         id: string;
         defaultProps: PropsType;
         template: string;
-        mixins: M;
+        mixins?: M;
     }
 
     function Control<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>)
@@ -85,10 +85,13 @@ export function test()
                     ...props,
                 });
 
-                for (const mixinFunc of descriptor.mixins)
+                if (descriptor.mixins)
                 {
-                    const mixin = mixinFunc(this);
-                    Object.assign(this, mixin.api);
+                    for (const mixinFunc of descriptor.mixins)
+                    {
+                        const mixin = mixinFunc(this);
+                        Object.assign(this, mixin.public);
+                    }
                 }
 
                 this.init();
@@ -103,7 +106,8 @@ export function test()
     }
 
     // Example Mixin1
-    type Mixin1Event = { x: number }
+    type Mixin1Event = { x: number };
+
     const mixin1: MixinFunction<
         { mixin1: string },
         { mixin1Method(): string },
@@ -115,7 +119,7 @@ export function test()
             return {
                 id: 'mixin1',
                 defaultProps: { mixin1: 'mixin1' },
-                api: {
+                public: {
                     mixin1Method()
                     {
                         control.emit<Mixin1Event>('mixin1Event', { x: 123 });
@@ -138,7 +142,7 @@ export function test()
             return {
                 id: 'mixin2',
                 defaultProps: { mixin2: 'mixin2' },
-                api: {
+                public: {
                     mixin2Method()
                     {
                         return 'bar';
@@ -148,7 +152,7 @@ export function test()
             };
         };
 
-    class MixedControlClass extends Control({
+    const MixedBase = Control({
         id: 'test',
         defaultProps: {
             foo: 'bar',
@@ -156,7 +160,17 @@ export function test()
         },
         template: '<div></div>',
         mixins: [mixin1, mixin2],
-    }) {
+    });
+
+    type MixedBaseProps = ConstructorParameters<typeof MixedBase>[0];
+
+    class MixedControlClass extends MixedBase
+    {
+        constructor(props: Partial<MixedBaseProps>)
+        {
+            super(props);
+        }
+
         protected init(): void
         {
             console.log("MixedControlClass.init!", this.props)
