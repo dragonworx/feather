@@ -153,7 +153,8 @@ export function Mixin<
 
             for (const BehaviorClass of behaviors)
             {
-                let behaviorProto = Object.getPrototypeOf(new BehaviorClass());
+                // let behaviorProto = Object.getPrototypeOf(new BehaviorClass());
+                let behaviorProto = BehaviorClass.prototype;
 
                 while (behaviorProto && behaviorProto !== Object.prototype && behaviorProto !== Control.prototype)
                 {
@@ -168,9 +169,9 @@ export function Mixin<
 
                         const currentProperty = findPropertyDescriptorInProtoChain(this, key);
 
-                        if (typeof property.value === 'function')
+                        if (property.value)
                         {
-                            this[key] = property.value.bind(this);
+                            this[key] = typeof property.value === 'function' ? property.value.bind(this) : property.value;
                         } else if ('get' in property)
                         {
                             if (typeof property.get === 'function')
@@ -208,11 +209,12 @@ export function Mixin<
                 _behaviors.push(BehaviorClass);
             }
 
-            Control.prototype.mount.call(this);
+            // Control.prototype.mount.call(this);
 
             for (const BehaviorClass of _behaviors)
             {
-                BehaviorClass.prototype.mount.call(this);
+                BehaviorClass.prototype.constructor.call(this);
+                // BehaviorClass.prototype.mount.call(this);
             }
 
             const unmount = this.unmount;
