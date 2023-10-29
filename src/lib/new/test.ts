@@ -4,6 +4,9 @@ export function test()
 {
     type EventHandler<T = any> = (event: T) => void;
 
+    type MixinFunction<PropsType extends object = object, Api extends Record<string, any> = object, EventType extends string = string> =
+        (control: any) => Mixin<PropsType, Api, EventType>;
+
     type Mixin<PropsType extends object = object, Api extends Record<string, any> = object, EventType extends string = string> = {
         id: string;
         defaultProps: PropsType;
@@ -13,13 +16,13 @@ export function test()
 
     type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
-    type MixinsApi<M extends Array<Mixin<any, any, any>>> = UnionToIntersection<{
-        [K in keyof M]: M[K] extends Mixin<any, infer Api, any> ? Api : never;
+    type MixinsApi<M extends Array<MixinFunction<any, any, any>>> = UnionToIntersection<{
+        [K in keyof M]: ReturnType<M[K]> extends Mixin<any, infer Api, any> ? Api : never;
     }[number]>;
 
-    type MixinsEvents<M extends Array<Mixin<any, any, any>>> = M[number]['events'][number];
+    type MixinsEvents<M extends Array<MixinFunction<any, any, any>>> = ReturnType<M[number]>['events'][number];
 
-    interface Descriptor<PropsType extends object, M extends Array<Mixin<any, any, any>>>
+    interface Descriptor<PropsType extends object, M extends Array<MixinFunction<any, any, any>>>
     {
         id: string;
         defaultProps: PropsType;
@@ -27,15 +30,14 @@ export function test()
         mixins: M;
     }
 
-    // Utility function to create a descriptor
-    function createDescriptor<P extends object, M extends Array<Mixin<any, any, any>>>(desc: Descriptor<P, M>): Descriptor<P, M>
+    function createDescriptor<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>): Descriptor<P, M>
     {
         return desc;
     }
 
-    function CreateControl<P extends object, M extends Array<Mixin<any, any, any>>>(descriptor: Descriptor<P, M>)
+    function CreateControl<P extends object, M extends Array<MixinFunction<any, any, any>>>(descriptor: Descriptor<P, M>)
     {
-        type MixedProps = P & UnionToIntersection<M[number]['defaultProps']>;
+        type MixedProps = P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>;
         type MixedEvents = MixinsEvents<M>;
         type MixedApi = MixinsApi<M>;
 
@@ -53,8 +55,9 @@ export function test()
                     ...props,
                 } as MixedProps;
 
-                descriptor.mixins.forEach((mixin) =>
+                descriptor.mixins.forEach((mixinFunc) =>
                 {
+                    const mixin = mixinFunc(this);
                     Object.assign(this._props, mixin.defaultProps);
                     Object.assign(this, mixin.api);
                 });
@@ -72,34 +75,37 @@ export function test()
     }
 
     // Example Mixin1
-    type Mixin1Props = { mixin1: string };
-    const mixin1: Mixin<Mixin1Props, { mixin1Method: () => string }, 'mixin1Event'> = {
-        id: 'mixin1',
-        defaultProps: { mixin1: 'mixin1' },
-        api: {
-            mixin1Method()
-            {
-                return 'foo';
+    const mixin1: MixinFunction<{ mixin1: string }, { mixin1Method: () => string }, 'mixin1Event'> = (control) =>
+    {
+        return {
+            id: 'mixin1',
+            defaultProps: { mixin1: 'mixin1' },
+            api: {
+                mixin1Method()
+                {
+                    return 'foo';
+                },
             },
-        },
-        events: ['mixin1Event'],
+            events: ['mixin1Event'],
+        };
     };
 
     // Example Mixin2
-    type Mixin2Props = { mixin2: string };
-    const mixin2: Mixin<Mixin2Props, { mixin2Method: () => string }, 'mixin2Event'> = {
-        id: 'mixin2',
-        defaultProps: { mixin2: 'mixin2' },
-        api: {
-            mixin2Method()
-            {
-                return 'bar';
+    const mixin2: MixinFunction<{ mixin2: string }, { mixin2Method: () => string }, 'mixin2Event'> = (control) =>
+    {
+        return {
+            id: 'mixin2',
+            defaultProps: { mixin2: 'mixin2' },
+            api: {
+                mixin2Method()
+                {
+                    return 'bar';
+                },
             },
-        },
-        events: ['mixin2Event'],
+            events: ['mixin2Event'],
+        };
     };
 
-    // Example Control
     // Create descriptor using utility function
     const descriptor = createDescriptor({
         id: 'test',
@@ -118,9 +124,9 @@ export function test()
 
     control.on('mixin1Event', () => { /* handle */ });
     control.on('mixin2Event', () => { /* handle */ });
-    console.log(control.mixin1Method()); // Outputs: foo
-    console.log(control.mixin2Method()); // Outputs: bar
+    console.log(control.mixin1Method());  // Outputs: foo
+    console.log(control.mixin2Method());  // Outputs: bar
 
-    debugger
-
+    debugger;
 }
+
