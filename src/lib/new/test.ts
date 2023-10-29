@@ -27,6 +27,12 @@ export function test()
         mixins: M;
     }
 
+    // Utility function to create a descriptor
+    function createDescriptor<P extends object, M extends Array<Mixin<any, any, any>>>(desc: Descriptor<P, M>): Descriptor<P, M>
+    {
+        return desc;
+    }
+
     function CreateControl<P extends object, M extends Array<Mixin<any, any, any>>>(descriptor: Descriptor<P, M>)
     {
         type MixedProps = P & UnionToIntersection<M[number]['defaultProps']>;
@@ -65,7 +71,7 @@ export function test()
         } as unknown as (new (props: Partial<MixedProps>) => MixedApi & { on: (event: MixedEvents, handler: EventHandler) => void });
     }
 
-    // Example usage
+    // Example Mixin1
     type Mixin1Props = { mixin1: string };
     const mixin1: Mixin<Mixin1Props, { mixin1Method: () => string }, 'mixin1Event'> = {
         id: 'mixin1',
@@ -79,6 +85,7 @@ export function test()
         events: ['mixin1Event'],
     };
 
+    // Example Mixin2
     type Mixin2Props = { mixin2: string };
     const mixin2: Mixin<Mixin2Props, { mixin2Method: () => string }, 'mixin2Event'> = {
         id: 'mixin2',
@@ -92,8 +99,9 @@ export function test()
         events: ['mixin2Event'],
     };
 
-    type Props = { foo: string; bar: number };
-    const descriptor: Descriptor<Props, [typeof mixin1, typeof mixin2]> = {
+    // Example Control
+    // Create descriptor using utility function
+    const descriptor = createDescriptor({
         id: 'test',
         defaultProps: {
             foo: 'bar',
@@ -101,7 +109,7 @@ export function test()
         },
         template: '<div></div>',
         mixins: [mixin1, mixin2],
-    };
+    });
 
     const ControlClass = CreateControl(descriptor);
     const control = new ControlClass({
