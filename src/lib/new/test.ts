@@ -45,6 +45,23 @@ export function test()
         {
             this._props = props as P;
         }
+
+        on(event: string, handler: EventHandler): void
+        {
+            if (!this._eventHandlers[event])
+            {
+                this._eventHandlers[event] = [];
+            }
+            this._eventHandlers[event].push(handler);
+        }
+
+        emit(event: string, data?: any): void
+        {
+            if (this._eventHandlers[event])
+            {
+                this._eventHandlers[event].forEach((handler) => handler(data));
+            }
+        }
     }
 
     function CreateControl<P extends object, M extends Array<MixinFunction<any, any, any>>>(descriptor: Descriptor<P, M>)
@@ -72,23 +89,14 @@ export function test()
                 });
             }
 
-            on(event: MixedEvents, handler: EventHandler): void
-            {
-                if (!this._eventHandlers[event])
-                {
-                    this._eventHandlers[event] = [];
-                }
-                this._eventHandlers[event].push(handler);
-            }
 
-            emit(event: MixedEvents, data?: any): void
-            {
-                if (this._eventHandlers[event])
-                {
-                    this._eventHandlers[event].forEach((handler) => handler(data));
-                }
-            }
-        } as unknown as (new (props: Partial<MixedProps>) => Control<MixedProps> & MixedApi & { on: (event: MixedEvents, handler: EventHandler) => void });
+        } as unknown as (new (props: Partial<MixedProps>) =>
+            Control<MixedProps>
+            & MixedApi
+            & {
+                on: (event: MixedEvents, handler: EventHandler) => void;
+                emit: (event: MixedEvents, data?: any) => void;
+            });
     }
 
     // Example Mixin1
@@ -101,7 +109,7 @@ export function test()
         {
             return {
                 id: 'mixin1',
-                defaultProps: { mixin1: 'mixin1' },
+                defaultProps: { mixin1: 'mixin1', ...props },
                 api: {
                     mixin1Method()
                     {
@@ -146,6 +154,7 @@ export function test()
     const ControlClass = CreateControl(descriptor);
     const control = new ControlClass({
         foo: 'foo',
+        mixin1: 'test',
     });
 
     control.on('mixin1Event', () => { /* handle */ });
