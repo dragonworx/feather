@@ -4,7 +4,7 @@ export function test()
 {
     type EventHandler<T = any> = (event: T) => void;
 
-    type MixinFunction<PropsType extends object = object, Api extends Record<string, any> = object, EventType extends string = string> =
+    type MixinFunction<PropsType extends object, Api extends Record<string, any>, EventType extends string> =
         (control: any) => Mixin<PropsType, Api, EventType>;
 
     type Mixin<PropsType extends object = object, Api extends Record<string, any> = object, EventType extends string = string> = {
@@ -71,12 +71,22 @@ export function test()
                 }
                 this._eventHandlers[event].push(handler);
             }
+
+            emit(event: MixedEvents, data?: any): void
+            {
+                if (this._eventHandlers[event])
+                {
+                    this._eventHandlers[event].forEach((handler) => handler(data));
+                }
+            }
         } as unknown as (new (props: Partial<MixedProps>) => MixedApi & { on: (event: MixedEvents, handler: EventHandler) => void });
     }
 
     // Example Mixin1
-    const mixin1: MixinFunction<{ mixin1: string }, { mixin1Method: () => string }, 'mixin1Event'> = (control) =>
+    const mixin1: MixinFunction<{ mixin1: string }, { mixin1Method(): string }, 'mixin1Event'> = (control) =>
     {
+        String(control);
+
         return {
             id: 'mixin1',
             defaultProps: { mixin1: 'mixin1' },
@@ -91,8 +101,9 @@ export function test()
     };
 
     // Example Mixin2
-    const mixin2: MixinFunction<{ mixin2: string }, { mixin2Method: () => string }, 'mixin2Event'> = (control) =>
+    const mixin2: MixinFunction<{ mixin2: string }, { mixin2Method(): string }, 'mixin2Event'> = (control) =>
     {
+        String(control);
         return {
             id: 'mixin2',
             defaultProps: { mixin2: 'mixin2' },
@@ -129,4 +140,3 @@ export function test()
 
     debugger;
 }
-
