@@ -24,7 +24,7 @@ export function test()
 
     type MixinsEvents<M extends Array<MixinFunction<any, any, any>>> = ReturnType<M[number]>['events'][number];
 
-    interface Descriptor<PropsType extends object, M extends Array<MixinFunction<any, any, any>>>
+    interface Descriptor<PropsType extends object, M extends Array<MixinFunction<any, any, any>> | undefined>
     {
         id: string;
         defaultProps: PropsType;
@@ -32,7 +32,9 @@ export function test()
         mixins?: M;
     }
 
-    function Control<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>)
+    function Control<P extends object>(desc: Omit<Descriptor<P, undefined>, 'mixins'>): new (props: Partial<P>) => ControlBase<P, string>;
+    function Control<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>): new (props: Partial<P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>>) => ControlBase<P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>, MixinsEvents<M>> & MixinsApi<M>;
+    function Control<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(desc: Descriptor<P, M>)
     {
         return createMixedControlClass(desc);
     }
@@ -69,11 +71,11 @@ export function test()
         }
     }
 
-    function createMixedControlClass<P extends object, M extends Array<MixinFunction<any, any, any>>>(descriptor: Descriptor<P, M>)
+    function createMixedControlClass<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(descriptor: Descriptor<P, M>)
     {
-        type MixedProps = P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>;
-        type MixedEvents = MixinsEvents<M>;
-        type MixedApi = MixinsApi<M>;
+        type MixedProps = M extends undefined ? P : (P & UnionToIntersection<ReturnType<NonNullable<M>[number]>['defaultProps']>);
+        type MixedEvents = M extends undefined ? string : MixinsEvents<NonNullable<M>>;
+        type MixedApi = M extends undefined ? object : MixinsApi<NonNullable<M>>;
 
         return class MixedControl extends ControlBase<MixedProps, MixedEvents> {
             public descriptor = descriptor;
@@ -188,15 +190,35 @@ export function test()
     console.log(mixedControl.mixin1Method());  // Outputs: foo
     console.log(mixedControl.mixin2Method());  // Outputs: bar
 
-    class PlainControl extends ControlBase<{ x: number }, 'test'> {
+    const PlainBase = Control({
+        id: 'plainTest',
+        defaultProps: {
+            foo: 'bar',
+            bar: 1,
+        },
+        template: '<div></div>'
+    });
+
+    type PlainBaseProps = ConstructorParameters<typeof PlainBase>[0];
+
+    class PlainControlClass extends PlainBase
+    {
+        constructor(props: Partial<PlainBaseProps>)
+        {
+            super(props);
+        }
+
         protected init(): void
         {
-            console.log("PlainControl.init!", this.props)
+            console.log("PlainControlClass.init!", this.props)
         }
     }
 
-    const plainControl = new PlainControl({ x: 1 });
-    plainControl.on('test', () => { /* handle */ });
+    const plainControl = new PlainControlClass({
+        foo: 'baz',
+    });
+
+    plainControl.on('someEvent', () => { /* handle */ });
 
     debugger;
 }
