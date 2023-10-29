@@ -107,6 +107,8 @@ export function test()
             });
     }
 
+    type Props<T> = T extends new (props: infer P) => any ? P : never;
+
     // Example Mixin1
     type Mixin1Event = { x: number };
 
@@ -164,11 +166,10 @@ export function test()
         mixins: [mixin1, mixin2],
     });
 
-    type MixedBaseProps = ConstructorParameters<typeof MixedBase>[0];
 
     class MixedControlClass extends MixedBase
     {
-        constructor(props: Partial<MixedBaseProps>)
+        constructor(props: Partial<Props<typeof MixedBase>>)
         {
             super(props);
         }
@@ -199,11 +200,9 @@ export function test()
         template: '<div></div>'
     });
 
-    type PlainBaseProps = ConstructorParameters<typeof PlainBase>[0];
-
     class PlainControlClass extends PlainBase
     {
-        constructor(props: Partial<PlainBaseProps>)
+        constructor(props: Partial<Props<typeof PlainBase>>)
         {
             super(props);
         }
