@@ -4,10 +4,10 @@ export function test()
 {
     type EventHandler<T = any> = (event: T) => void;
 
-    type MixinFunction<PropsType extends object, Api extends Record<string, any>, EventType extends string> =
+    type MixinFunction<PropsType extends object, Api extends object, EventType extends string> =
         (control: ControlBase<PropsType, EventType>) => Mixin<PropsType, Api, EventType>;
 
-    type Mixin<PropsType extends object = object, Api extends Record<string, any> = object, EventType extends string = string> = {
+    type Mixin<PropsType extends object = object, Api = object, EventType extends string = string> = {
         id: string;
         defaultProps: PropsType;
         public: Api;
@@ -21,6 +21,14 @@ export function test()
     }[number]>;
 
     type MixinsEvents<M extends Array<MixinFunction<any, any, any>>> = ReturnType<M[number]>['events'][number];
+
+    // Factory Function to create mixins
+    function createMixin<PropsType extends object, Api extends object, EventType extends string>(
+        mixinFunc: (control: ControlBase<PropsType, EventType>) => { id: string; public: Api; defaultProps: PropsType; events: EventType[] }
+    ): MixinFunction<PropsType, Api, EventType>
+    {
+        return mixinFunc;
+    }
 
     interface Descriptor<PropsType extends object, M extends Array<MixinFunction<any, any, any>> | undefined>
     {
@@ -109,52 +117,48 @@ export function test()
 
     // Example Mixin1
     type Mixin1Props = { mixin1: string };
-    type Mixin1Public = { mixin1Method(): string };
     type Mixin1Event = { x: number };
 
-    const mixin1: MixinFunction<
-        Mixin1Props,
-        Mixin1Public,
-        'mixin1Event'
-    > = (control) =>
-        {
-            console.log('mixin1', control, control.props);
+    // Using factory function for mixin1
+    const mixin1 = createMixin((control: ControlBase<Mixin1Props, 'mixin1Event'>) =>
+    {
+        console.log('mixin1', control, control.props);
 
-            return {
-                id: 'mixin1',
-                defaultProps: { mixin1: 'mixin1' },
-                public: {
-                    mixin1Method()
-                    {
-                        control.emit<Mixin1Event>('mixin1Event', { x: 123 });
-                        return 'foo';
-                    },
+        return {
+            id: 'mixin1',
+            defaultProps: { mixin1: 'mixin1' },
+            public: {
+                mixin1Method()
+                {
+                    control.emit<Mixin1Event>('mixin1Event', { x: 123 });
+                    return 'foo';
                 },
-                events: ['mixin1Event'],
-            };
+            },
+            events: ['mixin1Event'],
         };
+    });
 
     // Example Mixin2
-    const mixin2: MixinFunction<
-        { mixin2: string },
-        { mixin2Method(): string },
-        'mixin2Event'
-    > = (control) =>
-        {
-            console.log('mixin2', control, control.props);
+    type Mixin2Props = { mixin2: string };
+    type Mixin2Event = { y: number };
 
-            return {
-                id: 'mixin2',
-                defaultProps: { mixin2: 'mixin2' },
-                public: {
-                    mixin2Method()
-                    {
-                        return 'bar';
-                    },
+    const mixin2 = createMixin((control: ControlBase<Mixin2Props, 'mixin2Event'>) =>
+    {
+        console.log('mixin2', control, control.props);
+
+        return {
+            id: 'mixin2',
+            defaultProps: { mixin2: 'mixin2' },
+            public: {
+                mixin2Method()
+                {
+                    control.emit<Mixin2Event>('mixin2Event', { y: 345 });
+                    return 'bar';
                 },
-                events: ['mixin2Event'],
-            };
+            },
+            events: ['mixin2Event'],
         };
+    });
 
     const MixedBase = Control({
         id: 'test',
@@ -218,6 +222,4 @@ export function test()
     });
 
     plainControl.on('someEvent', () => { /* handle */ });
-
-    debugger;
 }
