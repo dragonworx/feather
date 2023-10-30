@@ -110,14 +110,12 @@ export function test()
     // Example Mixin1
     type Mixin1Props = { mixin1: string };
     type Mixin1Public = { mixin1Method(): string };
-    type Mixin1Events = {
-        mixin1Event: { x: number };
-    }
+    type Mixin1Event = { x: number };
 
     const mixin1: MixinFunction<
         Mixin1Props,
         Mixin1Public,
-        keyof Mixin1Events
+        'mixin1Event'
     > = (control) =>
         {
             console.log('mixin1', control, control.props);
@@ -128,7 +126,7 @@ export function test()
                 public: {
                     mixin1Method()
                     {
-                        control.emit<Mixin1Events['mixin1Event']>('mixin1Event', { x: 123 });
+                        control.emit<Mixin1Event>('mixin1Event', { x: 123 });
                         return 'foo';
                     },
                 },
@@ -187,7 +185,7 @@ export function test()
         mixin1: 'test',
     });
 
-    mixedControl.on<Mixin1Events['mixin1Event']>('mixin1Event', (data) => { console.log('on:mixin1Event', data.x) });
+    mixedControl.on<Mixin1Event>('mixin1Event', (data) => { console.log('on:mixin1Event', data.x) });
     mixedControl.on('mixin2Event', () => { /* handle */ });
 
     console.log(mixedControl.mixin1Method());  // Outputs: foo
