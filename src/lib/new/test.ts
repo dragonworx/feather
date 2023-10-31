@@ -2,16 +2,20 @@
 
 export function test()
 {
+    type EventDescriptor = {
+        [key: string]: object;
+    };
+
     type EventHandler<T = any> = (event: T) => void;
 
-    type MixinFunction<PropsType extends object, Api extends object, EventType extends string> =
+    type MixinFunction<PropsType extends object, Api extends object, EventType extends EventDescriptor> =
         (control: ControlBase<PropsType, EventType>) => Mixin<PropsType, Api, EventType>;
 
-    type Mixin<PropsType extends object = object, Api = object, EventType extends string = string> = {
+    type Mixin<PropsType extends object = object, Api = object, EventType extends EventDescriptor = EventDescriptor> = {
         id: string;
         defaultProps: PropsType;
         public: Api;
-        events: EventType[];
+        events: (keyof EventType)[];
     };
 
     type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
@@ -20,11 +24,17 @@ export function test()
         [K in keyof M]: ReturnType<M[K]> extends Mixin<any, infer Api, any> ? Api : never;
     }[number]>;
 
-    type MixinsEvents<M extends Array<MixinFunction<any, any, any>>> = ReturnType<M[number]>['events'][number];
+    type ExtractEventTypes<T> = T extends MixinFunction<any, any, infer Events> ? Events : never;
+
+    type MergeEventTypes<T extends Array<MixinFunction<any, any, any>>> =
+        UnionToIntersection<ExtractEventTypes<T[number]>>;
+
+    // Then update MixinsEvents
+    type MixinsEvents<M extends Array<MixinFunction<any, any, any>>> = MergeEventTypes<M> & EventDescriptor;
 
     // Factory Function to create mixins
-    function createMixin<PropsType extends object, Api extends object, EventType extends string>(
-        mixinFunc: (control: ControlBase<PropsType, EventType>) => { id: string; public: Api; defaultProps: PropsType; events: EventType[] }
+    function createMixin<PropsType extends object, Api extends object, EventType extends EventDescriptor>(
+        mixinFunc: (control: ControlBase<PropsType, EventType>) => { id: string; public: Api; defaultProps: PropsType; events: (keyof EventType)[] } // Change here
     ): MixinFunction<PropsType, Api, EventType>
     {
         return mixinFunc;
@@ -38,14 +48,14 @@ export function test()
         mixins?: M;
     }
 
-    function Control<P extends object>(desc: Omit<Descriptor<P, undefined>, 'mixins'>): new (props: Partial<P>) => ControlBase<P, string>;
+    function Control<P extends object>(desc: Omit<Descriptor<P, undefined>, 'mixins'>): new (props: Partial<P>) => ControlBase<P, EventDescriptor>;
     function Control<P extends object, M extends Array<MixinFunction<any, any, any>>>(desc: Descriptor<P, M>): new (props: Partial<P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>>) => ControlBase<P & UnionToIntersection<ReturnType<M[number]>['defaultProps']>, MixinsEvents<M>> & MixinsApi<M>;
     function Control<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(desc: Descriptor<P, M>)
     {
         return createMixedControlClass(desc);
     }
 
-    abstract class ControlBase<P extends object, E extends string = string> {
+    abstract class ControlBase<P extends object, E extends EventDescriptor = EventDescriptor> {
         private _eventHandlers: Record<string, EventHandler[]> = {};
         public props: P;
 
@@ -54,20 +64,22 @@ export function test()
             this.props = props as P;
         }
 
-        on<T = any>(event: E, handler: EventHandler<T>): void
+        on<K extends keyof E, P extends E[K]>(event: K, handler: EventHandler<P>): void
         {
-            if (!this._eventHandlers[event])
+            const k = String(event);
+            if (!this._eventHandlers[k])
             {
-                this._eventHandlers[event] = [];
+                this._eventHandlers[k] = [];
             }
-            this._eventHandlers[event].push(handler);
+            this._eventHandlers[k].push(handler);
         }
 
-        emit<T = any>(event: E, data?: T): void
+        emit<K extends keyof E, P extends E[K]>(event: K, data?: Partial<P>): void
         {
-            if (this._eventHandlers[event])
+            const k = String(event);
+            if (this._eventHandlers[k])
             {
-                this._eventHandlers[event].forEach((handler) => handler(data));
+                this._eventHandlers[k].forEach((handler) => handler(data));
             }
         }
 
@@ -80,7 +92,7 @@ export function test()
     function createMixedControlClass<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(descriptor: Descriptor<P, M>)
     {
         type MixedProps = M extends undefined ? P : (P & UnionToIntersection<ReturnType<NonNullable<M>[number]>['defaultProps']>);
-        type MixedEvents = M extends undefined ? string : MixinsEvents<NonNullable<M>>;
+        type MixedEvents = M extends undefined ? { [key: string]: object } : MixinsEvents<NonNullable<M>>;
         type MixedApi = M extends undefined ? object : MixinsApi<NonNullable<M>>;
 
         return class MixedControl extends ControlBase<MixedProps, MixedEvents> {
@@ -117,10 +129,12 @@ export function test()
 
     // Example Mixin1
     type Mixin1Props = { mixin1: string };
-    type Mixin1Event = { x: number };
+    type Mixin1Events = {
+        mixin1Event: { x: number };
+    };
 
     // Using factory function for mixin1
-    const mixin1 = createMixin((control: ControlBase<Mixin1Props, 'mixin1Event'>) =>
+    const mixin1 = createMixin((control: ControlBase<Mixin1Props, Mixin1Events>) =>
     {
         console.log('mixin1', control, control.props);
 
@@ -130,7 +144,7 @@ export function test()
             public: {
                 mixin1Method()
                 {
-                    control.emit<Mixin1Event>('mixin1Event', { x: 123 });
+                    control.emit('mixin1Event', { x: 123 });
                     return 'foo';
                 },
             },
@@ -140,9 +154,11 @@ export function test()
 
     // Example Mixin2
     type Mixin2Props = { mixin2: string };
-    type Mixin2Event = { y: number };
+    type Mixin2Events = {
+        mixin2Event: { y: number };
+    };
 
-    const mixin2 = createMixin((control: ControlBase<Mixin2Props, 'mixin2Event'>) =>
+    const mixin2 = createMixin((control: ControlBase<Mixin2Props, Mixin2Events>) =>
     {
         console.log('mixin2', control, control.props);
 
@@ -152,7 +168,7 @@ export function test()
             public: {
                 mixin2Method()
                 {
-                    control.emit<Mixin2Event>('mixin2Event', { y: 345 });
+                    control.emit('mixin2Event', { y: 456 });
                     return 'bar';
                 },
             },
@@ -189,7 +205,7 @@ export function test()
         mixin1: 'test',
     });
 
-    mixedControl.on<Mixin1Event>('mixin1Event', (data) => { console.log('on:mixin1Event', data.x) });
+    mixedControl.on('mixin1Event', (data) => { console.log('on:mixin1Event', data.x) });
     mixedControl.on('mixin2Event', () => { /* handle */ });
 
     console.log(mixedControl.mixin1Method());  // Outputs: foo
