@@ -24,9 +24,8 @@ export function test()
         [K in keyof M]: ReturnType<M[K]> extends Mixin<any, infer Api, any> ? Api : never;
     }[number]>;
 
-    // Factory Function to create mixins
     function createMixin<PropsType extends object, Api extends object, EventType extends EventDescriptor>(
-        mixinFunc: (control: ControlBase<PropsType, EventType>) => { id: string; public: Api; defaultProps: PropsType; events: (keyof EventType)[] } // Change here
+        mixinFunc: (control: ControlBase<PropsType, EventType>) => { id: string; public: Api; defaultProps: PropsType; events: (keyof EventType)[] }
     ): MixinFunction<PropsType, Api, EventType>
     {
         return mixinFunc;
@@ -50,20 +49,22 @@ export function test()
         desc: Descriptor<P, M>
     )
     {
-        // Extract all event keys
-        type AllEvents = ExtractEventsFromMixins<NonNullable<M>>;
-
         // Merge defaultProps
         type MixedProps = M extends undefined ? P : (P & UnionToIntersection<ReturnType<NonNullable<M>[number]>['defaultProps']>);
 
-        // Define MixedEvents using AllEvents
-        type MixedEvents = { [K in AllEvents]: object };
+        // Define MixedEvents using MergeEventTypes
+        type MixedEvents = MergeEventTypes<NonNullable<M>>;
 
         return createMixedControlClass<MixedProps, MixedEvents, M>(desc as unknown as Descriptor<MixedProps, M>); // pass the MixedProps and MixedEvents as type arguments
     }
 
+    type MergeEventTypes<Mixins extends any[]> = {
+        [K in ExtractEventsFromMixins<Mixins>]:
+        Mixins[number] extends MixinFunction<any, any, infer Events> ? K extends keyof Events ? Events[K] : never : never;
+    };
+
     abstract class ControlBase<P extends object, E extends EventDescriptor = EventDescriptor> {
-        private _eventHandlers: Record<string, EventHandler[]> = {};
+        private _eventHandlers: Record<string, EventHandler<any>[]> = {};
         public props: P;
 
         constructor(props: Partial<P> = {})
@@ -71,22 +72,22 @@ export function test()
             this.props = props as P;
         }
 
-        on<K extends keyof E, P extends E[K]>(event: K, handler: EventHandler<P>): void
+        on<K extends keyof E>(event: K, handler: EventHandler<E[K]>): void
         {
             const k = String(event);
             if (!this._eventHandlers[k])
             {
                 this._eventHandlers[k] = [];
             }
-            this._eventHandlers[k].push(handler);
+            this._eventHandlers[k].push(handler as EventHandler<any>);
         }
 
-        emit<K extends keyof E, P extends E[K]>(event: K, data?: Partial<P>): void
+        emit<K extends keyof E>(event: K, data?: Partial<E[K]>): void
         {
             const k = String(event);
             if (this._eventHandlers[k])
             {
-                this._eventHandlers[k].forEach((handler) => handler(data));
+                this._eventHandlers[k].forEach((handler) => handler(data as any));
             }
         }
 
@@ -95,6 +96,9 @@ export function test()
             //
         }
     }
+
+    // ... rest of your code remains the same
+
 
     function createMixedControlClass<P extends object, E extends EventDescriptor, M extends Array<MixinFunction<any, any, any>> | undefined>(
         descriptor: Descriptor<P, M>
@@ -208,7 +212,7 @@ export function test()
         mixin1: 'test',
     });
 
-    mixedControl.on('mixin1Event', (data) => { console.log('on:mixin1Event', mixedControl.props.bar, data) });
+    mixedControl.on('mixin1Event', (data) => { console.log('on:mixin1Event', mixedControl.props.bar, data.x) });
     mixedControl.on('mixin2Event', () => { /* handle */ });
     mixedControl.emit('mixin1Event', { x: 123 });
 
