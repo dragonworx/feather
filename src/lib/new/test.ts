@@ -9,23 +9,22 @@ export function test()
     type EventHandler<T = any> = (event: T) => void;
 
     type MixinFunction<PropsType extends object, Api extends object, EventType extends EventDescriptor> =
-        (control: ControlBase<PropsType, EventType>) => Mixin<PropsType, Api, EventType>;
+        (control: ControlBase<PropsType, EventType>) => Mixin<PropsType, Api>;
 
-    type Mixin<PropsType extends object = object, Api = object, EventType extends EventDescriptor = EventDescriptor> = {
+    type Mixin<PropsType extends object = object, Api = object> = {
         id: string;
         defaultProps: PropsType;
         public: Api;
-        events: (keyof EventType)[];
     };
 
     type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 
     type MixinsApi<M extends Array<MixinFunction<any, any, any>>> = UnionToIntersection<{
-        [K in keyof M]: ReturnType<M[K]> extends Mixin<any, infer Api, any> ? Api : never;
+        [K in keyof M]: ReturnType<M[K]> extends Mixin<any, infer Api> ? Api : never;
     }[number]>;
 
     function createMixin<PropsType extends object, Api extends object, EventType extends EventDescriptor>(
-        mixinFunc: (control: ControlBase<PropsType, EventType>) => { id: string; public: Api; defaultProps: PropsType; events: (keyof EventType)[] }
+        mixinFunc: (control: ControlBase<PropsType, EventType>) => { id: string; public: Api; defaultProps: PropsType }
     ): MixinFunction<PropsType, Api, EventType>
     {
         return mixinFunc;
@@ -36,7 +35,7 @@ export function test()
         id: string;
         defaultProps: PropsType;
         template: string;
-        mixins?: M;
+        mixins: M;
     }
 
     type ExtractEventsFromMixins<Mixins extends any[]> = {
@@ -155,7 +154,6 @@ export function test()
                     return 'foo';
                 },
             },
-            events: ['mixin1Event'],
         };
     });
 
@@ -179,7 +177,6 @@ export function test()
                     return 'bar';
                 },
             },
-            events: ['mixin2Event'],
         };
     });
 
@@ -222,10 +219,11 @@ export function test()
     const PlainBase = Control({
         id: 'plainTest',
         defaultProps: {
-            foo: 'bar',
-            bar: 1,
+            efg: 'bar',
+            xyz: 1,
         },
-        template: '<div></div>'
+        template: '<div></div>',
+        mixins: [],
     });
 
     class PlainControl extends PlainBase
@@ -242,7 +240,7 @@ export function test()
     }
 
     const plainControl = new PlainControl({
-        foo: 'baz',
+        xyz: 2,
     });
 
     plainControl.on('someEvent', () => { /* handle */ });
