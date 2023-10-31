@@ -38,6 +38,15 @@ export function test()
         mixins: M;
     }
 
+    function Desc<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(
+        desc: Partial<Descriptor<P, M>>
+    ) {
+        return {
+            mixins: [],
+            ...desc,
+        } as unknown as Descriptor<P, M>;
+    }
+
     type ExtractEventsFromMixins<Mixins extends any[]> = {
         [K in keyof Mixins]: Mixins[K] extends MixinFunction<any, any, infer Events>
         ? keyof Events
@@ -180,7 +189,7 @@ export function test()
         };
     });
 
-    const MixedBase = Control({
+    const MixedBase = Control(Desc({
         id: 'test',
         defaultProps: {
             foo: 'bar',
@@ -188,7 +197,7 @@ export function test()
         },
         template: '<div></div>',
         mixins: [mixin1, mixin2],
-    });
+    }));
 
 
     class MixedControl extends MixedBase
@@ -216,7 +225,7 @@ export function test()
     console.log(mixedControl.mixin1Method());  // Outputs: foo
     console.log(mixedControl.mixin2Method());  // Outputs: bar
 
-    const PlainBase = Control({
+    const PlainBase = Control(Desc({
         id: 'plainTest',
         defaultProps: {
             efg: 'bar',
@@ -224,7 +233,7 @@ export function test()
         },
         template: '<div></div>',
         mixins: [],
-    });
+    }));
 
     class PlainControl extends PlainBase
     {
