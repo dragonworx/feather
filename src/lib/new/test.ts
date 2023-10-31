@@ -139,7 +139,7 @@ export function test()
         } as new (props: Partial<MixedProps>) => ControlBase<MixedProps, MixedEvents> & MixedApi;
     }
 
-    type Props<T> = T extends new (props: infer P) => any ? P : never;
+    // type Props<T> = T extends new (props: infer P) => any ? P : never;
 
     // Example Mixin1
     type Mixin1Props = { mixin1: string };
@@ -199,20 +199,7 @@ export function test()
     });
     const MixedBase = Control(mixedDescriptor);
 
-    class MixedControl extends MixedBase
-    {
-        constructor(props: Partial<Props<typeof MixedBase>>)
-        {
-            super(props);
-        }
-
-        protected init(): void
-        {
-            console.log("MixedControlClass.init!", this.props)
-        }
-    }
-
-    const mixedControl = new MixedControl({
+    const mixedControl = new MixedBase({
         foo: 'baz',
         mixin1: 'test',
     });
@@ -234,22 +221,9 @@ export function test()
     });
     const PlainBase = Control(plainDescriptor);
 
-    class PlainControl extends PlainBase
-    {
-        constructor(props: Partial<Props<typeof PlainBase>>)
-        {
-            super(props);
-        }
-
-        protected init(): void
-        {
-            console.log("PlainControlClass.init!", this.props)
-        }
-    }
-
-    const plainControl = new PlainControl({
+    const plainControl = new PlainBase({
         xyz: 2,
     });
 
-    plainControl.on('someEvent', () => { /* handle */ });
+    plainControl.on('fd', () => { /* handle */ });
 }
