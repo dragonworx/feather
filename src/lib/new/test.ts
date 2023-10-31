@@ -188,7 +188,7 @@ export function test()
         };
     });
 
-    const MixedBase = Control(Desc({
+    const mixedDescriptor = Desc({
         id: 'test',
         defaultProps: {
             foo: 'bar',
@@ -196,8 +196,8 @@ export function test()
         },
         template: '<div></div>',
         mixins: [mixin1, mixin2],
-    }));
-
+    });
+    const MixedBase = Control(mixedDescriptor);
 
     class MixedControl extends MixedBase
     {
@@ -224,14 +224,15 @@ export function test()
     console.log(mixedControl.mixin1Method());  // Outputs: foo
     console.log(mixedControl.mixin2Method());  // Outputs: bar
 
-    const PlainBase = Control(Desc({
+    const plainDescriptor = Desc({
         id: 'plainTest',
         defaultProps: {
             efg: 'bar',
             xyz: 1,
         },
         template: '<div></div>',
-    }));
+    });
+    const PlainBase = Control(plainDescriptor);
 
     class PlainControl extends PlainBase
     {
