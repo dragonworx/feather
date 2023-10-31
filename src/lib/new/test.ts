@@ -38,9 +38,11 @@ export function test()
         mixins: M;
     }
 
-    function Desc<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(
-        desc: Partial<Descriptor<P, M>>
-    ) {
+    type OptionalDescriptor<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined> = Partial<Descriptor<P, M>>;
+
+    function Desc<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(desc: OptionalDescriptor<P, M> & { mixins: M }): Descriptor<P, M>;
+    function Desc<P extends object>(desc: OptionalDescriptor<P, undefined>): Descriptor<P, undefined>;
+    function Desc<P extends object, M extends Array<MixinFunction<any, any, any>> | undefined>(desc: OptionalDescriptor<P, M>): Descriptor<P, M> {
         return {
             mixins: [],
             ...desc,
@@ -104,9 +106,6 @@ export function test()
             //
         }
     }
-
-    // ... rest of your code remains the same
-
 
     function createMixedControlClass<P extends object, E extends EventDescriptor, M extends Array<MixinFunction<any, any, any>> | undefined>(
         descriptor: Descriptor<P, M>
@@ -232,7 +231,6 @@ export function test()
             xyz: 1,
         },
         template: '<div></div>',
-        mixins: [],
     }));
 
     class PlainControl extends PlainBase
