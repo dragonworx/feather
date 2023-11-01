@@ -8,6 +8,7 @@ export function test()
         tagName: string;
         props: PropsType;
         classes?: string[];
+        watchAttributes?: string[];
     }
 
     interface CustomEventListener
@@ -19,58 +20,64 @@ export function test()
 
     type Constructor<T> = new (...args: any[]) => T;
 
+    type WithDescriptor = { __descriptor: Descriptor };
+    type WithProps = { initialProps: object };
+    type WithAttributes = { observedAttributes: string[] };
+
     const tagPref = 'ctrl-';
 
     /** Custom Element registration function */
-    function ctrl<P extends object, C extends Constructor<Base<P>>>(
+    function ctrl<P extends object, C extends Constructor<Control<P>>>(
         htmlElementCtor: C,
         descriptor: Descriptor<P>
     )
     {
-        const { tagName } = descriptor;
-
+        const { tagName, watchAttributes } = descriptor;
         const fullTagName = tagPref + tagName;
+
+        /** Initialise Custom Class */
+        (htmlElementCtor as unknown as WithDescriptor).__descriptor = descriptor;
+        watchAttributes && ((htmlElementCtor as unknown as WithAttributes).observedAttributes = watchAttributes);
 
         customElements.define(fullTagName, htmlElementCtor);
 
-        return {
-            new: (props: Partial<P> = {}): InstanceType<C> =>
+        /** Custom Class Instantiating */
+        return class
+        {
+            constructor(props: Partial<P> = {})
             {
                 const element = document.createElement(fullTagName) as InstanceType<C>;
 
-                if (descriptor.classes)
-                {
-                    element.classList.add(...descriptor.classes);
-                }
-
-                element.setProps({
-                    ...descriptor.props,
-                    ...props,
-                });
+                (element as unknown as WithProps).initialProps = props;
 
                 return element;
-            },
-        };
+            }
+        } as unknown as new (props: Partial<P>) => InstanceType<C>;
     }
 
     /** Base Control extends HTMLElement as Custom Element */
-    class Base<
+    abstract class Control<
         PropsType extends object = object,
         EventType extends string = string
     > extends HTMLElement
     {
         private _listeners: Map<string, ControlEventHandler[]> = new Map(); // track custom event listeners internally
-        protected props: PropsType;
+        protected props: PropsType = {} as PropsType;
+        protected initialProps?: Partial<PropsType>;
 
         constructor()
         {
             super();
+        }
 
-            this.props = {} as PropsType;
+        protected get descriptor()
+        {
+            return (this.constructor as unknown as WithDescriptor).__descriptor;
         }
 
         public setProps(props: Partial<PropsType>)
         {
+            console.log("set props", props)
             this.props = {
                 ...this.props,
                 ...props,
@@ -79,12 +86,36 @@ export function test()
 
         connectedCallback()
         {
+            const { descriptor } = this;
+
+            if (descriptor.classes)
+            {
+                this.classList.add(...descriptor.classes);
+            }
+
+            const initialProps = (this as unknown as WithProps).initialProps;
+
+            this.setProps({
+                ...descriptor.props,
+                ...initialProps,
+            });
+
             this.mount();
         }
 
         disconnectedCallback()
         {
             this.unmount();
+        }
+
+        adoptedCallback()
+        {
+            console.log("Custom element moved to new page.");
+        }
+
+        attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
+        {
+            console.log(`Attribute ${name} has changed.`, oldValue, newValue);
         }
 
         protected mount() { /** override */ }
@@ -120,7 +151,9 @@ export function test()
             {
                 return this;
             }
+
             const listeners = this.listenersForType(type);
+
             if (listener)
             {
                 // remove listener
@@ -129,10 +162,12 @@ export function test()
                 {
                     listeners.splice(index, 1);
                 }
+
                 if (listeners.length === 0)
                 {
                     this._listeners.delete(type);
                 }
+
                 this.removeEventListener(
                     type,
                     listener as EventListenerOrEventListenerObject,
@@ -145,6 +180,7 @@ export function test()
                 {
                     this.removeEventListener(type, l as EventListenerOrEventListenerObject, options);
                 }
+
                 this._listeners.delete(type);
             }
             return this;
@@ -162,6 +198,7 @@ export function test()
                     cancelable: true
                 })
             );
+
             return this;
         }
     }
@@ -177,7 +214,7 @@ export function test()
     }
 
     /** Create an instantiable Control */
-    const Button = ctrl(class extends Base<ButtonProps, keyof Events>
+    const Button = ctrl(class extends Control<ButtonProps, keyof Events>
     {
         constructor()
         {
@@ -186,6 +223,7 @@ export function test()
 
         protected mount(): void
         {
+            console.log("mount")
             this.addEventListener('click', () => console.log(this.props));
         }
 
@@ -194,6 +232,7 @@ export function test()
             console.log("unmount!");
         }
 
+        /** do a test */
         public test() { }
     }, {
         tagName: 'button',
@@ -201,17 +240,25 @@ export function test()
             x: 0,
             y: 0,
         },
-        classes: ['test']
+        classes: ['test'],
+        watchAttributes: ['size'],
     });
 
     /** Example Instantiation */
-    const extendedButton = Button.new({ x: 5 });
-    extendedButton.textContent = 'Click me!';
-    extendedButton.test();
-    extendedButton.on('event1', () => console.log('event1'));
-    setTimeout(() => extendedButton.emit<Events['event1']>('event1', { foo: '123' }), 1000);
+    const button = new Button({ x: 5 });
 
-    (window as any).button = extendedButton;
+    button.textContent = 'Click me!';
+    button.test();
+    button.on('event1', () => console.log('event1'));
 
-    root.appendChild(extendedButton);
+    setTimeout(() =>
+    {
+        button.emit<Events['event1']>('event1', { foo: '123' });
+        button.setAttribute('size', '123');
+        button.removeAttribute('size');
+    }, 1000);
+
+    (window as any).button = button;
+
+    root.appendChild(button);
 }
