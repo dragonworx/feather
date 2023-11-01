@@ -3,9 +3,17 @@ export function test()
 {
     const root = document.getElementById('root') as HTMLElement;
 
+    function toHyphenCase(str: string): string
+    {
+        return str
+            .replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2')
+            .replace(/^-/, '')
+            .toLowerCase();
+    }
+
     interface Descriptor<PropsType extends object = object>
     {
-        tagName: string;
+        tagName?: string;
         props: PropsType;
         classes?: string[];
         watchAttributes?: string[];
@@ -33,7 +41,12 @@ export function test()
     )
     {
         const { tagName, watchAttributes } = descriptor;
-        const fullTagName = tagPref + tagName;
+        const fullTagName = tagPref + (tagName ?? toHyphenCase(htmlElementCtor.name));
+
+        if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
+        {
+            throw new Error(`Invalid tag name: ${fullTagName}`)
+        }
 
         /** Initialise Custom Class */
         (htmlElementCtor as unknown as WithDescriptor).__descriptor = descriptor;
