@@ -27,7 +27,7 @@ export function test()
     const tagPref = 'ctrl-';
 
     /** Custom Element registration function */
-    function ctrl<P extends object, C extends Constructor<Control<P>>>(
+    function Ctrl<P extends object, C extends Constructor<Control<P>>>(
         htmlElementCtor: C,
         descriptor: Descriptor<P>
     )
@@ -214,7 +214,7 @@ export function test()
     }
 
     /** Create an instantiable Control */
-    const Button = ctrl(class extends Control<ButtonProps, keyof Events>
+    const Button = Ctrl(class extends Control<ButtonProps, keyof Events>
     {
         constructor()
         {
