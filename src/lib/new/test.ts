@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { html } from './util';
+
 export function test()
 {
     type EventDescriptor = {
@@ -34,7 +36,7 @@ export function test()
     {
         id: string;
         defaultProps: PropsType;
-        template: string;
+        template: HTMLElement | string;
         mixins: M;
     }
 
@@ -75,11 +77,14 @@ export function test()
 
     abstract class ControlBase<P extends object, E extends EventDescriptor = EventDescriptor> {
         private _eventHandlers: Record<string, EventHandler<any>[]> = {};
-        public props: P;
 
-        constructor(props: Partial<P> = {})
+        public props: P;
+        protected element: HTMLElement;
+
+        constructor(props: Partial<P> = {}, element: HTMLElement)
         {
             this.props = props as P;
+            this.element = element;
         }
 
         on<K extends keyof E>(event: K, handler: EventHandler<E[K]>): void
@@ -123,7 +128,7 @@ export function test()
                 super({
                     ...descriptor.defaultProps,
                     ...props,
-                });
+                }, descriptor.template instanceof HTMLElement ? descriptor.template : html(descriptor.template));
 
                 if (descriptor.mixins)
                 {
@@ -139,16 +144,14 @@ export function test()
         } as new (props: Partial<MixedProps>) => ControlBase<MixedProps, MixedEvents> & MixedApi;
     }
 
-    // type Props<T> = T extends new (props: infer P) => any ? P : never;
+    // ----------------------------------------------
 
     // Example Mixin1
-    type Mixin1Props = { mixin1: string };
-    type Mixin1Events = {
+    const mixin1 = createMixin((control: ControlBase<{
+        mixin1: string
+    }, {
         mixin1Event: { x: number };
-    };
-
-    // Using factory function for mixin1
-    const mixin1 = createMixin((control: ControlBase<Mixin1Props, Mixin1Events>) =>
+    }>) =>
     {
         console.log('mixin1', control, control.props);
 
@@ -166,12 +169,11 @@ export function test()
     });
 
     // Example Mixin2
-    type Mixin2Props = { mixin2: string };
-    type Mixin2Events = {
-        mixin2Event: { y: number };
-    };
-
-    const mixin2 = createMixin((control: ControlBase<Mixin2Props, Mixin2Events>) =>
+    const mixin2 = createMixin((control: ControlBase<{
+        mixin2: string
+    }, {
+        mixin2Event: { y: string };
+    }>) =>
     {
         console.log('mixin2', control, control.props);
 
@@ -181,13 +183,14 @@ export function test()
             public: {
                 mixin2Method()
                 {
-                    control.emit('mixin2Event', { y: 456 });
+                    control.emit('mixin2Event', { y: '456' });
                     return 'bar';
                 },
             },
         };
     });
 
+    // Example Control
     const mixedDescriptor = Desc({
         id: 'test',
         defaultProps: {
@@ -211,19 +214,19 @@ export function test()
     console.log(mixedControl.mixin1Method());  // Outputs: foo
     console.log(mixedControl.mixin2Method());  // Outputs: bar
 
-    const plainDescriptor = Desc({
-        id: 'plainTest',
-        defaultProps: {
-            efg: 'bar',
-            xyz: 1,
-        },
-        template: '<div></div>',
-    });
-    const PlainBase = Control(plainDescriptor);
+    // const plainDescriptor = Desc({
+    //     id: 'plainTest',
+    //     defaultProps: {
+    //         efg: 'bar',
+    //         xyz: 1,
+    //     },
+    //     template: '<div></div>',
+    // });
+    // const PlainBase = Control(plainDescriptor);
 
-    const plainControl = new PlainBase({
-        xyz: 2,
-    });
+    // const plainControl = new PlainBase({
+    //     xyz: 2,
+    // });
 
-    plainControl.on('fd', () => { /* handle */ });
+    // plainControl.on('fd', () => { /* handle */ });
 }

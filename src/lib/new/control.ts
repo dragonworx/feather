@@ -2,7 +2,7 @@
 import { getDescriptors, type ControlCtorWithDescriptor, html } from './util';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export interface ControlDescriptor<P>
+export interface ControlDescriptor<P extends object = object>
 {
     id: string;
     props: P;
