@@ -19,6 +19,7 @@ export function test()
 
     type Constructor<T> = new (...args: any[]) => T;
 
+    const tagPref = 'ctrl-';
 
     /** Custom Element registration function */
     function ctrl<P extends object, C extends Constructor<Base<P>>>(
@@ -28,12 +29,14 @@ export function test()
     {
         const { tagName } = descriptor;
 
-        customElements.define(tagName, htmlElementCtor);
+        const fullTagName = tagPref + tagName;
+
+        customElements.define(fullTagName, htmlElementCtor);
 
         return {
             new: (props: Partial<P> = {}): InstanceType<C> =>
             {
-                const element = document.createElement(tagName) as InstanceType<C>;
+                const element = document.createElement(fullTagName) as InstanceType<C>;
 
                 if (descriptor.classes)
                 {
@@ -96,8 +99,8 @@ export function test()
             return this._listeners.get(type)!;
         }
 
-        on<K extends string | undefined = EventType>(
-            type: K extends EventType ? EventType : K extends undefined ? never : EventType,
+        on<K extends EventType>(
+            type: K,
             listener: ControlEventHandler,
             options?: boolean | AddEventListenerOptions
         ): this
@@ -107,8 +110,8 @@ export function test()
             return this;
         }
 
-        off<K extends string | undefined = EventType>(
-            type: K extends EventType ? EventType : K extends undefined ? never : EventType,
+        off<K extends EventType>(
+            type: K,
             listener?: ControlEventHandler,
             options?: boolean | AddEventListenerOptions
         ): this
@@ -147,9 +150,9 @@ export function test()
             return this;
         }
 
-        public emit<K extends string | undefined = EventType>(
-            type: K extends EventType ? EventType : K extends undefined ? never : EventType,
-            detail?: any
+        public emit<D = any, K extends EventType = EventType>(
+            type: K,
+            detail?: D
         ): this
         {
             this.dispatchEvent(
@@ -169,7 +172,12 @@ export function test()
         y: number;
     };
 
-    const Button = ctrl(class extends Base<ButtonProps, 'event1'>
+    type Events = {
+        event1: { foo: string };
+    }
+
+    /** Create an instantiable Control */
+    const Button = ctrl(class extends Base<ButtonProps, keyof Events>
     {
         constructor()
         {
@@ -188,7 +196,7 @@ export function test()
 
         public test() { }
     }, {
-        tagName: 'control-button',
+        tagName: 'button',
         props: {
             x: 0,
             y: 0,
@@ -201,7 +209,7 @@ export function test()
     extendedButton.textContent = 'Click me!';
     extendedButton.test();
     extendedButton.on('event1', () => console.log('event1'));
-    setTimeout(() => extendedButton.emit('event1'), 1000);
+    setTimeout(() => extendedButton.emit<Events['event1']>('event1', { foo: '123' }), 1000);
 
     (window as any).button = extendedButton;
 
