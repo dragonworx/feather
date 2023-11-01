@@ -1,5 +1,4 @@
-import type { Constructor, Descriptor, WithAttributes, WithDescriptor, WithProps } from '.';
-import type { Control } from './control';
+import type { Constructor, Control, Descriptor, WithAttributes, WithDescriptor, WithProps } from './control';
 import { toHyphenCase } from './util';
 
 export const tagPref = 'ctrl-';
