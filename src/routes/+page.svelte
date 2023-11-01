@@ -9,7 +9,7 @@
 </script>
 
 <main id="root">
-	<ctrl-button>foo</ctrl-button>
+	<ctrl-button size="abc">foo</ctrl-button>
 </main>
 
 <style>
