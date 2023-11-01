@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Behavior } from './behavior_orig';
-import { asArray, getDescriptors, html, uniqueId } from './util';
+import { uniqueId, getDescriptors, html, asArray, type ControlCtorWithDescriptor } from './new/util';
 
 type HTMLEvent = keyof HTMLElementEventMap;
 
@@ -70,7 +70,7 @@ export abstract class Control<
 
 	constructor(props?: Partial<PropertiesType>)
 	{
-		const descriptors = getDescriptors(this.constructor as ControlCtor);
+		const descriptors = getDescriptors(this.constructor as ControlCtorWithDescriptor);
 
 		// get template
 		const descriptor = descriptors[descriptors.length - 1] as ControlDescriptor<PropertiesType>;

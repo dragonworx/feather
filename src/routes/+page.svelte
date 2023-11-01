@@ -13,8 +13,8 @@
 	// 	type DragBehaviorEvents
 	// } from '$lib/behaviors/drag';
 
-	// import { test } from '$lib/new/test';
-	import { test } from '$lib/new/test';
+	import { test } from '$lib/new/test2';
+	// import Behavior from './behavior.svelte';
 
 	// force full reload on hot module reload
 	if (import.meta.hot) {
@@ -25,6 +25,7 @@
 
 	// console.clear();
 
+	// let behavior: Behavior;
 	let main: HTMLElement;
 
 	// let list = new StringList(['test1', 'test2', 'test3']);
@@ -76,11 +77,14 @@
 		// (window as any).button2 = button2;
 
 		test();
+		// behavior.init(main);
 	});
 </script>
 
-<main>
-	<div bind:this={main} />
+<main id="root">
+	<!-- <Behavior bind:this={behavior}>
+		<div bind:this={main} />
+	</Behavior> -->
 </main>
 
 <style>
