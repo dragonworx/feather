@@ -32,6 +32,7 @@ export abstract class Control<
 > extends HTMLElement
 {
     private _listeners: Map<string, CustomEventListener[]> = new Map(); // track custom event listeners internally
+
     protected props: PropsType = {} as PropsType;
     protected initialProps?: Partial<PropsType>;
 
