@@ -1,4 +1,4 @@
-import type { Constructor, Control, Descriptor, WithAttributes, WithDescriptor, WithProps } from './control';
+import type { Constructor, Control, Descriptor, WithAttributes, WithDescriptor, WithFullTagname, WithProps } from './control';
 import { toHyphenCase } from './util';
 
 export const tagPref = 'ctrl-';
@@ -23,6 +23,7 @@ export function Ctrl<P extends object, C extends Constructor<Control<P>>>(
 
     /** Initialise Custom Class */
     (htmlElementCtor as unknown as WithDescriptor).__descriptor = descriptor;
+    (htmlElementCtor as unknown as WithFullTagname).fullTagName = fullTagName;
     watchAttributes && ((htmlElementCtor as unknown as WithAttributes).observedAttributes = watchAttributes);
 
     customElements.define(fullTagName, htmlElementCtor);
@@ -35,8 +36,6 @@ export function Ctrl<P extends object, C extends Constructor<Control<P>>>(
             const element = document.createElement(fullTagName) as InstanceType<C>;
 
             (element as unknown as WithProps).initialProps = props;
-            const writable = element as unknown as Writable<InstanceType<C>, 'fullTagName'>;
-            writable.fullTagName = fullTagName;
 
             return element;
         }
