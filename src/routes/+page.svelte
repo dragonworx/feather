@@ -2,36 +2,47 @@
 	import './forceHotReload';
 
 	import { onMount } from 'svelte';
-	import { Button, type ButtonEvents } from '$lib/test';
+	import { Test } from '$lib/test';
+	// note: we need to import constructor, type will not evaluate the Ctrl function
+	import Button from '$lib/button';
+
+	String(Button); // mute error above, would be fixed by proper index.ts export of Control
 
 	onMount(() => {
 		const root = document.getElementById('root') as HTMLElement;
+		const button = document.getElementById('button') as InstanceType<typeof Button>;
 
-		/** Example Instantiation */
-		const button = new Button({ x: 5 });
+		/** Test Control, created with constructor */
+		const test = new Test({ x: 5 });
 
-		button.textContent = 'Click me!';
-		button.test();
-		button.on('event1', (e) => console.log('event1', e.detail.foo));
-		button.on('event2', (e) => console.log('event2', e.detail.bar));
-		button.on('event3', (e) => console.log('event3', e.detail));
-		button.style.color = 'white';
-		button.onclick = () => button.remove();
+		test.textContent = 'Click me!';
+		test.test();
+		test.on('event1', (e) => console.log('event1', e.detail.foo));
+		test.on('event2', (e) => console.log('event2', e.detail.bar));
+		test.on('event3', (e) => console.log('event3', e.detail));
+		test.style.color = 'white';
+		test.onclick = () => test.remove();
 
 		setTimeout(() => {
-			button.emit('event1', { foo: '123' });
-			button.emit('event2', { bar: 123 });
-			button.emit('event3');
-			button.setAttribute('size', '123');
-			button.removeAttribute('size');
+			test.emit('event1', { foo: '123' });
+			test.emit('event2', { bar: 123 });
+			test.emit('event3');
+			test.setAttribute('size', '123');
+			test.removeAttribute('size');
 		}, 1000);
 
-		(window as any).button = button;
+		(window as any).test = test;
+		root.appendChild(test);
 
+		/** Button Control, accessed from DOM */
+		button.setProps({ isToggled: true });
+
+		(window as any).button = button;
 		root.appendChild(button);
 	});
 </script>
 
 <main id="root">
-	<ctrl-button size="abc">foo</ctrl-button>
+	<ctrl-test size="abc">foo</ctrl-test>
+	<ctrl-button id="button">Button!</ctrl-button>
 </main>

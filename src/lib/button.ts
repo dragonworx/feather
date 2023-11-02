@@ -46,6 +46,8 @@ class Button extends Control<ButtonProps, ButtonEvent>
 
     protected mount(): void
     {
+        console.log("button mount");
+
         this.addEventListener('mousedown', this.onMouseDown);
         this.addEventListener('mouseleave', this.onMouseLeave);
 
