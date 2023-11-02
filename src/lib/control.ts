@@ -7,9 +7,10 @@ export interface Descriptor<PropsType extends object = object>
     watchAttributes?: string[];
 }
 
-export interface CustomEventListener
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface CustomEventListener<T = any>
 {
-    (evt: CustomEvent): void;
+    (evt: CustomEvent<T>): void;
 }
 
 export type ControlEventHandler = EventListener | CustomEventListener;
@@ -20,13 +21,17 @@ export type WithDescriptor = { __descriptor: Descriptor };
 export type WithProps = { initialProps: object };
 export type WithAttributes = { observedAttributes: string[] };
 
+type EventMap = {
+    [k: string]: object | null | undefined;
+};
+
 /** Base Control extends HTMLElement as Custom Element */
 export abstract class Control<
     PropsType extends object = object,
-    EventType extends string = string
+    EventType extends EventMap = EventMap
 > extends HTMLElement
 {
-    private _listeners: Map<string, ControlEventHandler[]> = new Map(); // track custom event listeners internally
+    private _listeners: Map<string, CustomEventListener[]> = new Map(); // track custom event listeners internally
     protected props: PropsType = {} as PropsType;
     protected initialProps?: Partial<PropsType>;
 
@@ -95,75 +100,85 @@ export abstract class Control<
         return this._listeners.get(type)!;
     }
 
-    on<K extends EventType>(
-        type: K,
-        listener: ControlEventHandler,
-        options?: boolean | AddEventListenerOptions
-    ): this
-    {
-        this.listenersForType(type).push(listener);
-        this.addEventListener(type, listener as EventListenerOrEventListenerObject, options);
-        return this;
-    }
-
-    off<K extends EventType>(
-        type: K,
-        listener?: ControlEventHandler,
-        options?: boolean | AddEventListenerOptions
-    ): this
-    {
-        if (!this._listeners.has(type))
+    public on = (<T extends EventType>() =>
+        <E extends keyof T>(
+            type: E,
+            listener: CustomEventListener<T[E]>,
+            options?: boolean | AddEventListenerOptions
+        ): this =>
         {
+            const key = String(type);
+            this.listenersForType(key).push(listener);
+            this.addEventListener(key, listener as EventListenerOrEventListenerObject, options);
+
             return this;
-        }
+        })();
 
-        const listeners = this.listenersForType(type);
-
-        if (listener)
+    public off = (<T extends EventType>() =>
+        <E extends keyof T>(
+            type: E,
+            listener: CustomEventListener<T[E]>,
+            options?: boolean | AddEventListenerOptions
+        ): this =>
         {
-            // remove listener
-            const index = listeners.indexOf(listener);
-            if (index !== -1)
+            const key = String(type);
+
+            if (!this._listeners.has(key))
             {
-                listeners.splice(index, 1);
+                return this;
             }
 
-            if (listeners.length === 0)
+            const listeners = this.listenersForType(key);
+
+            if (listener)
             {
-                this._listeners.delete(type);
+                // remove listener
+                const index = listeners.indexOf(listener);
+                if (index !== -1)
+                {
+                    listeners.splice(index, 1);
+                }
+
+                if (listeners.length === 0)
+                {
+                    this._listeners.delete(key);
+                }
+
+                this.removeEventListener(
+                    key,
+                    listener as EventListenerOrEventListenerObject,
+                    options
+                );
+            } else
+            {
+                // remove all
+                for (const l of listeners)
+                {
+                    this.removeEventListener(key, l as EventListenerOrEventListenerObject, options);
+                }
+
+                this._listeners.delete(key);
             }
 
-            this.removeEventListener(
-                type,
-                listener as EventListenerOrEventListenerObject,
-                options
+            return this;
+        })();
+
+    public emit = (<T extends EventType>() =>
+        <E extends keyof T>(
+            type: E,
+            detail?: T[E] extends object ? T[E] : (T[E] extends null ? null : object)
+        ): this =>
+        {
+            const key = String(type);
+
+            this.dispatchEvent(
+                new CustomEvent(key, {
+                    detail,
+                    bubbles: true,
+                    cancelable: true
+                })
             );
-        } else
-        {
-            // remove all
-            for (const l of listeners)
-            {
-                this.removeEventListener(type, l as EventListenerOrEventListenerObject, options);
-            }
 
-            this._listeners.delete(type);
-        }
-        return this;
-    }
-
-    public emit<D = unknown, K extends EventType = EventType>(
-        type: K,
-        detail?: D
-    ): this
-    {
-        this.dispatchEvent(
-            new CustomEvent(type, {
-                detail,
-                bubbles: true,
-                cancelable: true
-            })
-        );
-
-        return this;
-    }
+            return this;
+        })();
 }

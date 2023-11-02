@@ -9,10 +9,12 @@ export type ButtonProps = {
 
 export type ButtonEvents = {
     event1: { foo: string };
+    event2: { bar: number };
+    event3: null;
 }
 
 /** Create an instantiable Control */
-export const Button = Ctrl(class extends Control<ButtonProps, keyof ButtonEvents>
+export const Button = Ctrl(class extends Control<ButtonProps, ButtonEvents>
 {
     constructor()
     {
