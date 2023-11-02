@@ -2,19 +2,19 @@ import { Ctrl } from './builder';
 import { Control } from './control';
 
 /** Example Control */
-export type ButtonProps = {
+export type TestProps = {
     x: number;
     y: number;
 };
 
-export type ButtonEvents = {
+export type TestEvents = {
     event1: { foo: string };
     event2: { bar: number };
     event3: null;
 }
 
 /** Create an instantiable Control */
-export const Button = Ctrl(class extends Control<ButtonProps, ButtonEvents>
+export const Test = Ctrl(class extends Control<TestProps, TestEvents>
 {
     constructor()
     {
@@ -23,19 +23,19 @@ export const Button = Ctrl(class extends Control<ButtonProps, ButtonEvents>
 
     protected mount(): void
     {
-        console.log("mount")
+        console.log("test mount")
         this.addEventListener('click', () => console.log(this.props));
     }
 
     protected unmount(): void
     {
-        console.log("unmount!");
+        console.log("test unmount!");
     }
 
     /** do a test */
     public test() { }
 }, {
-    tagName: 'button',
+    tagName: 'test',
     props: {
         x: 0,
         y: 0,

@@ -35,6 +35,7 @@ export abstract class Control<
 
     protected props: PropsType = {} as PropsType;
     protected initialProps?: Partial<PropsType>;
+    public readonly fullTagName: string = '';
 
     constructor()
     {
@@ -48,7 +49,8 @@ export abstract class Control<
 
     public setProps(props: Partial<PropsType>)
     {
-        console.log("set props", props)
+        console.log("set props", this.fullTagName, props);
+
         this.props = {
             ...this.props,
             ...props,
@@ -69,6 +71,7 @@ export abstract class Control<
         this.setProps({
             ...descriptor.props,
             ...initialProps,
+            ...this.props,
         });
 
         this.mount();
