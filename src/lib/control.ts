@@ -18,6 +18,7 @@ export type ControlEventHandler = EventListener | CustomEventListener;
 export type Constructor<T> = new (...args: unknown[]) => T;
 
 export type WithDescriptor = { __descriptor: Descriptor };
+export type WithFullTagname = { fullTagName: string };
 export type WithProps = { initialProps: object };
 export type WithAttributes = { observedAttributes: string[] };
 
@@ -35,7 +36,6 @@ export abstract class Control<
 
     protected props: PropsType = {} as PropsType;
     protected initialProps?: Partial<PropsType>;
-    public readonly fullTagName: string = '';
 
     constructor()
     {
@@ -47,9 +47,14 @@ export abstract class Control<
         return (this.constructor as unknown as WithDescriptor).__descriptor;
     }
 
+    protected get fullTagName()
+    {
+        return (this.constructor as unknown as WithFullTagname).fullTagName;
+    }
+
     public setProps(props: Partial<PropsType>)
     {
-        console.log("set props", this.fullTagName, props);
+        console.log("set props", '#' + this.fullTagName, props);
 
         this.props = {
             ...this.props,
