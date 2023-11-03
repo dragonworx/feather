@@ -24,11 +24,23 @@ export function Ctrl<P extends object, C extends Constructor<Control<P>>>(
     /** Initialise Custom Class */
     (htmlElementCtor as unknown as WithDescriptor).__descriptor = descriptor;
     (htmlElementCtor as unknown as WithFullTagname).fullTagName = fullTagName;
-    watchAttributes && ((htmlElementCtor as unknown as WithAttributes).observedAttributes = watchAttributes);
 
+    /** Initialise Attributes */
+    const attributes: string[] = [...watchAttributes ?? []];
+    for (const key in descriptor.props)
+    {
+        if (!attributes.includes(key))
+        {
+            attributes.push(toHyphenCase(key));
+        }
+    }
+
+    (htmlElementCtor as unknown as WithAttributes).observedAttributes = attributes;
+
+    /** Define Custom Element */
     customElements.define(fullTagName, htmlElementCtor);
 
-    /** Custom Class Instantiating */
+    /** Return Custom Class Constructor */
     return class
     {
         constructor(props: Partial<P> = {})
