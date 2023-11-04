@@ -1,4 +1,5 @@
 // import type { Descriptor, WithDescriptor } from './builder';
+import type { AttributeDescriptor } from './builder';
 import { ControlBase } from './controlBase';
 import { simpleDiff, type DiffSet } from './diff';
 
@@ -45,9 +46,9 @@ export abstract class ControlWithProps<
             return;
         }
 
-        const attribute = this.descriptor.attributes![name as keyof PropsType];
+        const attribute = this.descriptor.attributes![name as keyof PropsType] as AttributeDescriptor;
 
-        if (name in this.descriptor.props && attribute)
+        if (name in this.descriptor.props && attribute && attribute.public)
         {
             if (newValue === null)
             {
