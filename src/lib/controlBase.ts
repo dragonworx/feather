@@ -1,4 +1,4 @@
-import type { Descriptor, WithDescriptor, WithFullTagname, WithProps } from './builder';
+import type { Descriptor, WithDescriptor, WithFullTagname, WithInitialProps } from './builder';
 
 /** Base Control extends HTMLElement as Custom Element */
 export abstract class ControlBase<
@@ -7,8 +7,8 @@ export abstract class ControlBase<
 {
     protected _isMounted = false;
 
-    protected props: PropsType = {} as PropsType;
-    protected initialProps?: Partial<PropsType>;
+    protected _props: PropsType = {} as PropsType;
+    protected _initialProps?: Partial<PropsType>;
 
     constructor()
     {
@@ -41,10 +41,10 @@ export abstract class ControlBase<
 
         this._isMounted = true;
 
-        this.props = {
+        this._props = {
             ...descriptor.props,
-            ...(this as unknown as WithProps).initialProps,
-            ...this.props,
+            ...(this as unknown as WithInitialProps)._initialProps,
+            ...this._props,
         };
 
         this.render();

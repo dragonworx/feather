@@ -6,7 +6,7 @@ export const tagPref = 'ctrl-';
 export type Constructor<T> = new (...args: unknown[]) => T;
 
 export type WithFullTagname = { fullTagName: string };
-export type WithProps = { initialProps: object };
+export type WithInitialProps = { _initialProps: object };
 export type WithAttributes = { observedAttributes: string[] };
 
 export type AttributeType = "string" | "number" | "boolean";
@@ -162,7 +162,7 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
         {
             const element = document.createElement(fullTagName) as InstanceType<CtorType>;
 
-            (element as unknown as WithProps).initialProps = props;
+            (element as unknown as WithInitialProps)._initialProps = props;
 
             return element;
         }
