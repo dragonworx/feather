@@ -13,8 +13,9 @@ export type AttributeType = "string" | "number" | "boolean";
 export type AttributeValidator = (value: string) => boolean;
 export interface AttributeDescriptor
 {
-    type: AttributeType;
+    type?: AttributeType;
     validate?: AttributeValidator;
+    public?: boolean;
 }
 
 export const attributeValidators: Record<AttributeType, AttributeValidator> = {
@@ -29,7 +30,7 @@ export interface Descriptor<PropsType extends object = object>
     props: PropsType;
     classes?: string[];
     template?: HTMLElement | string;
-    attributes?: Partial<Record<keyof PropsType, AttributeDescriptor>>;
+    attributes?: Partial<Record<keyof PropsType, AttributeDescriptor | string>>;
 }
 export type WithDescriptor = { __descriptor: Descriptor };
 export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
@@ -42,7 +43,7 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
 {
     console.log("*** Ctrl ***", htmlElementCtor.name, descriptor);
 
-    const { tagName, attributes: attr } = descriptor;
+    const { tagName, attributes: userDefinedAttributes } = descriptor;
     const fullTagName = tagPref + (tagName ?? toHyphenCase(htmlElementCtor.name));
 
     if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
@@ -55,7 +56,7 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
     (htmlElementCtor as unknown as WithFullTagname).fullTagName = fullTagName;
 
     /** Initialise Default Prop Attribute Observers */
-    const attributes = {} as Record<keyof PropsType, AttributeDescriptor>;
+    const attributes = {} as Record<keyof PropsType, AttributeDescriptor | string>;
 
     // add default prop attributes
     for (const [k, v] of Object.entries(descriptor.props))
@@ -66,22 +67,28 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
         attributes[propName] = {
             type: typeof propValue as AttributeType,
             validate: attributeValidators[typeof propValue as AttributeType],
+            public: true,
         };
     }
 
-    // add descriptor attributes
-    if (attr)
+    // add user-defined descriptor attributes
+    if (userDefinedAttributes)
     {
-        for (const [k, v] of Object.entries(attr))
+        for (const [k, v] of Object.entries(userDefinedAttributes))
         {
             const propName = k as keyof PropsType;
-            const attr = v as AttributeDescriptor;
+            const attr = (typeof v === 'string' ? {
+                type: v,
+            } : v) as AttributeDescriptor;
+            attr.type = attr.type ?? typeof descriptor.props[propName] as AttributeType;
             attr.validate = attr.validate ?? attributeValidators[attr.type];
+            attr.public = typeof attr.public === 'boolean' ? attr.public : true;
 
             attributes[propName] = attr;
         }
     }
 
+    /** Define the getters and setters type based on props */
     for (const [k, v] of Object.entries(attributes))
     {
         const propName = k as keyof PropsType;
@@ -151,9 +158,6 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
 
     /** Define Custom Element */
     customElements.define(fullTagName, htmlElementCtor);
-
-    /** Define the getters and setters type based on props */
-
 
     /** Return Custom Class Constructor */
     return class
