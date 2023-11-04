@@ -1,4 +1,4 @@
-import type { WithDescriptor } from './builder';
+import type { Descriptor, WithDescriptor } from './builder';
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,6 +27,7 @@ export abstract class Control<
 > extends HTMLElement
 {
     private _listeners: Map<string, CustomEventListener[]> = new Map(); // track custom event listeners internally
+    private _isMounted = false;
 
     protected props: PropsType = {} as PropsType;
     protected initialProps?: Partial<PropsType>;
@@ -36,14 +37,19 @@ export abstract class Control<
         super();
     }
 
-    protected get descriptor()
+    protected get descriptor(): Descriptor<PropsType>
     {
-        return (this.constructor as unknown as WithDescriptor).__descriptor;
+        return (this.constructor as unknown as WithDescriptor).__descriptor as Descriptor<PropsType>;
     }
 
     protected get fullTagName()
     {
         return (this.constructor as unknown as WithFullTagname).fullTagName;
+    }
+
+    public setProp(name: keyof PropsType, value: PropsType[keyof PropsType])
+    {
+        this.setProps({ [name]: value } as Partial<PropsType>);
     }
 
     public setProps(props: Partial<PropsType>)
@@ -67,17 +73,21 @@ export abstract class Control<
 
         const initialProps = (this as unknown as WithProps).initialProps;
 
+        this._isMounted = true;
+
         this.setProps({
             ...descriptor.props,
             ...initialProps,
             ...this.props,
         });
 
+
         this.mount();
     }
 
     disconnectedCallback()
     {
+        this._isMounted = false;
         this.unmount();
     }
 
@@ -90,15 +100,12 @@ export abstract class Control<
     {
         console.log(`Attribute ${name} has changed.`, oldValue, newValue);
 
-        // if this is a prop, call set prop with value
-        if (name in this.props)
-        {
-            this.setProps({
-                [name]: newValue
-            } as Partial<PropsType>);
-        }
-
         this.onAttributeChanged(name, oldValue, newValue);
+
+        if (name in this.descriptor.props)
+        {
+            this.onAttributePropChanged(name as keyof PropsType, oldValue, newValue);
+        }
     }
 
     protected mount() { /** override */ }
@@ -106,6 +113,24 @@ export abstract class Control<
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null) { /** override */ }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onAttributePropChanged(name: keyof PropsType, oldValue: string | null, newValue: string | null) { /** override */ }
+
+    protected setNumericProp<K extends keyof PropsType>(name: K, value: string | null): number
+    {
+        const num = parseFloat(value ?? '');
+        if (isNaN(num)) throw new Error(`${this.fullTagName}: Invalid value for prop "${String(name)}": "${value}"`);
+        const val = (isNaN(num) ? this.descriptor.props[name] as number : num) as PropsType[K];
+        this.setProp(name, val);
+        return val as number;
+    }
+
+    protected setBooleanProp<K extends keyof PropsType>(name: K, value: string | null): boolean
+    {
+        const val = value === 'true';
+        this.setProp(name, val as PropsType[K]);
+        return val as boolean;
+    }
 
     private listenersForType(type: string)
     {

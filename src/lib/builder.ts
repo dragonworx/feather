@@ -20,7 +20,7 @@ export function Ctrl<P extends object, C extends Constructor<Control<P>>>(
     htmlElementCtor: C,
 )
 {
-    console.log("Build", htmlElementCtor.name, descriptor);
+    console.log("*** Ctrl ***", htmlElementCtor.name, descriptor);
 
     const { tagName, attributes: watchAttributes } = descriptor;
     const fullTagName = tagPref + (tagName ?? toHyphenCase(htmlElementCtor.name));
