@@ -1,5 +1,6 @@
 import { Ctrl } from './builder';
 import { Control } from './control';
+import type { DiffSet } from './diff';
 
 /** Example Control */
 export type TestProps = {
@@ -25,11 +26,6 @@ export default Ctrl({
     classes: ['test'],
 }, class Test extends Control<TestProps, TestEvents>
 {
-    constructor()
-    {
-        super();
-    }
-
     protected mount(): void
     {
         console.log("test mount")
@@ -43,4 +39,20 @@ export default Ctrl({
 
     /** do a test */
     public test() { }
+
+    protected renderInnerHTML(): string | void
+    {
+        return `
+            <div>x: ${this.props.x}</div>
+            <div>y: ${this.props.y}</div>
+            <div>z: ${this.props.z}</div>
+        `;
+    }
+
+    protected onPropsChanged(diff: DiffSet): void
+    {
+        super.onPropsChanged(diff);
+
+        this.render();
+    }
 });
