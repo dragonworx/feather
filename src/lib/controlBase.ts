@@ -64,7 +64,7 @@ export abstract class ControlBase<
 
     protected render()
     {
-        const innerHTML = this.renderInnerHTML();
+        const innerHTML = this.html();
 
         if (innerHTML)
         {
@@ -72,7 +72,7 @@ export abstract class ControlBase<
         }
     }
 
-    protected renderInnerHTML(): string | void
+    protected html(): string | void
     {
         return;
     }

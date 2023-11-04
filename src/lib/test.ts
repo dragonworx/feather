@@ -40,7 +40,7 @@ export default Ctrl({
     /** do a test */
     public test() { }
 
-    protected renderInnerHTML(): string | void
+    protected html(): string | void
     {
         return `
             <div>x: ${this._props.x}</div>
