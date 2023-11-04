@@ -37,7 +37,9 @@
 		/** Button Control, accessed from DOM */
 		// button.setProps({ isToggled: true });
 
-		test.z = 'testing';
+		test.z = 'testing!';
+		test.test();
+		test.setProp('y', true);
 
 		(window as any).test = test;
 		// root.appendChild(button);

@@ -1,4 +1,5 @@
 import type { Descriptor, WithDescriptor } from './builder';
+import { simpleDiff, type DiffSet } from './diff';
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,24 +53,37 @@ export abstract class Control<
         return this._isMounted
     }
 
-    public setProp(name: keyof PropsType, value: PropsType[keyof PropsType])
+    public setProp<K extends keyof PropsType>(name: K, value: PropsType[K])
     {
-        this.setProps({ [name]: value } as Partial<PropsType>);
+        this.setProps({ [name]: value } as unknown as Partial<PropsType>);
     }
 
     public setProps(props: Partial<PropsType>)
     {
-        console.log("set props", '#' + this.fullTagName, props);
+        console.log(`[${this.fullTagName}].setProps:`, props);
 
-        this.props = {
+        const newProps = {
             ...this.props,
             ...props,
         };
+
+        const diff = simpleDiff(newProps, this.props);
+
+        this.props = newProps;
+
+        if (this._isMounted)
+        {
+            this.onPropsChanged(diff);
+        }
+    }
+
+    protected onPropsChanged(diff: DiffSet)
+    {
+        console.log(`[${this.fullTagName}].onPropsChanged`, diff);
     }
 
     protected connectedCallback()
     {
-        // official entry point, not constructor
         const { descriptor } = this;
 
         if (descriptor.classes)
@@ -77,17 +91,15 @@ export abstract class Control<
             this.classList.add(...descriptor.classes);
         }
 
-        const initialProps = (this as unknown as WithProps).initialProps;
-
         this._isMounted = true;
 
-        this.setProps({
+        this.props = {
             ...descriptor.props,
-            ...initialProps,
+            ...(this as unknown as WithProps).initialProps,
             ...this.props,
-        });
+        };
 
-
+        this.render();
         this.mount();
     }
 
@@ -104,11 +116,9 @@ export abstract class Control<
 
     protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
     {
-        console.log(`Attribute ${name} has changed.`, oldValue, newValue);
+        console.log(`${this.fullTagName}.attributeChangedCallback`, name, oldValue, newValue);
 
-        const passToProps = this.onAttributeChanged(name, oldValue, newValue);
-
-        if (passToProps === false)
+        if (this.onAttributeChanged(name, oldValue, newValue) === false)
         {
             return;
         }
@@ -143,6 +153,21 @@ export abstract class Control<
             }
 
         }
+    }
+
+    protected render()
+    {
+        const innerHTML = this.renderInnerHTML();
+
+        if (innerHTML)
+        {
+            this.innerHTML = innerHTML;
+        }
+    }
+
+    protected renderInnerHTML(): string | void
+    {
+        return;
     }
 
     protected mount() { /** override */ }
