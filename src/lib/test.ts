@@ -29,7 +29,7 @@ export default Ctrl({
     protected mount(): void
     {
         console.log("test mount")
-        this.addEventListener('click', () => console.log(this.props));
+        this.addEventListener('click', (e) => console.log(e.target));
     }
 
     protected unmount(): void
