@@ -43,9 +43,9 @@ export default Ctrl({
     protected renderInnerHTML(): string | void
     {
         return `
-            <div>x: ${this.props.x}</div>
-            <div>y: ${this.props.y}</div>
-            <div>z: ${this.props.z}</div>
+            <div>x: ${this._props.x}</div>
+            <div>y: ${this._props.y}</div>
+            <div>z: ${this._props.z}</div>
         `;
     }
 

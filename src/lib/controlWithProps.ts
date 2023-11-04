@@ -17,13 +17,13 @@ export abstract class ControlWithProps<
         console.log(`[${this.fullTagName}].setProps:`, props);
 
         const newProps = {
-            ...this.props,
+            ...this._props,
             ...props,
         };
 
-        const diff = simpleDiff(newProps, this.props);
+        const diff = simpleDiff(newProps, this._props);
 
-        this.props = newProps;
+        this._props = newProps;
 
         if (this._isMounted)
         {
