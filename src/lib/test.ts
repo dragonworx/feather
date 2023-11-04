@@ -21,7 +21,6 @@ export const Test = Ctrl({
         y: 0,
     },
     classes: ['test'],
-    attributes: ['size'],
 }, class Test extends Control<TestProps, TestEvents>
 {
     constructor()
@@ -38,6 +37,12 @@ export const Test = Ctrl({
     protected unmount(): void
     {
         console.log("test unmount!");
+    }
+
+    protected onAttributePropChanged(name: keyof TestProps, oldValue: string | null, newValue: string | null): void
+    {
+        console.log("test prop changed", name, oldValue, newValue);
+        name === 'x' && this.setNumericProp(name, newValue);
     }
 
     /** do a test */

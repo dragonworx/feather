@@ -47,3 +47,26 @@ export function toHyphenCase(str: string): string
         .replace(/^-/, '')
         .toLowerCase();
 }
+
+export function checkType(value: string): "string" | "number" | "boolean"
+{
+    // Check for boolean values
+    if (value === "true" || value === "false")
+    {
+        return "boolean";
+    }
+
+    // Check for number values
+    if (!isNaN(Number(value)))
+    {
+        return "number";
+    }
+
+    // Fallback to string type
+    return "string";
+}
+
+export function isValidSimpleType(value: string | null): boolean
+{
+    return value === null || checkType(value) !== "string";
+}
