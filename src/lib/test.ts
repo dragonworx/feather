@@ -14,7 +14,15 @@ export type TestEvents = {
 }
 
 /** Create an instantiable Control */
-export const Test = Ctrl(class extends Control<TestProps, TestEvents>
+export const Test = Ctrl({
+    tagName: 'test',
+    props: {
+        x: 0,
+        y: 0,
+    },
+    classes: ['test'],
+    attributes: ['size'],
+}, class Test extends Control<TestProps, TestEvents>
 {
     constructor()
     {
@@ -34,12 +42,4 @@ export const Test = Ctrl(class extends Control<TestProps, TestEvents>
 
     /** do a test */
     public test() { }
-}, {
-    tagName: 'test',
-    props: {
-        x: 0,
-        y: 0,
-    },
-    classes: ['test'],
-    watchAttributes: ['size'],
 });

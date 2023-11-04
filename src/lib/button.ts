@@ -33,7 +33,16 @@ function checkFlag(flag: number, mode: ButtonFlag): boolean
     return (flag & mode) !== 0;
 }
 
-class Button extends Control<ButtonProps, ButtonEvent>
+export default Ctrl({
+    tagName: 'button',
+    props: {
+        buttons: ButtonFlag.Left,
+        isToggle: false,
+        isToggled: false,
+        longPressTime: 500,
+    },
+    classes: ['button'],
+}, class Button extends Control<ButtonProps, ButtonEvent>
 {
     private _isDown = false;
     private _isToggled = false;
@@ -140,15 +149,4 @@ class Button extends Control<ButtonProps, ButtonEvent>
             this.emit('toggle', { isToggled: this._isToggled });
         }
     }
-}
-
-export default Ctrl(Button, {
-    tagName: 'button',
-    props: {
-        buttons: ButtonFlag.Left,
-        isToggle: false,
-        isToggled: false,
-        longPressTime: 500,
-    },
-    classes: ['button'],
 });

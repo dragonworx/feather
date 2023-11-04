@@ -1,11 +1,5 @@
-export interface Descriptor<PropsType extends object = object>
-{
-    tagName?: string;
-    props: PropsType;
-    classes?: string[];
-    template?: HTMLElement | string;
-    watchAttributes?: string[];
-}
+import type { WithDescriptor } from './builder';
+
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface CustomEventListener<T = any>
@@ -17,7 +11,7 @@ export type ControlEventHandler = EventListener | CustomEventListener;
 
 export type Constructor<T> = new (...args: unknown[]) => T;
 
-export type WithDescriptor = { __descriptor: Descriptor };
+
 export type WithFullTagname = { fullTagName: string };
 export type WithProps = { initialProps: object };
 export type WithAttributes = { observedAttributes: string[] };
@@ -95,10 +89,23 @@ export abstract class Control<
     attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
     {
         console.log(`Attribute ${name} has changed.`, oldValue, newValue);
+
+        // if this is a prop, call set prop with value
+        if (name in this.props)
+        {
+            this.setProps({
+                [name]: newValue
+            } as Partial<PropsType>);
+        }
+
+        this.onAttributeChanged(name, oldValue, newValue);
     }
 
     protected mount() { /** override */ }
     protected unmount() { /** override */ }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null) { /** override */ }
 
     private listenersForType(type: string)
     {
