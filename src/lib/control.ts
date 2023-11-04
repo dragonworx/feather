@@ -47,6 +47,11 @@ export abstract class Control<
         return (this.constructor as unknown as WithFullTagname).fullTagName;
     }
 
+    protected get isMounted()
+    {
+        return this._isMounted
+    }
+
     public setProp(name: keyof PropsType, value: PropsType[keyof PropsType])
     {
         this.setProps({ [name]: value } as Partial<PropsType>);
@@ -62,8 +67,9 @@ export abstract class Control<
         };
     }
 
-    connectedCallback()
+    protected connectedCallback()
     {
+        // official entry point, not constructor
         const { descriptor } = this;
 
         if (descriptor.classes)
@@ -85,52 +91,67 @@ export abstract class Control<
         this.mount();
     }
 
-    disconnectedCallback()
+    protected disconnectedCallback()
     {
         this._isMounted = false;
         this.unmount();
     }
 
-    adoptedCallback()
+    protected adoptedCallback()
     {
-        console.log("Custom element moved to new page.");
+        this.onDocumentChange();
     }
 
-    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
+    protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
     {
         console.log(`Attribute ${name} has changed.`, oldValue, newValue);
 
-        this.onAttributeChanged(name, oldValue, newValue);
+        const passToProps = this.onAttributeChanged(name, oldValue, newValue);
 
-        if (name in this.descriptor.props)
+        if (passToProps === false)
         {
-            this.onAttributePropChanged(name as keyof PropsType, oldValue, newValue);
+            return;
+        }
+
+        const attribute = this.descriptor.attributes![name as keyof PropsType];
+
+        if (name in this.descriptor.props && attribute)
+        {
+            if (newValue === null)
+            {
+                this.setProp(name as keyof PropsType, this.descriptor.props[name as keyof PropsType]);
+            } else
+            {
+                const isValid = attribute.validate!(newValue);
+                const propKey = name as keyof PropsType;
+
+                if (!isValid)
+                {
+                    throw new Error(`${this.fullTagName}: Invalid value for attribute "${name}": "${newValue}"`);
+                }
+
+                if (attribute.type === 'number')
+                {
+                    this.setProp(propKey, parseFloat(newValue) as PropsType[keyof PropsType]);
+                } else if (attribute.type === 'boolean')
+                {
+                    this.setProp(propKey, (newValue.toLowerCase() === 'true') as PropsType[keyof PropsType]);
+                } else
+                {
+                    this.setProp(name as keyof PropsType, newValue as PropsType[keyof PropsType]);
+                }
+            }
+
         }
     }
 
     protected mount() { /** override */ }
     protected unmount() { /** override */ }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null) { /** override */ }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onAttributePropChanged(name: keyof PropsType, oldValue: string | null, newValue: string | null) { /** override */ }
+    protected onDocumentChange() { /** override */ }
 
-    protected setNumericProp<K extends keyof PropsType>(name: K, value: string | null): number
-    {
-        const num = parseFloat(value ?? '');
-        if (isNaN(num)) throw new Error(`${this.fullTagName}: Invalid value for prop "${String(name)}": "${value}"`);
-        const val = (isNaN(num) ? this.descriptor.props[name] as number : num) as PropsType[K];
-        this.setProp(name, val);
-        return val as number;
-    }
-
-    protected setBooleanProp<K extends keyof PropsType>(name: K, value: string | null): boolean
-    {
-        const val = value === 'true';
-        this.setProp(name, val as PropsType[K]);
-        return val as boolean;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null): false | void { /** override */ }
 
     private listenersForType(type: string)
     {
