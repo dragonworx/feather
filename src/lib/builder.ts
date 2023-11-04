@@ -1,19 +1,28 @@
-import type { Constructor, Control, Descriptor, WithAttributes, WithDescriptor, WithFullTagname, WithProps } from './control';
+import type { Constructor, Control, WithAttributes, WithFullTagname, WithProps } from './control';
 import { toHyphenCase } from './util';
 
 export const tagPref = 'ctrl-';
 
+export interface Descriptor<PropsType extends object = object>
+{
+    tagName?: string;
+    props: PropsType;
+    classes?: string[];
+    template?: HTMLElement | string;
+    attributes?: string[];
+}
+export type WithDescriptor = { __descriptor: Descriptor };
 export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
 
 /** Custom Element registration function */
 export function Ctrl<P extends object, C extends Constructor<Control<P>>>(
+    descriptor: Descriptor<P>,
     htmlElementCtor: C,
-    descriptor: Descriptor<P>
 )
 {
     console.log("Build", htmlElementCtor.name, descriptor);
 
-    const { tagName, watchAttributes } = descriptor;
+    const { tagName, attributes: watchAttributes } = descriptor;
     const fullTagName = tagPref + (tagName ?? toHyphenCase(htmlElementCtor.name));
 
     if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
@@ -26,16 +35,16 @@ export function Ctrl<P extends object, C extends Constructor<Control<P>>>(
     (htmlElementCtor as unknown as WithFullTagname).fullTagName = fullTagName;
 
     /** Initialise Attributes */
-    const attributes: string[] = [...watchAttributes ?? []];
+    const observedAttributes: string[] = [...watchAttributes ?? []];
     for (const key in descriptor.props)
     {
-        if (!attributes.includes(key))
+        if (!observedAttributes.includes(key))
         {
-            attributes.push(toHyphenCase(key));
+            observedAttributes.push(toHyphenCase(key));
         }
     }
 
-    (htmlElementCtor as unknown as WithAttributes).observedAttributes = attributes;
+    (htmlElementCtor as unknown as WithAttributes).observedAttributes = observedAttributes;
 
     /** Define Custom Element */
     customElements.define(fullTagName, htmlElementCtor);
