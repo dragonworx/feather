@@ -1,5 +1,5 @@
 import { Ctrl } from './builder';
-import { Control } from './control';
+import { Control } from './controlBase';
 
 export enum ButtonFlag
 {

@@ -1,7 +1,13 @@
-import type { Constructor, Control, WithAttributes, WithFullTagname, WithProps } from './control';
+import type { Control } from './control';
 import { toHyphenCase } from './util';
 
 export const tagPref = 'ctrl-';
+
+export type Constructor<T> = new (...args: unknown[]) => T;
+
+export type WithFullTagname = { fullTagName: string };
+export type WithProps = { initialProps: object };
+export type WithAttributes = { observedAttributes: string[] };
 
 export type AttributeType = "string" | "number" | "boolean";
 export type AttributeValidator = (value: string) => boolean;
