@@ -2,18 +2,18 @@
 	import './forceHotReload';
 
 	import { onMount } from 'svelte';
-	import { Test } from '$lib/test';
+	import Test from '$lib/test';
 	// note: we need to import constructor, type will not evaluate the Ctrl function
-	import Button from '$lib/button';
+	// import Button from '$lib/button';
 
-	String(Button); // mute error above, would be fixed by proper index.ts export of Control
+	String(Test); // mute error above, would be fixed by proper index.ts export of Control
 
 	onMount(() => {
 		const root = document.getElementById('root') as HTMLElement;
 		// const button = document.getElementById('button') as InstanceType<typeof Button>;
+		const test = document.getElementById('test') as InstanceType<typeof Test>;
 
 		/** Test Control, created with constructor */
-		// const test = new Test({ x: 5 });
 
 		// test.textContent = 'Click me!';
 		// test.test();
@@ -37,12 +37,14 @@
 		/** Button Control, accessed from DOM */
 		// button.setProps({ isToggled: true });
 
-		// (window as any).button = button;
+		test.z = 'testing';
+
+		(window as any).test = test;
 		// root.appendChild(button);
 	});
 </script>
 
 <main id="root">
-	<ctrl-test x="123">foo</ctrl-test>
+	<ctrl-test id="test" x="123" z="hi">foo</ctrl-test>
 	<!-- <ctrl-button id="button">Button!</ctrl-button> -->
 </main>

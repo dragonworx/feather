@@ -4,7 +4,8 @@ import { Control } from './control';
 /** Example Control */
 export type TestProps = {
     x: number;
-    y: number;
+    y: boolean;
+    z: string;
 };
 
 export type TestEvents = {
@@ -14,11 +15,12 @@ export type TestEvents = {
 }
 
 /** Create an instantiable Control */
-export const Test = Ctrl({
+export default Ctrl({
     tagName: 'test',
     props: {
         x: 0,
-        y: 0,
+        y: true,
+        z: "foo"
     },
     classes: ['test'],
 }, class Test extends Control<TestProps, TestEvents>
@@ -37,12 +39,6 @@ export const Test = Ctrl({
     protected unmount(): void
     {
         console.log("test unmount!");
-    }
-
-    protected onAttributePropChanged(name: keyof TestProps, oldValue: string | null, newValue: string | null): void
-    {
-        console.log("test prop changed", name, oldValue, newValue);
-        name === 'x' && this.setNumericProp(name, newValue);
     }
 
     /** do a test */
