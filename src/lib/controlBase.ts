@@ -3,12 +3,6 @@ import { createStyle } from './stylesheet';
 
 let _id = 0;
 
-interface CssCache
-{
-    className: string;
-    elements: NodeListOf<Element>;
-}
-
 /** Base Control extends HTMLElement as Custom Element */
 export abstract class ControlBase<
     PropsType extends object = object,
@@ -16,7 +10,7 @@ export abstract class ControlBase<
 {
     protected _id = String(_id++);
     protected _isMounted = false;
-    protected _cssCache?: CssCache;
+    protected _cssClass?: string;
     protected _props: PropsType = {} as PropsType;
     protected _initialProps?: Partial<PropsType>;
     protected _shadowDom?: ShadowRoot;
@@ -95,21 +89,7 @@ export abstract class ControlBase<
 
         if (cssText)
         {
-            if (this._cssCache)
-            {
-                const { className, elements } = this._cssCache;
-                for (const element of elements)
-                {
-                    element.remove();
-                }
-                this.classList.remove(className);
-            }
-            const { className, elements } = createStyle(cssText, this._id);
-            this.classList.add(className);
-            this._cssCache = {
-                className,
-                elements,
-            }
+            this._cssClass = createStyle(cssText, this, this._id, this._cssClass);
         }
     }
 

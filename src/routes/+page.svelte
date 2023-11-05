@@ -9,7 +9,8 @@
 	onMount(() => {
 		const root = document.getElementById('root') as HTMLElement;
 		// 	// const button = document.getElementById('button') as InstanceType<typeof Button>;
-		const test = document.getElementById('test') as InstanceType<typeof Test>;
+		const test1 = document.getElementById('test1') as InstanceType<typeof Test>;
+		const test2 = document.getElementById('test2') as InstanceType<typeof Test>;
 
 		// 	/** Test Control, created with constructor */
 
@@ -39,12 +40,14 @@
 		// 	test.test();
 		// 	test.setProp('y', true);
 
-		(window as any).test = test;
+		(window as any).test1 = test1;
+		(window as any).test2 = test2;
 		// 	// root.appendChild(button);
 	});
 </script>
 
 <main id="root">
-	<ctrl-test id="test" x="123" z="hi">foo</ctrl-test>
+	<ctrl-test id="test1" x="123" z="hi">foo</ctrl-test>
+	<ctrl-test id="test2" x="123" z="hi">foo</ctrl-test>
 	<!-- <ctrl-button id="button">Button!</ctrl-button> -->
 </main>
