@@ -1,6 +1,9 @@
 {
-	"name": "comet-ui",
+	"name": "@feather/core",
 	"version": "0.0.1",
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"start": "vite dev",
 		"dev": "vite dev",
