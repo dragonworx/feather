@@ -1,5 +1,5 @@
 import type { Descriptor, WithDescriptor, WithFullTagname, WithInitialProps } from './builder';
-import { createStyle } from './stylesheet';
+import { createStyle, unregisterElement } from './stylesheet';
 
 let _id = 0;
 
@@ -22,7 +22,7 @@ export abstract class ControlBase<
 
     protected get descriptor(): Descriptor<PropsType>
     {
-        return (this.constructor as unknown as WithDescriptor).__descriptor as Descriptor<PropsType>;
+        return (this.constructor as unknown as WithDescriptor).descriptor as Descriptor<PropsType>;
     }
 
     protected get fullTagName()
@@ -70,6 +70,8 @@ export abstract class ControlBase<
     {
         this._isMounted = false;
         this.unmount();
+
+        unregisterElement(this, this._cssClass);
     }
 
     protected adoptedCallback()
@@ -79,7 +81,7 @@ export abstract class ControlBase<
 
     public render()
     {
-        const innerHTML = this.renderHtml();
+        const innerHTML = this.html();
 
         if (innerHTML)
         {
@@ -89,7 +91,7 @@ export abstract class ControlBase<
 
     public applyStyle()
     {
-        const cssText = this.renderCss();
+        const cssText = this.css();
 
         if (cssText)
         {
@@ -97,12 +99,12 @@ export abstract class ControlBase<
         }
     }
 
-    protected renderHtml(): string | void
+    protected html(): string | void
     {
         return;
     }
 
-    protected renderCss(): string | void
+    protected css(): string | void
     {
         return
     }

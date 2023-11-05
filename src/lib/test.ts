@@ -1,6 +1,5 @@
 import { Ctrl } from './builder';
 import { Control, css } from './control';
-import type { DiffSet } from './diff';
 import { randRgb } from './util';
 
 /** Example Control */
@@ -31,13 +30,7 @@ export default Ctrl({
 
     protected mount(): void
     {
-        console.log("test mount")
         this.addEventListener('click', (e) => this.test(e));
-    }
-
-    protected unmount(): void
-    {
-        console.log("test unmount!");
     }
 
     /** do a test */
@@ -47,7 +40,7 @@ export default Ctrl({
         this.applyStyle();
     }
 
-    protected renderHtml(): string | void
+    protected html(): string | void
     {
         return `
             <div><span>x: ${this._props.x}</span></div>
@@ -56,9 +49,8 @@ export default Ctrl({
         `;
     }
 
-    protected renderCss(): string | void
+    protected css(): string | void
     {
-        console.log("!")
         return css`
             div {
                 color: red;
@@ -69,12 +61,5 @@ export default Ctrl({
                 }
             }
         `;
-    }
-
-    protected onPropsChanged(diff: DiffSet): void
-    {
-        super.onPropsChanged(diff);
-
-        this.render();
     }
 });

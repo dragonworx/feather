@@ -67,7 +67,6 @@ class CssCache
 {
     public byCssText: Map<string, StyleSheet> = new Map();
     public byClassName: Map<string, StyleSheet> = new Map();
-    // public byElement: Map<HTMLElement, StyleSheet> = new Map();
 
     public getStyleSheetForCssText(cssText: string)
     {
@@ -88,6 +87,20 @@ class CssCache
 
 const cache = new CssCache();
 
+export function unregisterElement(element: HTMLElement, currentClassName?: string)
+{
+    if (currentClassName)
+    {
+        const stylesheet = cache.getStyleSheetForClassName(currentClassName);
+
+        if (stylesheet)
+        {
+            stylesheet.unregisterElement(element);
+        }
+    }
+}
+
+// todo: check that stylesheet is ready for next removed cached cssText
 export function createStyle(cssText: string, element: HTMLElement, id: string, currentClassName?: string)
 {
     let stylesheet = cache.getStyleSheetForCssText(cssText);

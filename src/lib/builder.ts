@@ -31,8 +31,14 @@ export interface Descriptor<PropsType extends object = object>
     classes?: string[];
     template?: HTMLElement | string;
     attributes?: Partial<Record<keyof PropsType, AttributeDescriptor | string>>;
+    shouldRenderOnPropChange?: boolean;
 }
-export type WithDescriptor = { __descriptor: Descriptor };
+
+export const descriptorDefaults: Partial<Descriptor> = {
+    shouldRenderOnPropChange: true,
+};
+
+export type WithDescriptor = { descriptor: Descriptor };
 export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
 
 /** Custom Element registration function */
@@ -41,6 +47,11 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
     htmlElementCtor: CtorType,
 )
 {
+    descriptor = {
+        ...descriptorDefaults,
+        ...descriptor,
+    };
+
     console.log("*** Ctrl ***", htmlElementCtor.name, descriptor);
 
     const { tagName, attributes: userDefinedAttributes } = descriptor;
@@ -52,7 +63,7 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
     }
 
     /** Initialise Custom Class */
-    (htmlElementCtor as unknown as WithDescriptor).__descriptor = descriptor;
+    (htmlElementCtor as unknown as WithDescriptor).descriptor = descriptor;
     (htmlElementCtor as unknown as WithFullTagname).fullTagName = fullTagName;
 
     /** Initialise Default Prop Attribute Observers */
