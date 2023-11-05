@@ -1,5 +1,7 @@
 import createEmotion from '@emotion/css/create-instance';
 
+let _id = 0;
+
 const {
     // flush,
     // hydrate,
@@ -21,15 +23,35 @@ export interface CssCache
     elements: NodeListOf<Element>;
 }
 
-const cache = new Map<string, CssCache>();
+const cache = {
+    cssTextToClassName: new Map<string, string>(),
+    classNameToStyleElements: new Map<string, NodeListOf<Element>>(),
+    classNameToHTMLElements: new Map<string, Set<HTMLElement>>(),
+}
 
-let _id = 0;
+function cacheControl(className: string, element: HTMLElement)
+{
+    if (!cache.classNameToHTMLElements.has(className))
+    {
+        cache.classNameToHTMLElements.set(className, new Set());
+    }
+
+    cache.classNameToHTMLElements.get(className)!.add(element);
+}
+
+function dumpCache()
+{
+    console.clear();
+    console.log('cssTextToClassName', [...cache.cssTextToClassName.values()]);
+    console.log('classNameToStyleElements', cache.classNameToStyleElements);
+    console.log('classNameToHTMLElements', cache.classNameToHTMLElements);
+}
 
 export function createStyle(cssText: string, element: HTMLElement, id: string, currentClassName?: string)
 {
-    if (cache.has(cssText))
+    if (cache.cssTextToClassName.has(cssText))
     {
-        const className = cache.get(cssText)!.className;
+        const className = cache.cssTextToClassName.get(cssText)!;
 
         // remove previous className
         if (currentClassName)
@@ -39,6 +61,11 @@ export function createStyle(cssText: string, element: HTMLElement, id: string, c
 
         // apply className to element
         element.classList.add(className);
+
+        // cache control reference to className
+        cacheControl(className, element);
+
+        dumpCache();
 
         return className;
     }
@@ -52,11 +79,23 @@ export function createStyle(cssText: string, element: HTMLElement, id: string, c
     if (currentClassName)
     {
         // remove previous style for this id
-        const currentElements = document.head.querySelectorAll(`[ctrl-id="${id}"]`);
+        // const currentElements = document.head.querySelectorAll(`[ctrl-id="${id}"]`);
+        const currentStyleElements = cache.classNameToStyleElements.get(currentClassName);
+        let currentElements = cache.classNameToHTMLElements.get(currentClassName);
 
-        if (currentElements.length)
+        if (currentElements?.has(element))
         {
-            for (const element of currentElements)
+            currentElements.delete(element);
+        }
+
+        currentElements = cache.classNameToHTMLElements.get(currentClassName);
+
+        if (currentStyleElements && currentElements && currentElements.size === 0)
+        {
+            // clean up
+            cache.cssTextToClassName.delete(cssText);
+            cache.classNameToStyleElements.delete(className);
+            for (const element of currentStyleElements)
             {
                 element.remove();
             }
@@ -80,11 +119,12 @@ export function createStyle(cssText: string, element: HTMLElement, id: string, c
         element.setAttribute('iter', String(_id++));
     }
 
-    // cache styles
-    cache.set(cssText, {
-        className,
-        elements,
-    });
+    // update cache
+    cache.cssTextToClassName.set(cssText, className);
+    cache.classNameToStyleElements.set(className, elements);
+    cacheControl(className, element);
+
+    dumpCache();
 
     // apply className to element
     element.classList.add(className);

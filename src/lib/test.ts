@@ -32,7 +32,7 @@ export default Ctrl({
     protected mount(): void
     {
         console.log("test mount")
-        this.addEventListener('click', () => this.render());
+        this.addEventListener('click', (e) => this.test(e));
     }
 
     protected unmount(): void
@@ -41,9 +41,9 @@ export default Ctrl({
     }
 
     /** do a test */
-    public test()
+    public test(e: MouseEvent)
     {
-        this._color = randRgb();
+        e.shiftKey && (this._color = randRgb());
         this.render();
     }
 
