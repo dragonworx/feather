@@ -27,10 +27,12 @@ export default Ctrl({
     classes: ['test'],
 }, class Test extends Control<TestProps, TestEvents>
 {
+    private _color = 'rgb(0,255,0)'
+
     protected mount(): void
     {
         console.log("test mount")
-        this.addEventListener('click', (e) => console.log(e.target));
+        this.addEventListener('click', () => this.render());
     }
 
     protected unmount(): void
@@ -41,6 +43,7 @@ export default Ctrl({
     /** do a test */
     public test()
     {
+        this._color = randRgb();
         this.render();
     }
 
@@ -59,7 +62,7 @@ export default Ctrl({
         return css`
             div {
                 color: red;
-                background: ${randRgb()};
+                background: ${this._color};
 
                 span {
                     border-bottom: 5px solid green;
