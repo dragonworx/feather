@@ -1,6 +1,7 @@
 import { Ctrl } from './builder';
-import { Control } from './control';
+import { Control, css } from './control';
 import type { DiffSet } from './diff';
+import { randRgb } from './util';
 
 /** Example Control */
 export type TestProps = {
@@ -38,14 +39,32 @@ export default Ctrl({
     }
 
     /** do a test */
-    public test() { }
+    public test()
+    {
+        this.render();
+    }
 
-    protected html(): string | void
+    protected renderHtml(): string | void
     {
         return `
-            <div>x: ${this._props.x}</div>
-            <div>y: ${this._props.y}</div>
-            <div>z: ${this._props.z}</div>
+            <div><span>x: ${this._props.x}</span></div>
+            <div><span>y: ${this._props.y}</span></div>
+            <div><span>z: ${this._props.z}</span></div>
+        `;
+    }
+
+    protected renderCss(): string | void
+    {
+        console.log("!")
+        return css`
+            div {
+                color: red;
+                background: ${randRgb()};
+
+                span {
+                    border-bottom: 5px solid green;
+                }
+            }
         `;
     }
 
