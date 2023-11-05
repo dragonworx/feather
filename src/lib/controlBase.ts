@@ -62,6 +62,7 @@ export abstract class ControlBase<
         };
 
         this.render();
+        this.applyStyle();
         this.mount();
     }
 
@@ -84,7 +85,10 @@ export abstract class ControlBase<
         {
             this.innerHTML = innerHTML;
         }
+    }
 
+    public applyStyle()
+    {
         const cssText = this.renderCss();
 
         if (cssText)

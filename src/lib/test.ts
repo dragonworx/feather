@@ -44,7 +44,7 @@ export default Ctrl({
     public test(e: MouseEvent)
     {
         e.shiftKey && (this._color = randRgb());
-        this.render();
+        this.applyStyle();
     }
 
     protected renderHtml(): string | void
