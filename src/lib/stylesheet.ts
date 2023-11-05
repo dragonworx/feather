@@ -17,96 +17,94 @@ const {
     key: 'ctrl'
 });
 
-export interface CssCache
+class StyleSheet
 {
-    className: string;
-    elements: NodeListOf<Element>;
-}
+    public cssText: string;
+    public className: string;
+    public styleElements: HTMLStyleElement[] = [];
+    public usageElements: Set<HTMLElement> = new Set();
 
-const cache = {
-    cssTextToClassName: new Map<string, string>(),
-    classNameToStyleElements: new Map<string, NodeListOf<Element>>(),
-    classNameToHTMLElements: new Map<string, Set<HTMLElement>>(),
-}
-
-function cacheControl(className: string, element: HTMLElement)
-{
-    if (!cache.classNameToHTMLElements.has(className))
+    constructor(cssText: string, className: string, elements: NodeListOf<Element>)
     {
-        cache.classNameToHTMLElements.set(className, new Set());
+        this.cssText = cssText;
+        this.className = className;
+        this.styleElements = [...elements] as HTMLStyleElement[];
     }
 
-    cache.classNameToHTMLElements.get(className)!.add(element);
+    public get isSingleUsage()
+    {
+        return this.usageElements.size === 1;
+    }
+
+    public registerElement(element: HTMLElement)
+    {
+        if (!this.usageElements.has(element))
+        {
+            this.usageElements.add(element);
+            element.classList.add(this.className);
+        }
+    }
+
+    public unregisterElement(element: HTMLElement)
+    {
+        if (this.usageElements.has(element))
+        {
+            if (this.isSingleUsage)
+            {
+                for (const element of this.styleElements)
+                {
+                    element.remove();
+                }
+            }
+
+            this.usageElements.delete(element);
+            element.classList.remove(this.className);
+        }
+    }
 }
 
-function dumpCache()
+class CssCache
 {
-    console.clear();
-    console.log('cssTextToClassName', [...cache.cssTextToClassName.values()]);
-    console.log('classNameToStyleElements', cache.classNameToStyleElements);
-    console.log('classNameToHTMLElements', cache.classNameToHTMLElements);
+    public byCssText: Map<string, StyleSheet> = new Map();
+    public byClassName: Map<string, StyleSheet> = new Map();
+    // public byElement: Map<HTMLElement, StyleSheet> = new Map();
+
+    public getStyleSheetForCssText(cssText: string)
+    {
+        return this.byCssText.get(cssText);
+    }
+
+    public getStyleSheetForClassName(className: string)
+    {
+        return this.byClassName.get(className);
+    }
+
+    public add(stylesheet: StyleSheet)
+    {
+        this.byCssText.set(stylesheet.cssText, stylesheet);
+        this.byClassName.set(stylesheet.className, stylesheet);
+    }
 }
+
+const cache = new CssCache();
 
 export function createStyle(cssText: string, element: HTMLElement, id: string, currentClassName?: string)
 {
-    if (cache.cssTextToClassName.has(cssText))
+    let stylesheet = cache.getStyleSheetForCssText(cssText);
+
+    if (stylesheet)
     {
-        const className = cache.cssTextToClassName.get(cssText)!;
+        // cached, register element and return className
+        stylesheet.registerElement(element);
 
-        // remove previous className
-        if (currentClassName)
-        {
-            element.classList.remove(currentClassName);
-        }
-
-        // apply className to element
-        element.classList.add(className);
-
-        // cache control reference to className
-        cacheControl(className, element);
-
-        dumpCache();
-
-        return className;
+        return stylesheet.className;
     }
 
-    // configure emotion
+    // new stylesheet, create and register
     sheet.nonce = id;
 
     // generate styles
     const className = css(cssText);
-
-    if (currentClassName)
-    {
-        // remove previous style for this id
-        // const currentElements = document.head.querySelectorAll(`[ctrl-id="${id}"]`);
-        const currentStyleElements = cache.classNameToStyleElements.get(currentClassName);
-        let currentElements = cache.classNameToHTMLElements.get(currentClassName);
-
-        if (currentElements?.has(element))
-        {
-            currentElements.delete(element);
-        }
-
-        currentElements = cache.classNameToHTMLElements.get(currentClassName);
-
-        if (currentStyleElements && currentElements && currentElements.size === 0)
-        {
-            // clean up
-            cache.cssTextToClassName.delete(cssText);
-            cache.classNameToStyleElements.delete(className);
-            for (const element of currentStyleElements)
-            {
-                element.remove();
-            }
-        }
-
-        // remove previous className
-        if (currentClassName)
-        {
-            element.classList.remove(currentClassName);
-        }
-    }
 
     // find elements and refactor them
     const elements = document.head.querySelectorAll(`[nonce="${id}"]`);
@@ -116,18 +114,28 @@ export function createStyle(cssText: string, element: HTMLElement, id: string, c
         element.removeAttribute('nonce');
         element.setAttribute('ctrl-id', id);
         element.setAttribute('ctrl-class', className);
-        element.setAttribute('iter', String(_id++));
+        element.setAttribute('style-id', String(_id++));
     }
 
+    // create stylesheet
+    stylesheet = new StyleSheet(cssText, className, elements);
+
+    // register element
+    stylesheet.registerElement(element);
+
     // update cache
-    cache.cssTextToClassName.set(cssText, className);
-    cache.classNameToStyleElements.set(className, elements);
-    cacheControl(className, element);
+    cache.add(stylesheet);
 
-    dumpCache();
+    // clean up if necessary
+    if (currentClassName)
+    {
+        stylesheet = cache.getStyleSheetForClassName(currentClassName);
 
-    // apply className to element
-    element.classList.add(className);
+        if (stylesheet)
+        {
+            stylesheet.unregisterElement(element);
+        }
+    }
 
     return className;
 }

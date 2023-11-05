@@ -170,5 +170,5 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
 
             return element;
         }
-    } as unknown as new (props: Partial<PropsType>) => InstanceType<CtorType> & PropsType;
+    } as unknown as new (props?: Partial<PropsType>) => InstanceType<CtorType> & PropsType;
 }
