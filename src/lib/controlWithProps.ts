@@ -28,6 +28,11 @@ export abstract class ControlWithProps<
 
         if (this._isMounted)
         {
+            if (this.descriptor.shouldRenderOnPropChange === true)
+            {
+                this.render();
+            }
+
             this.onPropsChanged(diff);
         }
     }
