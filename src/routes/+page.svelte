@@ -3,15 +3,16 @@
 
 	import { onMount } from 'svelte';
 	import '$lib';
-	import type { Test } from '$lib/index';
+	import { Test } from '$lib/index';
 	// // import Button from '$lib/button';
 
+	let root: HTMLElement;
+
 	onMount(() => {
-		const root = document.getElementById('root') as HTMLElement;
+		root = document.getElementById('root') as HTMLElement;
 		// 	// const button = document.getElementById('button') as InstanceType<typeof Button>;
 		const test1 = document.getElementById('test1') as InstanceType<typeof Test>;
 		const test2 = document.getElementById('test2') as InstanceType<typeof Test>;
-
 		// 	/** Test Control, created with constructor */
 
 		// 	// test.textContent = 'Click me!';
@@ -47,6 +48,7 @@
 </script>
 
 <main id="root">
+	<button on:click={() => root.appendChild(new Test())}>Add</button>
 	<ctrl-test id="test1" x="123" z="hi">foo</ctrl-test>
 	<ctrl-test id="test2" x="123" z="hi">foo</ctrl-test>
 	<!-- <ctrl-button id="button">Button!</ctrl-button> -->
