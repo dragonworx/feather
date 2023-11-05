@@ -6,3 +6,8 @@ export abstract class Control<
 > extends ControlWithEvents<PropsType, EventType>
 {
 }
+
+export function css(strings: TemplateStringsArray, ...values: unknown[]): string
+{
+    return strings.reduce((acc, str, i) => acc + str + (values[i] || ''), '');
+}

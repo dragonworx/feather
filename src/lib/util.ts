@@ -70,3 +70,8 @@ export function isValidSimpleType(value: string | null): boolean
 {
     return value === null || checkType(value) !== "string";
 }
+
+export function randRgb()
+{
+    return `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
+}
