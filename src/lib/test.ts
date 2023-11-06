@@ -1,5 +1,5 @@
 import { Ctrl } from './builder';
-import { Control, css } from './control';
+import { Control, css, html } from './control';
 import { randRgb } from './util';
 
 /** Example Control */
@@ -43,7 +43,7 @@ export default Ctrl({
 
     protected html(): string | void
     {
-        return `
+        return html`
             <div><span>x: ${this._props.x}</span></div>
             <div><span>y: ${this._props.y}</span></div>
             <div><span>z: ${this._props.z}</span></div>
