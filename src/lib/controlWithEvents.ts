@@ -1,4 +1,6 @@
 // import { ControlBase } from './controlBase';
+import type { AttributeDescriptor } from './builder';
+import type { ControlProps } from './controlBase';
 import { ControlWithProps } from './controlWithProps';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,9 +17,10 @@ export type ControlEventMap = {
 
 /** Control With Events extends Control With Props */
 export abstract class ControlWithEvents<
-    PropsType extends object = object,
+    PropsType extends ControlProps = ControlProps,
+    AttribType extends AttributeDescriptor = AttributeDescriptor,
     EventType extends ControlEventMap = ControlEventMap
-> extends ControlWithProps<PropsType>
+> extends ControlWithProps<PropsType, AttribType>
 {
     private _listeners: Map<string, CustomEventListener[]> = new Map(); // track custom event listeners internally
 

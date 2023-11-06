@@ -49,7 +49,7 @@
 
 <main id="root">
 	<button on:click={() => root.appendChild(new Test())}>Add</button>
-	<ctrl-test id="test1" x="123" z="hi">foo</ctrl-test>
-	<ctrl-test id="test2" x="123" z="hi">foo</ctrl-test>
-	<ctrl-button id="button">Button!</ctrl-button>
+	<ctrl-test id="test1" attrNum="123">foo</ctrl-test>
+	<!-- <ctrl-test id="test2" x="123" z="hi">foo</ctrl-test> -->
+	<!-- <ctrl-button id="button">Button!</ctrl-button> -->
 </main>

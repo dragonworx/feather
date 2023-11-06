@@ -1,6 +1,5 @@
 import type { Control } from './control';
 import type { ControlProps } from './controlBase';
-import type { ControlWithProps } from './controlWithProps';
 import { toHyphenCase } from './util';
 
 export const tagPref = 'ctrl-';
@@ -9,34 +8,40 @@ export type Constructor<T> = new (...args: unknown[]) => T;
 
 export type WithFullTagname = { fullTagName: string };
 export type WithInitialProps = { _initialProps: ControlProps };
-export type WithAttributes = { observedAttributes: string[] };
+export type WithObservedAttributes = { observedAttributes: string[] };
+export type WithAttributes = { _attributes: AttributeDescriptor };
 
-export type AttributeType = "string" | "number" | "boolean";
-export type AttributeValidator = (value: string) => boolean;
-export interface AttributeDescriptor
+export type AttributeType = string | number | boolean;
+export type AttributeTypeKey = "string" | "number" | "boolean";
+export type AttributeValidator = (value: AttributeType) => boolean;
+export type AttributeDescriptor<T> = Record<keyof T, Attribute<T[keyof T]>;
+
+export interface Attribute<T extends AttributeType>
 {
-    type?: AttributeType;
+    value: T;
     validate?: AttributeValidator;
-    public?: boolean;
 }
 
-export const attributeValidators: Record<AttributeType, AttributeValidator> = {
+export const attributeValidators: Record<AttributeTypeKey, AttributeValidator> = {
     string: () => true,
     number: (value) => !isNaN(Number(value)),
     boolean: (value) => { const val = String(value).toLowerCase(); return val === "true" || val === "false" },
 };
 
-export interface Descriptor<PropsType extends ControlProps = ControlProps>
+
+export interface Descriptor<PropsType extends ControlProps = ControlProps, AttribType extends AttributeDescriptor = AttributeDescriptor>
 {
-    tagName?: string;
-    props: PropsType;
+    tagName: string;
+    props?: PropsType;
     classes?: string[];
-    template?: HTMLElement | string;
-    attributes?: Partial<Record<keyof PropsType, AttributeDescriptor | string>>;
+    attributes?: AttribType;
     shouldRenderOnPropChange?: boolean;
 }
 
 export const descriptorDefaults: Partial<Descriptor> = {
+    props: {},
+    attributes: {},
+    classes: [],
     shouldRenderOnPropChange: true,
 };
 
@@ -44,19 +49,19 @@ export type WithDescriptor = { descriptor: Descriptor };
 export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
 
 /** Custom Element registration function */
-export function Ctrl<PropsType extends ControlProps, CtorType extends Constructor<Control<PropsType>>>(
-    descriptor: Descriptor<PropsType>,
+export function Ctrl<PropsType extends ControlProps, AttribType extends AttributeDescriptor, CtorType extends Constructor<Control<PropsType & AttribType>>>(
+    descriptor: Descriptor<PropsType, AttribType>,
     htmlElementCtor: CtorType,
 )
 {
     descriptor = {
-        ...descriptorDefaults,
+        ...descriptorDefaults as Descriptor<PropsType, AttribType>,
         ...descriptor,
     };
 
     console.log("*** Ctrl ***", htmlElementCtor.name, descriptor);
 
-    const { tagName, attributes: userDefinedAttributes } = descriptor;
+    const { tagName } = descriptor;
     const fullTagName = tagPref + (tagName ?? toHyphenCase(htmlElementCtor.name));
 
     if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
@@ -66,63 +71,31 @@ export function Ctrl<PropsType extends ControlProps, CtorType extends Constructo
 
     /** Initialise Custom Class */
     (htmlElementCtor as unknown as WithDescriptor).descriptor = descriptor;
-    (htmlElementCtor as unknown as WithFullTagname).fullTagName = fullTagName;
-
-    /** Initialise Default Prop Attribute Observers */
-    const attributes = {} as Record<keyof PropsType, AttributeDescriptor | string>;
-
-    // add default prop attributes
-    for (const [k, v] of Object.entries(descriptor.props))
-    {
-        const propName = k as keyof PropsType;
-        const propValue = v as PropsType[keyof PropsType];
-
-        attributes[propName] = {
-            type: typeof propValue as AttributeType,
-            validate: attributeValidators[typeof propValue as AttributeType],
-            public: true,
-        };
-    }
+    (htmlElementCtor as unknown as WithAttributes)._attributes = {...descriptor.attributes} as AttributeDescriptor;
 
     // add user-defined descriptor attributes
-    if (userDefinedAttributes)
-    {
-        for (const [k, v] of Object.entries(userDefinedAttributes))
-        {
-            const propName = k as keyof PropsType;
-            const attr = (typeof v === 'string' ? {
-                type: v,
-            } : v) as AttributeDescriptor;
-            attr.type = attr.type ?? typeof descriptor.props[propName] as AttributeType;
-            attr.validate = attr.validate ?? attributeValidators[attr.type];
-            attr.public = typeof attr.public === 'boolean' ? attr.public : true;
-
-            attributes[propName] = attr;
-        }
-    }
+    const descAttributes = descriptor.attributes as AttributeDescriptor;
 
     /** Define the getters and setters type based on props */
-    for (const [k, v] of Object.entries(attributes))
+    for (const [attrName, attr] of Object.entries(descAttributes))
     {
-        const propName = k as keyof PropsType;
-        const attribName = toHyphenCase(k);
-        const attr = v as AttributeDescriptor;
-        const attrType = attr.type;
-        const attrValidate = attr.validate;
+        const attribName = toHyphenCase(attrName);
+        const attribType = typeof attr.value as AttributeTypeKey;
+        const attrValidate = attr.validate!;
 
-        Object.defineProperty(htmlElementCtor.prototype, propName, {
-            get()
+        Object.defineProperty(htmlElementCtor.prototype, attribName, {
+            get(): typeof attr.value
             {
-                return (this as ControlWithProps<PropsType>).getProp(propName);
+                return attr.value;
             },
-            set(value)
+            set(value: typeof attr.value)
             {
-                if (attrValidate && !attrValidate(value))
+                if (!attrValidate(value))
                 {
-                    throw new Error(`Invalid attribute value for ${k}: ${value}`);
+                    throw new Error(`Invalid attribute value for ${attribName}: ${value}`);
                 }
 
-                switch (attrType)
+                switch (attribType)
                 {
                     case "string":
                     case "number":
@@ -134,9 +107,21 @@ export function Ctrl<PropsType extends ControlProps, CtorType extends Constructo
         });
     }
 
+    const attributes = {} as AttributeDescriptor;
+
+    for (const [attrName, attr] of Object.entries(descAttributes))
+    {
+        const attribName = toHyphenCase(attrName);
+        const attribType = typeof attr.value as AttributeTypeKey;
+
+        attributes[attribName] = {
+            value: attr.value,
+            validate: attr.validate ?? attributeValidators[attribType],
+        };
+    }
+
     /** Initialise Observed Attributes */
-    descriptor.attributes = attributes;
-    (htmlElementCtor as unknown as WithAttributes).observedAttributes = Object.keys(attributes ?? {});
+    (htmlElementCtor as unknown as WithObservedAttributes).observedAttributes = Object.keys(attributes ?? {});
 
     /** Define Custom Element */
     customElements.define(fullTagName, htmlElementCtor);
@@ -148,6 +133,7 @@ export function Ctrl<PropsType extends ControlProps, CtorType extends Constructo
         {
             const element = document.createElement(fullTagName) as InstanceType<CtorType>;
 
+            (element as unknown as WithInitialProps)._initialProps = props;
             (element as unknown as WithInitialProps)._initialProps = props;
 
             return element;

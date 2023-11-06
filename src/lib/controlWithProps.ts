@@ -1,13 +1,13 @@
 // import type { Descriptor, WithDescriptor } from './builder';
-import type { AttributeDescriptor } from './builder';
+import type { Attribute, AttributeDescriptor, AttributeTypeKey } from './builder';
 import { ControlBase, type ControlProps } from './controlBase';
 import { simpleDiff, type DiffSet } from './diff';
-import { toHyphenCase } from './util';
 
 /** Control With Props extends Base Control */
 export abstract class ControlWithProps<
     PropsType extends ControlProps = ControlProps,
-> extends ControlBase<PropsType>
+    AttribType extends AttributeDescriptor = AttributeDescriptor
+> extends ControlBase<PropsType, AttribType>
 {
     public getProp<K extends keyof PropsType>(name: K): PropsType[K]
     {
@@ -48,9 +48,8 @@ export abstract class ControlWithProps<
         console.log(`[${this.fullTagName}].onPropsChanged`, diff);
     }
 
-    protected attributeChangedCallback(rawName: string, oldValue: string | null, newValue: string | null)
+    protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
     {
-        const name = toHyphenCase(rawName);
         console.log(`${this.fullTagName}.attributeChangedCallback`, name, oldValue, newValue);
 
         if (this.onAttributeChanged(name, oldValue, newValue) === false)
@@ -58,32 +57,33 @@ export abstract class ControlWithProps<
             return;
         }
 
-        const attribute = this.descriptor.attributes![name as keyof PropsType] as AttributeDescriptor;
+        const attribute = this._attributes![name as keyof AttribType] as Attribute;
 
-        if (name in this.descriptor.props && attribute && attribute.public)
+        if (attribute)
         {
             if (newValue === null)
             {
-                this.setProp(name as keyof PropsType, this.descriptor.props[name as keyof PropsType]);
+                // todo: clear attribute or default?
+                // this.setProp(name as keyof PropsType, this.descriptor.props[name as keyof PropsType]);
             } else
             {
                 const isValid = attribute.validate!(newValue);
-                const propKey = name as keyof PropsType;
+                const type = typeof attribute.value as AttributeTypeKey;
 
                 if (!isValid)
                 {
                     throw new Error(`${this.fullTagName}: Invalid value for attribute "${name}": "${newValue}"`);
                 }
 
-                if (attribute.type === 'number')
-                {
-                    this.setProp(propKey, parseFloat(newValue) as PropsType[keyof PropsType]);
-                } else if (attribute.type === 'boolean')
-                {
-                    this.setProp(propKey, (newValue.toLowerCase() === 'true') as PropsType[keyof PropsType]);
-                } else
-                {
-                    this.setProp(name as keyof PropsType, newValue as PropsType[keyof PropsType]);
+                switch (type) {
+                    case 'number':
+                        attribute.value = parseFloat(newValue);
+                        break;
+                    case 'boolean':
+                        attribute.value = (newValue.toLowerCase() === 'true');
+                        break;
+                    case 'string':
+                        attribute.value = newValue;
                 }
             }
 

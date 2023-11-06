@@ -1,10 +1,12 @@
+import type { AttributeDescriptor } from './builder';
 import type { ControlProps } from './controlBase';
 import { ControlWithEvents, type ControlEventMap } from './controlWithEvents';
 
 export abstract class Control<
     PropsType extends ControlProps = ControlProps,
+    AttribType extends AttributeDescriptor = AttributeDescriptor,
     EventType extends ControlEventMap = ControlEventMap
-> extends ControlWithEvents<PropsType, EventType>
+> extends ControlWithEvents<PropsType, AttribType, EventType>
 {
 }
 

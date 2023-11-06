@@ -9,6 +9,11 @@ export type TestProps = {
     z: string;
 };
 
+export type TestAttributes = {
+    attrNum: number;
+    
+}
+
 export type TestEvents = {
     event1: { foo: string };
     event2: { bar: number };
@@ -24,6 +29,11 @@ export default Ctrl({
         z: "foo"
     },
     classes: ['test'],
+    attributes: {
+        attrNum: { value: 1 },
+        attrBool: { value: true },
+        attrString: { value: 'bar' },
+    },
 }, class Test extends Control<TestProps, TestEvents>
 {
     private _color = 'rgb(0,255,0)'

@@ -1,21 +1,21 @@
-import type { Descriptor, WithDescriptor, WithFullTagname, WithInitialProps } from './builder';
+import type { AttributeDescriptor, Descriptor, WithDescriptor, WithFullTagname, WithInitialProps } from './builder';
 import { createStyle, unregisterElement } from './stylesheet';
 
 let _id = 0;
 
-export type ControlProps = {
-    [key: string]: string | number | boolean;
-};
+export type ControlProps = object;
 
 /** Base Control extends HTMLElement as Custom Element */
 export abstract class ControlBase<
     PropsType extends ControlProps = ControlProps,
+    AttribType extends AttributeDescriptor = AttributeDescriptor
 > extends HTMLElement
 {
     protected _id = String(_id++);
     protected _isMounted = false;
     protected _cssClass?: string;
     protected _props: PropsType = {} as PropsType;
+    protected _attributes: AttribType = {} as AttribType;
     protected _initialProps?: Partial<PropsType>;
     protected _shadowDom?: ShadowRoot;
 
@@ -140,10 +140,10 @@ export abstract class ControlBase<
         return
     }
 
-    // protected get $(): this & PropsType
-    // {
-    //     return this as unknown as this & PropsType;
-    // }
+    protected get attribs(): this & AttribType
+    {
+        return this as unknown as this & AttribType;
+    }
 
     protected mount() { /** override */ }
     protected unmount() { /** override */ }
