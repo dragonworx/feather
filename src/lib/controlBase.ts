@@ -20,6 +20,11 @@ export abstract class ControlBase<
         super();
     }
 
+    public get controlId()
+    {
+        return this._id;
+    }
+
     protected get descriptor(): Descriptor<PropsType>
     {
         return (this.constructor as unknown as WithDescriptor).descriptor as Descriptor<PropsType>;
@@ -44,6 +49,11 @@ export abstract class ControlBase<
         return this._shadowDom;
     }
 
+    public get styleSheetId()
+    {
+        return this._cssClass;
+    }
+
     protected connectedCallback()
     {
         const { descriptor } = this;
@@ -52,6 +62,8 @@ export abstract class ControlBase<
         {
             this.classList.add(...descriptor.classes);
         }
+
+        this.setAttribute('ctrl-id', this.controlId);
 
         this._isMounted = true;
 
@@ -81,6 +93,11 @@ export abstract class ControlBase<
 
     public render()
     {
+        if (!this._isMounted)
+        {
+            return;
+        }
+
         const innerHTML = this.html();
 
         if (innerHTML)
@@ -91,11 +108,16 @@ export abstract class ControlBase<
 
     public applyStyle()
     {
+        if (!this._isMounted)
+        {
+            return;
+        }
+
         const cssText = this.css();
 
         if (cssText)
         {
-            this._cssClass = createStyle(cssText, this, this._id, this._cssClass);
+            this._cssClass = createStyle(cssText, this as unknown as ControlBase);
         }
     }
 
