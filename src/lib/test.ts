@@ -44,16 +44,16 @@ export default Ctrl({
     protected html(): string | void
     {
         return html`
-            <div><span>x: ${this._props.x}</span></div>
-            <div><span>y: ${this._props.y}</span></div>
-            <div><span>z: ${this._props.z}</span></div>
+        <li><span>x: ${this.props.x}</span></li>
+        <li><span>y: ${this.props.y}</span></li>
+        <li><span>z: ${this.props.z}</span></li>
         `;
     }
 
     protected css(): string | void
     {
         return css`
-            div {
+            li {
                 color: red;
                 background: ${this._color};
 

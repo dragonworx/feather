@@ -21,7 +21,7 @@ export interface AttributeDescriptor
 export const attributeValidators: Record<AttributeType, AttributeValidator> = {
     string: () => true,
     number: (value) => !isNaN(Number(value)),
-    boolean: (value) => value === "true" || value === "false",
+    boolean: (value) => { const val = String(value).toLowerCase(); return val === "true" || val === "false" },
 };
 
 export interface Descriptor<PropsType extends object = object>

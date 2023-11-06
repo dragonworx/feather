@@ -49,6 +49,11 @@ export abstract class ControlBase<
         return this._shadowDom;
     }
 
+    protected get props()
+    {
+        return this._props;
+    }
+
     public get styleSheetId()
     {
         return this._cssClass;
