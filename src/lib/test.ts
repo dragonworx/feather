@@ -37,6 +37,7 @@ export default Ctrl({
     public test(e: MouseEvent)
     {
         e.shiftKey && (this._color = randRgb());
+        e.altKey && this.remove();
         this.applyStyle();
     }
 

@@ -1,4 +1,5 @@
 import createEmotion from '@emotion/css/create-instance';
+import type { ControlBase } from './controlBase';
 
 let _id = 0;
 
@@ -19,10 +20,11 @@ const {
 
 class StyleSheet
 {
+    public id = String(_id++);
     public cssText: string;
     public className: string;
     public styleElements: HTMLStyleElement[] = [];
-    public usageElements: Set<HTMLElement> = new Set();
+    public usageElements: Set<ControlBase> = new Set();
 
     constructor(cssText: string, className: string, elements: NodeListOf<Element>)
     {
@@ -36,8 +38,36 @@ class StyleSheet
         return this.usageElements.size === 1;
     }
 
-    public registerElement(element: HTMLElement)
+    public get isAttached()
     {
+        return this.styleElements.every(e => e.parentElement);
+    }
+
+    public registerElement(element: ControlBase)
+    {
+        if (this.usageElements.size === 0)
+        {
+            const { styleElements, className } = this;
+
+            if (this.isAttached)
+            {
+                for (const styleElement of styleElements)
+                {
+                    styleElement.removeAttribute('nonce');
+                    styleElement.setAttribute('ctrl-class', className);
+                    styleElement.setAttribute('style-id', this.id);
+                }
+            } else
+            {
+                for (const styleElement of styleElements)
+                {
+                    document.head.appendChild(styleElement);
+                }
+            }
+
+
+        }
+
         if (!this.usageElements.has(element))
         {
             this.usageElements.add(element);
@@ -45,15 +75,15 @@ class StyleSheet
         }
     }
 
-    public unregisterElement(element: HTMLElement)
+    public unregisterElement(element: ControlBase)
     {
         if (this.usageElements.has(element))
         {
             if (this.isSingleUsage)
             {
-                for (const element of this.styleElements)
+                for (const styleElement of this.styleElements)
                 {
-                    element.remove();
+                    styleElement.remove();
                 }
             }
 
@@ -61,10 +91,19 @@ class StyleSheet
             element.classList.remove(this.className);
         }
     }
+
+    public debug()
+    {
+        console.log(`StyleSheet[${this.id} - ${this.className}]:`, {
+            usageElements: [...this.usageElements].map(e => e.controlId),
+            styleElements: this.styleElements.map(e => e.getAttribute('style-id')),
+        });
+    }
 }
 
 class CssCache
 {
+    public stylesheets: StyleSheet[] = [];
     public byCssText: Map<string, StyleSheet> = new Map();
     public byClassName: Map<string, StyleSheet> = new Map();
 
@@ -80,14 +119,23 @@ class CssCache
 
     public add(stylesheet: StyleSheet)
     {
+        this.stylesheets.push(stylesheet);
         this.byCssText.set(stylesheet.cssText, stylesheet);
         this.byClassName.set(stylesheet.className, stylesheet);
+    }
+
+    public debug()
+    {
+        this.stylesheets.forEach(s => s.debug());
     }
 }
 
 const cache = new CssCache();
 
-export function unregisterElement(element: HTMLElement, currentClassName?: string)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(window as any).sheets = cache;
+
+export function unregisterElement(element: ControlBase, currentClassName?: string)
 {
     if (currentClassName)
     {
@@ -101,8 +149,10 @@ export function unregisterElement(element: HTMLElement, currentClassName?: strin
 }
 
 // todo: check that stylesheet is ready for next removed cached cssText
-export function createStyle(cssText: string, element: HTMLElement, id: string, currentClassName?: string)
+export function createStyle(cssText: string, element: ControlBase)
 {
+    const id = element.controlId;
+    const currentClassName = element.styleSheetId;
     let stylesheet = cache.getStyleSheetForCssText(cssText);
 
     if (stylesheet)
@@ -121,14 +171,6 @@ export function createStyle(cssText: string, element: HTMLElement, id: string, c
 
     // find elements and refactor them
     const elements = document.head.querySelectorAll(`[nonce="${id}"]`);
-
-    for (const element of elements)
-    {
-        element.removeAttribute('nonce');
-        element.setAttribute('ctrl-id', id);
-        element.setAttribute('ctrl-class', className);
-        element.setAttribute('style-id', String(_id++));
-    }
 
     // create stylesheet
     stylesheet = new StyleSheet(cssText, className, elements);
