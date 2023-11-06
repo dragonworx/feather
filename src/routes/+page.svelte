@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 	import '$lib';
 	import { Test } from '$lib/index';
-	// // import Button from '$lib/button';
+	import Button from '$lib/button';
 
 	let root: HTMLElement;
 
@@ -51,5 +51,5 @@
 	<button on:click={() => root.appendChild(new Test())}>Add</button>
 	<ctrl-test id="test1" x="123" z="hi">foo</ctrl-test>
 	<ctrl-test id="test2" x="123" z="hi">foo</ctrl-test>
-	<!-- <ctrl-button id="button">Button!</ctrl-button> -->
+	<ctrl-button id="button">Button!</ctrl-button>
 </main>

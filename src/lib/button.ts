@@ -1,5 +1,5 @@
 import { Ctrl } from './builder';
-import { Control } from './controlBase';
+import { Control, css } from './control';
 
 export enum ButtonFlag
 {
@@ -42,7 +42,7 @@ export default Ctrl({
         longPressTime: 500,
     },
     classes: ['button'],
-}, class Button extends Control<ButtonProps, ButtonEvent>
+}, class extends Control<ButtonProps, ButtonEvent>
 {
     private _isDown = false;
     private _isToggled = false;
@@ -148,5 +148,16 @@ export default Ctrl({
             }
             this.emit('toggle', { isToggled: this._isToggled });
         }
+    }
+
+    protected css(): string | void
+    {
+        return css`
+            background: red;
+
+            &.down {
+                background: blue;
+            }
+        `
     }
 });
