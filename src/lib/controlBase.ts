@@ -3,9 +3,13 @@ import { createStyle, unregisterElement } from './stylesheet';
 
 let _id = 0;
 
+export type ControlProps = {
+    [key: string]: string | number | boolean;
+};
+
 /** Base Control extends HTMLElement as Custom Element */
 export abstract class ControlBase<
-    PropsType extends object = object,
+    PropsType extends ControlProps = ControlProps,
 > extends HTMLElement
 {
     protected _id = String(_id++);
@@ -135,6 +139,11 @@ export abstract class ControlBase<
     {
         return
     }
+
+    // protected get $(): this & PropsType
+    // {
+    //     return this as unknown as this & PropsType;
+    // }
 
     protected mount() { /** override */ }
     protected unmount() { /** override */ }

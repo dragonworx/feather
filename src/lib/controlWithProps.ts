@@ -1,13 +1,19 @@
 // import type { Descriptor, WithDescriptor } from './builder';
 import type { AttributeDescriptor } from './builder';
-import { ControlBase } from './controlBase';
+import { ControlBase, type ControlProps } from './controlBase';
 import { simpleDiff, type DiffSet } from './diff';
+import { toHyphenCase } from './util';
 
 /** Control With Props extends Base Control */
 export abstract class ControlWithProps<
-    PropsType extends object = object,
+    PropsType extends ControlProps = ControlProps,
 > extends ControlBase<PropsType>
 {
+    public getProp<K extends keyof PropsType>(name: K): PropsType[K]
+    {
+        return this.props[name];
+    }
+
     public setProp<K extends keyof PropsType>(name: K, value: PropsType[K])
     {
         this.setProps({ [name]: value } as unknown as Partial<PropsType>);
@@ -42,8 +48,9 @@ export abstract class ControlWithProps<
         console.log(`[${this.fullTagName}].onPropsChanged`, diff);
     }
 
-    protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
+    protected attributeChangedCallback(rawName: string, oldValue: string | null, newValue: string | null)
     {
+        const name = toHyphenCase(rawName);
         console.log(`${this.fullTagName}.attributeChangedCallback`, name, oldValue, newValue);
 
         if (this.onAttributeChanged(name, oldValue, newValue) === false)

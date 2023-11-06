@@ -1,5 +1,6 @@
 import { Ctrl } from './builder';
 import { Control, css } from './control';
+import type { DiffSet } from './diff';
 
 export enum ButtonFlag
 {
@@ -11,6 +12,7 @@ export enum ButtonFlag
 export interface ButtonProps
 {
     buttons: ButtonFlag;
+    isDown: boolean;
     isToggle: boolean;
     isToggled: boolean;
     longPressTime: number;
@@ -37,6 +39,7 @@ export default Ctrl({
     tagName: 'button',
     props: {
         buttons: ButtonFlag.Left,
+        isDown: false,
         isToggle: false,
         isToggled: false,
         longPressTime: 500,
@@ -44,14 +47,45 @@ export default Ctrl({
     classes: ['button'],
 }, class extends Control<ButtonProps, ButtonEvent>
 {
-    private _isDown = false;
-    private _isToggled = false;
+    // private _isDown = false;
+    // private _isToggled = false;
     private _longPressTimeout = 0;
 
-    public get isDown()
+    // public get isToggle(): boolean
+    // {
+    //     return this.props.isToggle;
+    // }
+
+    // public set isToggle(value: boolean)
+    // {
+    //     this.props.isToggle = value;
+    // }
+
+    // public get isToggled(): boolean
+    // {
+    //     return this._isToggled;
+    // }
+
+    public set isToggled(value: boolean)
     {
-        return this._isDown;
+        if (this.props.isToggle && this._isToggled !== value)
+        {
+            this._isToggled = value;
+            if (this._isToggled)
+            {
+                this.classList.add('toggled');
+            } else
+            {
+                this.classList.remove('toggled');
+            }
+            this.emit('toggle', { isToggled: this._isToggled });
+        }
     }
+
+    // public get isDown()
+    // {
+    //     return this._isDown;
+    // }
 
     protected mount(): void
     {
@@ -60,9 +94,9 @@ export default Ctrl({
         this.addEventListener('mousedown', this.onMouseDown);
         this.addEventListener('mouseleave', this.onMouseLeave);
 
-        this._isToggled = this.props.isToggled;
+        // this._isToggled = this.props.isToggled;
 
-        if (this.props.isToggle && this._isToggled)
+        if (this.props.isToggle && this.props.isToggled)
         {
             this.classList.add('toggled');
         }
@@ -81,8 +115,8 @@ export default Ctrl({
             return;
         }
 
-        this._isDown = true;
         clearTimeout(this._longPressTimeout);
+        this.setProp('isDown', true);
 
         this._longPressTimeout = setTimeout(() =>
         {
@@ -91,18 +125,14 @@ export default Ctrl({
 
         window.addEventListener('mouseup', this.onMouseUp);
 
-        this.classList.add(_css.down);
-        this.emit('down');
-    }
-
-    protected onMouseLeave = () =>
-    {
-        clearTimeout(this._longPressTimeout);
-    }
+        // this.classList.add(_css.down);
+        // this.emit('down');
+    };
 
     protected onMouseUp = (e: MouseEvent) =>
     {
-        this._isDown = false;
+        this.setProp('isDown', false);
+        // this._isDown = false;
 
         clearTimeout(this._longPressTimeout);
         window.removeEventListener('mouseup', this.onMouseUp);
@@ -119,34 +149,18 @@ export default Ctrl({
         }
     };
 
-    public get isToggle(): boolean
+    protected onMouseLeave = () =>
     {
-        return this.props.isToggle;
-    }
+        clearTimeout(this._longPressTimeout);
+    };
 
-    public set isToggle(value: boolean)
+    protected onPropsChanged(diff: DiffSet<ButtonProps>): void
     {
-        this.props.isToggle = value;
-    }
-
-    public get isToggled(): boolean
-    {
-        return this._isToggled;
-    }
-
-    public set isToggled(value: boolean)
-    {
-        if (this.props.isToggle && this._isToggled !== value)
+        // eslint-disable-next-line no-debugger
+        if (diff.isDown.isModified && diff.isDown.oldValue === false)
         {
-            this._isToggled = value;
-            if (this._isToggled)
-            {
-                this.classList.add('toggled');
-            } else
-            {
-                this.classList.remove('toggled');
-            }
-            this.emit('toggle', { isToggled: this._isToggled });
+            this.classList.add(_css.down);
+            this.emit('down');
         }
     }
 

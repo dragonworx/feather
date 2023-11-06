@@ -1,4 +1,6 @@
 import type { Control } from './control';
+import type { ControlProps } from './controlBase';
+import type { ControlWithProps } from './controlWithProps';
 import { toHyphenCase } from './util';
 
 export const tagPref = 'ctrl-';
@@ -6,7 +8,7 @@ export const tagPref = 'ctrl-';
 export type Constructor<T> = new (...args: unknown[]) => T;
 
 export type WithFullTagname = { fullTagName: string };
-export type WithInitialProps = { _initialProps: object };
+export type WithInitialProps = { _initialProps: ControlProps };
 export type WithAttributes = { observedAttributes: string[] };
 
 export type AttributeType = "string" | "number" | "boolean";
@@ -24,7 +26,7 @@ export const attributeValidators: Record<AttributeType, AttributeValidator> = {
     boolean: (value) => { const val = String(value).toLowerCase(); return val === "true" || val === "false" },
 };
 
-export interface Descriptor<PropsType extends object = object>
+export interface Descriptor<PropsType extends ControlProps = ControlProps>
 {
     tagName?: string;
     props: PropsType;
@@ -42,7 +44,7 @@ export type WithDescriptor = { descriptor: Descriptor };
 export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
 
 /** Custom Element registration function */
-export function Ctrl<PropsType extends object, CtorType extends Constructor<Control<PropsType>>>(
+export function Ctrl<PropsType extends ControlProps, CtorType extends Constructor<Control<PropsType>>>(
     descriptor: Descriptor<PropsType>,
     htmlElementCtor: CtorType,
 )
@@ -103,35 +105,15 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
     for (const [k, v] of Object.entries(attributes))
     {
         const propName = k as keyof PropsType;
+        const attribName = toHyphenCase(k);
         const attr = v as AttributeDescriptor;
-        const attrName = toHyphenCase(k);
         const attrType = attr.type;
         const attrValidate = attr.validate;
 
         Object.defineProperty(htmlElementCtor.prototype, propName, {
             get()
             {
-                const attrValue = this.getAttribute(attrName) as string | null;
-
-                if (attrValue === null)
-                {
-                    return descriptor.props[propName] as unknown as PropsType[keyof PropsType];
-                }
-
-                if (attrValidate && !attrValidate(attrValue))
-                {
-                    throw new Error(`Invalid attribute value for ${k}: ${attrValue}`);
-                }
-
-                switch (attrType)
-                {
-                    case "string":
-                        return attrValue;
-                    case "number":
-                        return Number(attrValue);
-                    case "boolean":
-                        return attrValue === "true";
-                }
+                return (this as ControlWithProps<PropsType>).getProp(propName);
             },
             set(value)
             {
@@ -143,20 +125,9 @@ export function Ctrl<PropsType extends object, CtorType extends Constructor<Cont
                 switch (attrType)
                 {
                     case "string":
-                        this.setAttribute(attrName, value as string);
-                        break;
                     case "number":
-                        this.setAttribute(attrName, String(value));
-                        break;
                     case "boolean":
-                        if (value)
-                        {
-                            this.setAttribute(attrName, "true");
-                        }
-                        else
-                        {
-                            this.removeAttribute(attrName);
-                        }
+                        this.setAttribute(attribName, String(value));
                         break;
                 }
             }
