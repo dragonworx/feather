@@ -1,5 +1,5 @@
 import createEmotion from '@emotion/css/create-instance';
-import type { ControlBase } from './controlBase';
+import type { BaseControl } from './builder2';
 
 let _id = 0;
 
@@ -24,7 +24,7 @@ class StyleSheet
     public cssText: string;
     public className: string;
     public styleElements: HTMLStyleElement[] = [];
-    public usageElements: Set<ControlBase> = new Set();
+    public usageElements: Set<BaseControl> = new Set();
 
     constructor(cssText: string, className: string, elements: NodeListOf<Element>)
     {
@@ -43,7 +43,7 @@ class StyleSheet
         return this.styleElements.every(e => e.parentElement);
     }
 
-    public registerElement(element: ControlBase)
+    public registerElement(element: BaseControl)
     {
         if (this.usageElements.size === 0)
         {
@@ -75,7 +75,7 @@ class StyleSheet
         }
     }
 
-    public unregisterElement(element: ControlBase)
+    public unregisterElement(element: BaseControl)
     {
         if (this.usageElements.has(element))
         {
@@ -135,7 +135,7 @@ const cache = new CssCache();
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).sheets = cache;
 
-export function unregisterElement(element: ControlBase, currentClassName?: string)
+export function unregisterElement(element: BaseControl, currentClassName?: string)
 {
     if (currentClassName)
     {
@@ -149,7 +149,7 @@ export function unregisterElement(element: ControlBase, currentClassName?: strin
 }
 
 // todo: check that stylesheet is ready for next removed cached cssText
-export function createStyle(cssText: string, element: ControlBase)
+export function createStyle(cssText: string, element: BaseControl)
 {
     const id = element.controlId;
     const currentClassName = element.styleSheetId;
