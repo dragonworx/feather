@@ -37,15 +37,52 @@ type Metadata<D extends DescriptorParts> = {
   [K in keyof D]?: D[K];
 };
 
-// Simplified Build function definition
-function Build<D extends DescriptorParts>(
-  metadata: Metadata<D>, 
-  ctor: { new (): HTMLElement }
-): { new (): HTMLElement } {
-  // Function implementation is commented out
-  /* ...implementation... */
-  return ctor; // This is a placeholder to satisfy the return type.
-}
+// Type for constructing a new class that has getters and setters for the attributes
+type WithAttributeAccessors<AttributesType, CtorType extends new () => HTMLElement> = {
+    new (): InstanceType<CtorType> & {
+      [K in keyof AttributesType]: AttributesType[K] extends { value: infer V }
+        ? V
+        : never;
+    };
+  };
+  
+  // The build function
+  function Build<D extends DescriptorParts>(
+    metadata: Metadata<D>,
+    ctor: new () => HTMLElement
+  ) {
+    type AttributesType = D['attributes'];
+  
+    // Generate the class with attribute accessors
+    const DynamicClass = ctor as WithAttributeAccessors<AttributesType, typeof ctor>;
+  
+    return class {
+      constructor() {
+  
+        // Initialize attributes from the metadata
+        // if (metadata.attributes) {
+        //   for (const [key, attr] of Object.entries(metadata.attributes)) {
+        //     const attributeKey = `data-${key}`;
+        //     this.setAttribute(attributeKey, String(attr.value));
+  
+        //     Object.defineProperty(this, key, {
+        //       get() {
+        //         const attrValue = this.getAttribute(attributeKey);
+        //         return attrValue !== null ? attr.value : null;
+        //       },
+        //       set(value) {
+        //         if (attr.validate && !attr.validate(String(value))) {
+        //           throw new Error(`Validation failed for attribute ${key}`);
+        //         }
+        //         this.setAttribute(attributeKey, String(value));
+        //       },
+        //       enumerable: true,
+        //     });
+        //   }
+        // }
+      }
+    } as WithAttributeAccessors<AttributesType, typeof ctor>;;
+  }
 
 // Usage of Build function
 const MyControlClass = Build<MyDescriptor>({
@@ -60,3 +97,5 @@ const MyControlClass = Build<MyDescriptor>({
   },
   // Events are not included since they're used for type inference and don't need initial values
 }, HTMLElement);
+
+const foo = new MyControlClass();
