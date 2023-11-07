@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { createStyle, unregisterElement } from './stylesheet';
 import { toHyphenCase } from './util';
 
-export const tagPref = 'ctrl-';
-
+/** ------- Types ------- */
 export type Constructor<T, PropsType = any> = new (props?: Partial<PropsType>) => T;
 
 export interface CustomEventListener<T = any>
@@ -12,76 +10,41 @@ export interface CustomEventListener<T = any>
     (evt: CustomEvent<T>): void;
 }
 
-export type AttributeType = string | number | boolean;
-// type AttributeValidator = (value: string) => boolean;
-export type Attributes = Record<string, AttributeType>;
+type AttributeValidator = (value: string) => boolean;
+export const attributeValidators: Record<string, AttributeValidator> = {
+    string: () => true,
+    number: (value) => !isNaN(Number(value)),
+    boolean: (value) => { const val = String(value).toLowerCase(); return val === "true" || val === "false" },
+};
 
-export interface Descriptor<PropsType extends object, AttribsType extends Attributes>
+export interface Descriptor<PropsType extends object>
 {
     tagName: string;
     classes?: string[];
     props?: PropsType;
-    attribs?: AttribsType;
 }
 
 export type ControlMeta<
     PropsType extends object,
-    AttribsType extends Attributes,
 > = {
     fullTagName: string;
-    descriptor: Descriptor<PropsType, AttribsType>;
-    props: object;
-    attribs: Attributes;
-};
-
-export const defaultControlMeta: ControlMeta<any, any> = {
-    fullTagName: '',
-    descriptor: {
-        tagName: '',
-    },
-    props: {},
-    attribs: {},
+    descriptor: Descriptor<PropsType>;
 };
 
 let _id = 0;
 
-export function createProxy<T extends Record<PropertyKey, any>>(
-    target: T,
-    onSet: (key: keyof T, oldValue: T[keyof T], newValue: T[keyof T]) => void
-): T
-{
-    return new Proxy(target, {
-        set: (obj: T, prop: keyof T, value: T[keyof T]): boolean =>
-        {
-            if (obj[prop] !== value)
-            {
-                const oldValue = obj[prop];
-                obj[prop] = value;
-                onSet(prop, oldValue, value);
-            }
-            return true;
-        }
-    });
-}
-
 /** ------- BaseControl ------- */
-
 export class BaseControl<
     PropsType extends object = object,
-    AttribsType extends Attributes = Attributes,
     EventsType = object,
 > extends HTMLElement
 {
-    protected _meta: ControlMeta<PropsType, AttribsType> = {
-        ...defaultControlMeta,
-    };
+    protected _meta: ControlMeta<PropsType> = {} as ControlMeta<PropsType>;
     protected _id = String(_id++);
     protected _isMounted = false;
     protected _cssClass?: string;
     protected _shadowDom?: ShadowRoot;
-
     protected _props: PropsType = {} as PropsType;
-    protected _attribs: AttribsType = {} as AttribsType;
 
     private _listeners: Map<string, CustomEventListener[]> = new Map();
 
@@ -89,9 +52,6 @@ export class BaseControl<
     {
         super();
     }
-
-    public props!: PropsType;
-    public attribs!: AttribsType;
 
     public get controlId()
     {
@@ -103,7 +63,8 @@ export class BaseControl<
         return this._cssClass;
     }
 
-    public get fullTagName() {
+    public get fullTagName()
+    {
         return this._meta.fullTagName;
     }
 
@@ -192,7 +153,7 @@ export class BaseControl<
 
     protected onDocumentChange() { /** override */ }
 
-    protected attributeChangedCallback(name: keyof AttribsType, oldValue: string | null, newValue: string | null)
+    protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
     {
         console.log(`${this.fullTagName}.attributeChangedCallback`, name, oldValue, newValue);
 
@@ -201,33 +162,37 @@ export class BaseControl<
             return;
         }
 
-        const attribute = this._attribs![name];
-
-        if (attribute)
+        if (name in this._props)
         {
+            const propKey = name as keyof PropsType;
+
             if (newValue === null)
             {
-                // todo: clear attribute or default?
-                // this.setProp(name as keyof PropsType, this.descriptor.props[name as keyof PropsType]);
+                this._props[propKey] = this._meta.descriptor.props![name as keyof PropsType];
             } else
             {
-                // const isValid = attribute.validate!(newValue);
-                const type = typeof attribute;
+                const type = typeof this._meta.descriptor.props![name as keyof PropsType];
 
-                // if (!isValid)
-                // {
-                //     throw new Error(`${this.fullTagName}: Invalid value for attribute "${name}": "${newValue}"`);
-                // }
+                const validator = attributeValidators[type];
 
-                switch (type) {
+                if (validator !== undefined && !validator(newValue))
+                {
+                    const message1 = `${this.fullTagName}: Invalid value for attribute "${name}".`;
+                    const message2 = `Expected: ${type}, Received: ${typeof newValue}`;
+                    console.warn(`${message1} ${message2}`);
+                    return;
+                }
+
+                switch (type)
+                {
                     case 'number':
-                        this._attribs[name] = parseFloat(newValue) as AttribsType[keyof AttribsType];
+                        this._props[propKey] = parseFloat(newValue) as PropsType[keyof PropsType];
                         break;
                     case 'boolean':
-                        this._attribs[name] = (newValue.toLowerCase() === 'true') as AttribsType[keyof AttribsType];
+                        this._props[propKey] = (newValue.toLowerCase() === 'true') as PropsType[keyof PropsType];
                         break;
                     case 'string':
-                        this._attribs[name] = newValue as AttribsType[keyof AttribsType];
+                        this._props[propKey] = newValue as PropsType[keyof PropsType];
                 }
             }
 
@@ -235,7 +200,10 @@ export class BaseControl<
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onAttributeChanged(name: keyof AttribsType, oldValue: string | null, newValue: string | null): false | void { /** override */ }
+    protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null): false | void { /** override */ }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onPropChanged(name: keyof PropsType, oldValue: any, newValue: any) { /** override */ }
 
     private listenersForType(type: string)
     {
@@ -259,31 +227,102 @@ export class BaseControl<
 
             return this;
         })();
+
+    public off = (<T extends EventsType>() =>
+        <E extends keyof T>(
+            type: E,
+            listener: CustomEventListener<T[E]>,
+            options?: boolean | AddEventListenerOptions
+        ): this =>
+        {
+            const key = String(type);
+
+            if (!this._listeners.has(key))
+            {
+                return this;
+            }
+
+            const listeners = this.listenersForType(key);
+
+            if (listener)
+            {
+                // remove listener
+                const index = listeners.indexOf(listener);
+                if (index !== -1)
+                {
+                    listeners.splice(index, 1);
+                }
+
+                if (listeners.length === 0)
+                {
+                    this._listeners.delete(key);
+                }
+
+                this.removeEventListener(
+                    key,
+                    listener as EventListenerOrEventListenerObject,
+                    options
+                );
+            } else
+            {
+                // remove all
+                for (const l of listeners)
+                {
+                    this.removeEventListener(key, l as EventListenerOrEventListenerObject, options);
+                }
+
+                this._listeners.delete(key);
+            }
+
+            return this;
+        })();
+
+    public emit = (<T extends EventsType>() =>
+        <E extends keyof T>(
+            type: E,
+            detail?: T[E] extends object ? T[E] : (T[E] extends null ? null : object)
+        ): this =>
+        {
+            const key = String(type);
+
+            this.dispatchEvent(
+                new CustomEvent(key, {
+                    detail,
+                    bubbles: true,
+                    cancelable: true
+                })
+            );
+
+            return this;
+        })();
 }
 
 /** ------- Ctrl ------- */
+export const tagPref = 'ctrl-';
 
 export function Ctrl<
     PropsType extends object,
-    AttribsType extends Attributes,
     EventsType,
 >(
-    descriptor: Descriptor<PropsType, AttribsType>,
-    ctor: Constructor<BaseControl<PropsType, AttribsType, EventsType>, PropsType>
+    descriptor: Descriptor<PropsType>,
+    ctor: Constructor<BaseControl<PropsType, EventsType>, PropsType>
 )
 {
     type CtorType = typeof ctor;
 
-    const { tagName } = descriptor;
+    const { tagName, props: descProps } = descriptor;
     const fullTagName = tagPref + (tagName ?? toHyphenCase(ctor.name));
-    const attribs = descriptor.attribs;
 
     if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
     {
         throw new Error(`Invalid tag name: ${fullTagName}`)
     }
 
-    (ctor as any).observedAttributes = Object.keys(attribs ?? {});
+    // setup custom element
+    if (descProps)
+    {
+        (ctor as any).observedAttributes = Object.keys(descProps);
+    }
 
     customElements.define(fullTagName, ctor);
 
@@ -291,62 +330,45 @@ export function Ctrl<
     {
         constructor(props: Partial<PropsType> = {})
         {
+            // create element
             const element = document.createElement(fullTagName) as InstanceType<CtorType>;
 
+            // install metadata
             element['_meta'] = {
                 fullTagName,
                 descriptor,
-                props: props,
-                attribs: descriptor.attribs ?? {},
             };
 
+            // install props
             element['_props'] = {
-                ...descriptor.props,
+                ...descProps,
                 ...props,
             } as PropsType;
-    
-            element['_attribs'] = {
-                ...descriptor.attribs,
-                ...attribs,
-            } as AttribsType;
 
-            element.props = createProxy(element['_props'], (key, oldValue, newValue) => {
-                console.log("props proxy", key, oldValue, newValue);
-            });
-
-            element.attribs = createProxy(element['_attribs'], (key, oldValue, newValue) => {
-                console.log("attribs proxy", key, oldValue, newValue);
-            });
-
-            /** Define the getters and setters type based on props */
-            if (attribs)
+            /** Define the getters and setters based on props */
+            if (descProps)
             {
-                for (const [key, value] of Object.entries(attribs))
+                for (const key of Object.keys(descProps))
                 {
-                    const attribName = toHyphenCase(key);
-                    const attribType = typeof value;
+                    const propKey = key as keyof PropsType;
 
                     Object.defineProperty(element, key, {
                         get()
                         {
-                            return element['_attribs'][key];
+                            return element['_props'][propKey];
                         },
                         set(value: any)
                         {
-                            switch (attribType)
-                            {
-                                case "string":
-                                case "number":
-                                case "boolean":
-                                    element.setAttribute(attribName, String(value));
-                                    break;
-                            }
+                            const oldValue = element['_props'][propKey];
+                            element['_props'][propKey] = value;
+                            element['onPropChanged'](propKey, oldValue, value);
                         }
                     });
                 }
             }
 
+            // return element as ctor with props
             return element;
         }
-    } as unknown as new (props?: Partial<PropsType>) => InstanceType<CtorType> & AttribsType;
+    } as unknown as new (props?: Partial<PropsType>) => InstanceType<CtorType> & PropsType;
 }

@@ -11,39 +11,44 @@
 
 		type TestProps = {
 			prop1: string;
-		};
-
-		type TestAttributes = {
-			attrib1: number;
+			prop2: number;
+			prop3: boolean;
+			prop4: object;
 		};
 
 		type TestEvents = {
 			event1: { x: number };
 		}
 
-		class TestControl extends BaseControl<TestProps, TestAttributes, TestEvents>
+		class TestControl extends BaseControl<TestProps, TestEvents>
 		{
 			public test() {
-				this.attribs.attrib1 = 1;
+			}
+
+			protected onPropChanged(name: keyof { prop1: string; prop2: number; prop3: boolean; prop4: object; }, oldValue: any, newValue: any): void
+			{
+				console.log('onPropChanged', name, oldValue, newValue);
 			}
 		}
 
-		const CtrlTest = Ctrl<TestProps, TestAttributes, TestEvents>({
+		const CtrlTest = Ctrl<TestProps, TestEvents>({
 			tagName: 'test',
 			props: {
 				prop1: 'foo',
-			},
-			attribs: {
-				attrib1: 0,
+				prop2: 123,
+				prop3: true,
+				prop4: { a: 1 },
 			},
 		}, TestControl);
 		
 		const test = new CtrlTest({
 			prop1: 'bar',
 		});
-		test.props.prop1 = "foo"; // <-- this should work, props are strongly typed
-		// test.attrib1 = 1;
-		test.on('event1', (evt) => {console.log(evt.detail.x)}); // <-- this should work, events are strongly typed
+		test.prop1 = 'boo';
+		test.on('event1', (evt) => {console.log('event1', evt.detail.x)}); // <-- this should work, events are strongly typed
+		setTimeout(() => {
+			test.emit('event1', { x: 123 });
+		}, 1000);
 
 		(window as any).test = test;
 		console.log(test);

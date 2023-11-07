@@ -75,3 +75,22 @@ export function randRgb()
 {
     return `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
 }
+
+export function createProxy<T extends Record<PropertyKey, unknown>>(
+    target: T,
+    onSet: (key: keyof T, oldValue: T[keyof T], newValue: T[keyof T]) => void
+): T
+{
+    return new Proxy(target, {
+        set: (obj: T, prop: keyof T, value: T[keyof T]): boolean =>
+        {
+            if (obj[prop] !== value)
+            {
+                const oldValue = obj[prop];
+                obj[prop] = value;
+                onSet(prop, oldValue, value);
+            }
+            return true;
+        }
+    });
+}
