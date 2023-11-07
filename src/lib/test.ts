@@ -11,7 +11,8 @@ export type TestProps = {
 
 export type TestAttributes = {
     attrNum: number;
-    
+    attrBool: boolean;
+    attrString: string;
 }
 
 export type TestEvents = {
@@ -34,7 +35,7 @@ export default Ctrl({
         attrBool: { value: true },
         attrString: { value: 'bar' },
     },
-}, class Test extends Control<TestProps, TestEvents>
+}, class Test extends Control<TestProps, TestAttributes, TestEvents>
 {
     private _color = 'rgb(0,255,0)'
 

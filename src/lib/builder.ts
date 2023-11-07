@@ -9,12 +9,12 @@ export type Constructor<T> = new (...args: unknown[]) => T;
 export type WithFullTagname = { fullTagName: string };
 export type WithInitialProps = { _initialProps: ControlProps };
 export type WithObservedAttributes = { observedAttributes: string[] };
-export type WithAttributes = { _attributes: AttributeDescriptor };
+export type WithAttributes = { _attributes: AttributeDescriptor<any> };
 
 export type AttributeType = string | number | boolean;
 export type AttributeTypeKey = "string" | "number" | "boolean";
 export type AttributeValidator = (value: AttributeType) => boolean;
-export type AttributeDescriptor<T> = Record<keyof T, Attribute<T[keyof T]>;
+export type AttributeDescriptor<T extends object> = Record<keyof T, Attribute<T[keyof T] as AttributeType>;
 
 export interface Attribute<T extends AttributeType>
 {
@@ -49,7 +49,11 @@ export type WithDescriptor = { descriptor: Descriptor };
 export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
 
 /** Custom Element registration function */
-export function Ctrl<PropsType extends ControlProps, AttribType extends AttributeDescriptor, CtorType extends Constructor<Control<PropsType & AttribType>>>(
+export function Ctrl<
+    PropsType extends ControlProps,
+    AttribType extends AttributeDescriptor,
+    CtorType extends Constructor<Control<PropsType & AttribType>>
+>(
     descriptor: Descriptor<PropsType, AttribType>,
     htmlElementCtor: CtorType,
 )
