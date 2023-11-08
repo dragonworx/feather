@@ -39,6 +39,7 @@ export class BaseControl<
     EventsType = object,
 > extends HTMLElement
 {
+    private _muteAttributeChanged = false;
     protected _meta: ControlMeta<PropsType> = {} as ControlMeta<PropsType>;
     protected _id = String(_id++);
     protected _isMounted = false;
@@ -75,6 +76,10 @@ export class BaseControl<
             this._shadowDom = this.attachShadow({ mode: 'open' });
         }
         return this._shadowDom;
+    }
+
+    protected get props() {
+        return this as unknown as PropsType;
     }
 
     protected connectedCallback()
@@ -155,6 +160,10 @@ export class BaseControl<
 
     protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
     {
+        if (this._muteAttributeChanged) {
+            return;
+        }
+        
         console.log(`${this.fullTagName}.attributeChangedCallback`, name, oldValue, newValue);
 
         if (this.onAttributeChanged(name, oldValue, newValue) === false)
@@ -186,13 +195,13 @@ export class BaseControl<
                 switch (type)
                 {
                     case 'number':
-                        this._props[propKey] = parseFloat(newValue) as PropsType[keyof PropsType];
+                        this.props[propKey] = parseFloat(newValue) as PropsType[keyof PropsType];
                         break;
                     case 'boolean':
-                        this._props[propKey] = (newValue.toLowerCase() === 'true') as PropsType[keyof PropsType];
+                        this.props[propKey] = (newValue.toLowerCase() === 'true') as PropsType[keyof PropsType];
                         break;
                     case 'string':
-                        this._props[propKey] = newValue as PropsType[keyof PropsType];
+                        this.props[propKey] = newValue as PropsType[keyof PropsType];
                 }
             }
 
@@ -360,6 +369,11 @@ export function Ctrl<
                         set(value: any)
                         {
                             const oldValue = element['_props'][propKey];
+                            if (element.hasAttribute(key)) {
+                                element['_muteAttributeChanged'] = true;
+                                element.setAttribute(key, String(value));
+                                element['_muteAttributeChanged'] = false;
+                            }
                             element['_props'][propKey] = value;
                             element['onPropChanged'](propKey, oldValue, value);
                         }

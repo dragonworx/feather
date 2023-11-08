@@ -13,7 +13,7 @@
 			prop1: string;
 			prop2: number;
 			prop3: boolean;
-			prop4: object;
+			prop4: { a: number };
 		};
 
 		type TestEvents = {
@@ -23,6 +23,7 @@
 		class TestControl extends BaseControl<TestProps, TestEvents>
 		{
 			public test() {
+				this.props.prop3 = false;
 			}
 
 			protected onPropChanged(name: keyof { prop1: string; prop2: number; prop3: boolean; prop4: object; }, oldValue: any, newValue: any): void
@@ -45,6 +46,7 @@
 			prop1: 'bar',
 		});
 		test.prop1 = 'boo';
+		test.prop4 = { a: 5 };
 		test.on('event1', (evt) => {console.log('event1', evt.detail.x)}); // <-- this should work, events are strongly typed
 		setTimeout(() => {
 			test.emit('event1', { x: 123 });
