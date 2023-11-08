@@ -71,3 +71,7 @@ export function randRgb()
 //         }
 //     });
 // }
+
+export const stringTemplate = (strings: TemplateStringsArray, ...values: unknown[]): string => strings.reduce((acc, str, i) => acc + str + (values[i] || ''), '');
+export const css = (strings: TemplateStringsArray, ...values: unknown[]): string => stringTemplate(strings, ...values);
+export const html = (strings: TemplateStringsArray, ...values: unknown[]): string => stringTemplate(strings, ...values);

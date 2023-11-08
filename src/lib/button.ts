@@ -1,5 +1,5 @@
 import { BaseControl, Ctrl } from './builder';
-import { css } from './control';
+import { css } from './util';
 
 export enum ButtonFlag
 {
@@ -26,7 +26,8 @@ export type ButtonEvent = {
 }
 
 const _css = {
-    down: 'down'
+    down: 'down',
+    toggled: 'toggled',
 };
 
 function checkFlag(flag: number, mode: ButtonFlag): boolean
@@ -130,10 +131,10 @@ export default Ctrl({
 
                     if (props.isToggled)
                     {
-                        this.classList.add('toggled');
+                        this.classList.add(_css.toggled);
                     } else
                     {
-                        this.classList.remove('toggled');
+                        this.classList.remove(_css.toggled);
                     }
 
                     this.emit('toggle', { isToggled: props.isToggled });
@@ -148,7 +149,11 @@ export default Ctrl({
         return css`
             background: red;
 
-            &.down {
+            &.${_css.down} {
+                background: blue;
+            }
+
+            &.${_css.toggled} {
                 background: blue;
             }
         `
