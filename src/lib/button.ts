@@ -51,12 +51,12 @@ export default Ctrl({
 
     protected mount(): void
     {
-        console.log("button mount");
+        const { state } = this;
 
         this.addEventListener('mousedown', this.onMouseDown);
         this.addEventListener('mouseleave', this.onMouseLeave);
 
-        if (this.state.isToggle && this.state.isToggled)
+        if (state.isToggle && state.isToggled)
         {
             this.classList.add('toggled');
         }
@@ -70,36 +70,38 @@ export default Ctrl({
 
     protected onMouseDown = (e: MouseEvent) =>
     {
-        if (!checkFlag(e.buttons, this.state.buttons))
+        const { state } = this;
+
+        if (!checkFlag(e.buttons, state.buttons))
         {
             return;
         }
 
         clearTimeout(this._longPressTimeout);
 
-        this.state.isDown = true;
+        state.isDown = true;
 
-        this._longPressTimeout = setTimeout(() =>
-        {
-            this.emit('longPress');
-        }, this.state.longPressTime) as unknown as number;
+        this._longPressTimeout = setTimeout(() => this.emit('longPress'), state.longPressTime) as unknown as number;
 
         window.addEventListener('mouseup', this.onMouseUp);
     };
 
     protected onMouseUp = (e: MouseEvent) =>
     {
-        this.state.isDown = false;
+        const { state } = this;
+
+        state.isDown = false;
 
         clearTimeout(this._longPressTimeout);
-        window.removeEventListener('mouseup', this.onMouseUp);
         this.classList.remove(_css.down);
+        
+        window.removeEventListener('mouseup', this.onMouseUp);
 
         if (e.target === this || this.contains(e.target as Node))
         {
             this.emit('up');
 
-            this.state.isToggled = !this.state.isToggled;
+            state.isToggled = !state.isToggled;
         } else
         {
             this.emit('upOutside');
