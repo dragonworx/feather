@@ -1,145 +1,387 @@
-import type { Control } from './control';
-import type { ControlProps } from './controlBase';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createStyle, unregisterElement } from './stylesheet';
 import { toHyphenCase } from './util';
 
-export const tagPref = 'ctrl-';
+/** ------- Types ------- */
+export type Constructor<T, PropsType = any> = new (props?: Partial<PropsType>) => T;
 
-export type Constructor<T> = new (...args: unknown[]) => T;
-
-export type WithFullTagname = { fullTagName: string };
-export type WithInitialProps = { _initialProps: ControlProps };
-export type WithObservedAttributes = { observedAttributes: string[] };
-export type WithAttributes = { _attributes: AttributeDescriptor<any> };
-
-export type AttributeType = string | number | boolean;
-export type AttributeTypeKey = "string" | "number" | "boolean";
-export type AttributeValidator = (value: AttributeType) => boolean;
-export type AttributeDescriptor<T extends object> = Record<keyof T, Attribute<T[keyof T] as AttributeType>;
-
-export interface Attribute<T extends AttributeType>
+export interface CustomEventListener<T = any>
 {
-    value: T;
-    validate?: AttributeValidator;
+    (evt: CustomEvent<T>): void;
 }
 
-export const attributeValidators: Record<AttributeTypeKey, AttributeValidator> = {
+type AttributeValidator = (value: string) => boolean;
+export const attributeValidators: Record<string, AttributeValidator> = {
     string: () => true,
     number: (value) => !isNaN(Number(value)),
     boolean: (value) => { const val = String(value).toLowerCase(); return val === "true" || val === "false" },
 };
 
-
-export interface Descriptor<PropsType extends ControlProps = ControlProps, AttribType extends AttributeDescriptor = AttributeDescriptor>
+export interface Descriptor<PropsType extends object>
 {
     tagName: string;
-    props?: PropsType;
     classes?: string[];
-    attributes?: AttribType;
-    shouldRenderOnPropChange?: boolean;
+    props?: PropsType;
 }
 
-export const descriptorDefaults: Partial<Descriptor> = {
-    props: {},
-    attributes: {},
-    classes: [],
-    shouldRenderOnPropChange: true,
+export type ControlMeta<
+    PropsType extends object,
+> = {
+    fullTagName: string;
+    descriptor: Descriptor<PropsType>;
 };
 
-export type WithDescriptor = { descriptor: Descriptor };
-export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
+let _id = 0;
 
-/** Custom Element registration function */
+/** ------- BaseControl ------- */
+export class BaseControl<
+    PropsType extends object = object,
+    EventsType = object,
+> extends HTMLElement
+{
+    private _muteAttributeChanged = false;
+    protected _meta: ControlMeta<PropsType> = {} as ControlMeta<PropsType>;
+    protected _id = String(_id++);
+    protected _isMounted = false;
+    protected _cssClass?: string;
+    protected _shadowDom?: ShadowRoot;
+    protected _props: PropsType = {} as PropsType;
+
+    private _listeners: Map<string, CustomEventListener[]> = new Map();
+
+    constructor()
+    {
+        super();
+    }
+
+    public get controlId()
+    {
+        return this._id;
+    }
+
+    public get styleSheetId()
+    {
+        return this._cssClass;
+    }
+
+    public get fullTagName()
+    {
+        return this._meta.fullTagName;
+    }
+
+    protected get shadowDom()
+    {
+        if (!this._shadowDom)
+        {
+            this._shadowDom = this.attachShadow({ mode: 'open' });
+        }
+        return this._shadowDom;
+    }
+
+    protected get props() {
+        return this as unknown as PropsType;
+    }
+
+    protected connectedCallback()
+    {
+        const { descriptor } = this._meta;
+
+        if (descriptor.classes)
+        {
+            this.classList.add(...descriptor.classes);
+        }
+
+        this.setAttribute('ctrl-id', this.controlId);
+
+        this._isMounted = true;
+
+        this.render();
+        this.applyStyle();
+        this.mount();
+    }
+
+    protected disconnectedCallback()
+    {
+        this._isMounted = false;
+        this.unmount();
+
+        unregisterElement(this as unknown as BaseControl, this._cssClass);
+    }
+
+    protected adoptedCallback()
+    {
+        this.onDocumentChange();
+    }
+
+    public render()
+    {
+        if (!this._isMounted)
+        {
+            return;
+        }
+
+        const innerHTML = this.html();
+
+        if (innerHTML)
+        {
+            this.innerHTML = innerHTML;
+        }
+    }
+
+    public applyStyle()
+    {
+        if (!this._isMounted)
+        {
+            return;
+        }
+
+        const cssText = this.css();
+
+        if (cssText)
+        {
+            this._cssClass = createStyle(cssText, this as unknown as BaseControl);
+        }
+    }
+
+    protected html(): string | void
+    {
+        return;
+    }
+
+    protected css(): string | void
+    {
+        return
+    }
+
+    protected mount() { /** override */ }
+    protected unmount() { /** override */ }
+
+    protected onDocumentChange() { /** override */ }
+
+    protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
+    {
+        if (this._muteAttributeChanged) {
+            return;
+        }
+        
+        console.log(`${this.fullTagName}.attributeChangedCallback`, name, oldValue, newValue);
+
+        if (this.onAttributeChanged(name, oldValue, newValue) === false)
+        {
+            return;
+        }
+
+        if (name in this._props)
+        {
+            const propKey = name as keyof PropsType;
+
+            if (newValue === null)
+            {
+                this._props[propKey] = this._meta.descriptor.props![name as keyof PropsType];
+            } else
+            {
+                const type = typeof this._meta.descriptor.props![name as keyof PropsType];
+
+                const validator = attributeValidators[type];
+
+                if (validator !== undefined && !validator(newValue))
+                {
+                    const message1 = `${this.fullTagName}: Invalid value for attribute "${name}".`;
+                    const message2 = `Expected: ${type}, Received: ${typeof newValue}`;
+                    console.warn(`${message1} ${message2}`);
+                    return;
+                }
+
+                switch (type)
+                {
+                    case 'number':
+                        this.props[propKey] = parseFloat(newValue) as PropsType[keyof PropsType];
+                        break;
+                    case 'boolean':
+                        this.props[propKey] = (newValue.toLowerCase() === 'true') as PropsType[keyof PropsType];
+                        break;
+                    case 'string':
+                        this.props[propKey] = newValue as PropsType[keyof PropsType];
+                }
+            }
+
+        }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null): false | void { /** override */ }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onPropChanged<K extends keyof PropsType>(name: K, oldValue: PropsType[K], newValue: PropsType[K]) { /** override */ }
+
+    private listenersForType(type: string)
+    {
+        if (!this._listeners.has(type))
+        {
+            this._listeners.set(type, []);
+        }
+        return this._listeners.get(type)!;
+    }
+
+    public on = (<T extends EventsType>() =>
+        <E extends keyof T>(
+            type: E | keyof HTMLElementEventMap,
+            listener: CustomEventListener<T[E]>,
+            options?: boolean | AddEventListenerOptions
+        ): this =>
+        {
+            const key = String(type);
+            this.listenersForType(key).push(listener);
+            this.addEventListener(key, listener as EventListenerOrEventListenerObject, options);
+
+            return this;
+        })();
+
+    public off = (<T extends EventsType>() =>
+        <E extends keyof T>(
+            type: E | keyof HTMLElementEventMap,
+            listener: CustomEventListener<T[E]>,
+            options?: boolean | AddEventListenerOptions
+        ): this =>
+        {
+            const key = String(type);
+
+            if (!this._listeners.has(key))
+            {
+                return this;
+            }
+
+            const listeners = this.listenersForType(key);
+
+            if (listener)
+            {
+                // remove listener
+                const index = listeners.indexOf(listener);
+                if (index !== -1)
+                {
+                    listeners.splice(index, 1);
+                }
+
+                if (listeners.length === 0)
+                {
+                    this._listeners.delete(key);
+                }
+
+                this.removeEventListener(
+                    key,
+                    listener as EventListenerOrEventListenerObject,
+                    options
+                );
+            } else
+            {
+                // remove all
+                for (const l of listeners)
+                {
+                    this.removeEventListener(key, l as EventListenerOrEventListenerObject, options);
+                }
+
+                this._listeners.delete(key);
+            }
+
+            return this;
+        })();
+
+    public emit = (<T extends EventsType>() =>
+        <E extends keyof T>(
+            type: E,
+            detail?: T[E] extends object ? T[E] : (T[E] extends null ? null : object)
+        ): this =>
+        {
+            const key = String(type);
+
+            this.dispatchEvent(
+                new CustomEvent(key, {
+                    detail,
+                    bubbles: true,
+                    cancelable: true
+                })
+            );
+
+            return this;
+        })();
+}
+
+/** ------- Ctrl ------- */
+export const tagPref = 'ctrl-';
+
 export function Ctrl<
-    PropsType extends ControlProps,
-    AttribType extends AttributeDescriptor,
-    CtorType extends Constructor<Control<PropsType & AttribType>>
+    PropsType extends object,
+    EventsType,
 >(
-    descriptor: Descriptor<PropsType, AttribType>,
-    htmlElementCtor: CtorType,
+    descriptor: Descriptor<PropsType>,
+    ctor: Constructor<BaseControl<PropsType, EventsType>, PropsType>
 )
 {
-    descriptor = {
-        ...descriptorDefaults as Descriptor<PropsType, AttribType>,
-        ...descriptor,
-    };
+    type CtorType = typeof ctor;
 
-    console.log("*** Ctrl ***", htmlElementCtor.name, descriptor);
-
-    const { tagName } = descriptor;
-    const fullTagName = tagPref + (tagName ?? toHyphenCase(htmlElementCtor.name));
+    const { tagName, props: descProps } = descriptor;
+    const fullTagName = tagPref + (tagName ?? toHyphenCase(ctor.name));
 
     if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
     {
         throw new Error(`Invalid tag name: ${fullTagName}`)
     }
 
-    /** Initialise Custom Class */
-    (htmlElementCtor as unknown as WithDescriptor).descriptor = descriptor;
-    (htmlElementCtor as unknown as WithAttributes)._attributes = {...descriptor.attributes} as AttributeDescriptor;
-
-    // add user-defined descriptor attributes
-    const descAttributes = descriptor.attributes as AttributeDescriptor;
-
-    /** Define the getters and setters type based on props */
-    for (const [attrName, attr] of Object.entries(descAttributes))
+    // setup custom element
+    if (descProps)
     {
-        const attribName = toHyphenCase(attrName);
-        const attribType = typeof attr.value as AttributeTypeKey;
-        const attrValidate = attr.validate!;
-
-        Object.defineProperty(htmlElementCtor.prototype, attribName, {
-            get(): typeof attr.value
-            {
-                return attr.value;
-            },
-            set(value: typeof attr.value)
-            {
-                if (!attrValidate(value))
-                {
-                    throw new Error(`Invalid attribute value for ${attribName}: ${value}`);
-                }
-
-                switch (attribType)
-                {
-                    case "string":
-                    case "number":
-                    case "boolean":
-                        this.setAttribute(attribName, String(value));
-                        break;
-                }
-            }
-        });
+        (ctor as any).observedAttributes = Object.keys(descProps);
     }
 
-    const attributes = {} as AttributeDescriptor;
+    customElements.define(fullTagName, ctor);
 
-    for (const [attrName, attr] of Object.entries(descAttributes))
-    {
-        const attribName = toHyphenCase(attrName);
-        const attribType = typeof attr.value as AttributeTypeKey;
-
-        attributes[attribName] = {
-            value: attr.value,
-            validate: attr.validate ?? attributeValidators[attribType],
-        };
-    }
-
-    /** Initialise Observed Attributes */
-    (htmlElementCtor as unknown as WithObservedAttributes).observedAttributes = Object.keys(attributes ?? {});
-
-    /** Define Custom Element */
-    customElements.define(fullTagName, htmlElementCtor);
-
-    /** Return Custom Class Constructor */
     return class
     {
         constructor(props: Partial<PropsType> = {})
         {
+            // create element
             const element = document.createElement(fullTagName) as InstanceType<CtorType>;
 
-            (element as unknown as WithInitialProps)._initialProps = props;
-            (element as unknown as WithInitialProps)._initialProps = props;
+            // install metadata
+            element['_meta'] = {
+                fullTagName,
+                descriptor,
+            };
 
+            // install props
+            element['_props'] = {
+                ...descProps,
+                ...props,
+            } as PropsType;
+
+            /** Define the getters and setters based on props */
+            if (descProps)
+            {
+                for (const key of Object.keys(descProps))
+                {
+                    const propKey = key as keyof PropsType;
+
+                    Object.defineProperty(element, key, {
+                        get()
+                        {
+                            return element['_props'][propKey];
+                        },
+                        set(value: any)
+                        {
+                            const oldValue = element['_props'][propKey];
+                            if (element.hasAttribute(key)) {
+                                element['_muteAttributeChanged'] = true;
+                                element.setAttribute(key, String(value));
+                                element['_muteAttributeChanged'] = false;
+                            }
+                            element['_props'][propKey] = value;
+                            element['onPropChanged'](propKey, oldValue, value);
+                        }
+                    });
+                }
+            }
+
+            // return element as ctor with props
             return element;
         }
     } as unknown as new (props?: Partial<PropsType>) => InstanceType<CtorType> & PropsType;

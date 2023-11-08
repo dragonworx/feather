@@ -3,42 +3,42 @@
  * @param htmlStr The HTML string to parse.
  * @returns The first child element of the parsed HTML string as a specified type of `HTMLElement`.
  */
-export function html<T extends HTMLElement>(htmlStr: string): T
-{
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlStr, 'text/html');
-    const element = doc.body.firstChild as T;
+// export function html<T extends HTMLElement>(htmlStr: string): T
+// {
+//     const parser = new DOMParser();
+//     const doc = parser.parseFromString(htmlStr, 'text/html');
+//     const element = doc.body.firstChild as T;
 
-    if (element === null)
-    {
-        throw new Error('Could not parse HTML');
-    }
+//     if (element === null)
+//     {
+//         throw new Error('Could not parse HTML');
+//     }
 
-    return element;
-}
+//     return element;
+// }
 
-export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
-
-/**
- * Returns the input value as an array if it is not already an array.
- * @param value The value to return as an array.
- * @returns The input value as an array.
- */
-export function asArray<T>(value: T | T[])
-{
-    return Array.isArray(value) ? value : [value];
-}
-
-let _id = 0;
+// export type Writable<T, K extends keyof T> = Omit<T, K> & { -readonly [P in K]: T[P] };
 
 /**
- * Returns a unique string identifier.
- * @returns A unique string identifier.
- */
-export function uniqueId()
-{
-    return `${++_id}`;
-}
+//  * Returns the input value as an array if it is not already an array.
+//  * @param value The value to return as an array.
+//  * @returns The input value as an array.
+//  */
+// export function asArray<T>(value: T | T[])
+// {
+//     return Array.isArray(value) ? value : [value];
+// }
+
+// let _id = 0;
+
+// /**
+//  * Returns a unique string identifier.
+//  * @returns A unique string identifier.
+//  */
+// export function uniqueId()
+// {
+//     return `${++_id}`;
+// }
 
 export function toHyphenCase(str: string): string
 {
@@ -48,49 +48,26 @@ export function toHyphenCase(str: string): string
         .toLowerCase();
 }
 
-export function checkType(value: string): "string" | "number" | "boolean"
-{
-    // Check for boolean values
-    if (value === "true" || value === "false")
-    {
-        return "boolean";
-    }
-
-    // Check for number values
-    if (!isNaN(Number(value)))
-    {
-        return "number";
-    }
-
-    // Fallback to string type
-    return "string";
-}
-
-export function isValidSimpleType(value: string | null): boolean
-{
-    return value === null || checkType(value) !== "string";
-}
-
 export function randRgb()
 {
     return `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;
 }
 
-export function createProxy<T extends Record<PropertyKey, unknown>>(
-    target: T,
-    onSet: (key: keyof T, oldValue: T[keyof T], newValue: T[keyof T]) => void
-): T
-{
-    return new Proxy(target, {
-        set: (obj: T, prop: keyof T, value: T[keyof T]): boolean =>
-        {
-            if (obj[prop] !== value)
-            {
-                const oldValue = obj[prop];
-                obj[prop] = value;
-                onSet(prop, oldValue, value);
-            }
-            return true;
-        }
-    });
-}
+// export function createProxy<T extends Record<PropertyKey, unknown>>(
+//     target: T,
+//     onSet: (key: keyof T, oldValue: T[keyof T], newValue: T[keyof T]) => void
+// ): T
+// {
+//     return new Proxy(target, {
+//         set: (obj: T, prop: keyof T, value: T[keyof T]): boolean =>
+//         {
+//             if (obj[prop] !== value)
+//             {
+//                 const oldValue = obj[prop];
+//                 obj[prop] = value;
+//                 onSet(prop, oldValue, value);
+//             }
+//             return true;
+//         }
+//     });
+// }

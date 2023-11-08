@@ -1,5 +1,5 @@
 import createEmotion from '@emotion/css/create-instance';
-import type { BaseControl } from './builder2';
+import type { BaseControl } from './builder';
 
 let _id = 0;
 

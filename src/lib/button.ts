@@ -1,6 +1,5 @@
-import { Ctrl } from './builder';
-import { Control, css } from './control';
-import type { DiffSet } from './diff';
+import { BaseControl, Ctrl } from './builder';
+import { css } from './control';
 
 export enum ButtonFlag
 {
@@ -45,47 +44,9 @@ export default Ctrl({
         longPressTime: 500,
     },
     classes: ['button'],
-}, class extends Control<ButtonProps, ButtonEvent>
+}, class extends BaseControl<ButtonProps, ButtonEvent>
 {
-    // private _isDown = false;
-    // private _isToggled = false;
     private _longPressTimeout = 0;
-
-    // public get isToggle(): boolean
-    // {
-    //     return this.props.isToggle;
-    // }
-
-    // public set isToggle(value: boolean)
-    // {
-    //     this.props.isToggle = value;
-    // }
-
-    // public get isToggled(): boolean
-    // {
-    //     return this._isToggled;
-    // }
-
-    public set isToggled(value: boolean)
-    {
-        if (this.props.isToggle && this._isToggled !== value)
-        {
-            this._isToggled = value;
-            if (this._isToggled)
-            {
-                this.classList.add('toggled');
-            } else
-            {
-                this.classList.remove('toggled');
-            }
-            this.emit('toggle', { isToggled: this._isToggled });
-        }
-    }
-
-    // public get isDown()
-    // {
-    //     return this._isDown;
-    // }
 
     protected mount(): void
     {
@@ -93,8 +54,6 @@ export default Ctrl({
 
         this.addEventListener('mousedown', this.onMouseDown);
         this.addEventListener('mouseleave', this.onMouseLeave);
-
-        // this._isToggled = this.props.isToggled;
 
         if (this.props.isToggle && this.props.isToggled)
         {
@@ -116,7 +75,8 @@ export default Ctrl({
         }
 
         clearTimeout(this._longPressTimeout);
-        this.setProp('isDown', true);
+
+        this.props.isDown = true;
 
         this._longPressTimeout = setTimeout(() =>
         {
@@ -124,15 +84,11 @@ export default Ctrl({
         }, this.props.longPressTime) as unknown as number;
 
         window.addEventListener('mouseup', this.onMouseUp);
-
-        // this.classList.add(_css.down);
-        // this.emit('down');
     };
 
     protected onMouseUp = (e: MouseEvent) =>
     {
-        this.setProp('isDown', false);
-        // this._isDown = false;
+        this.props.isDown = false;
 
         clearTimeout(this._longPressTimeout);
         window.removeEventListener('mouseup', this.onMouseUp);
@@ -142,7 +98,7 @@ export default Ctrl({
         {
             this.emit('up');
 
-            this.isToggled = !this.isToggled;
+            this.props.isToggled = !this.props.isToggled;
         } else
         {
             this.emit('upOutside');
@@ -154,15 +110,38 @@ export default Ctrl({
         clearTimeout(this._longPressTimeout);
     };
 
-    protected onPropsChanged(diff: DiffSet<ButtonProps>): void
+    protected onPropChanged<K extends keyof ButtonProps>(name: K, oldValue: ButtonProps[K], newValue: ButtonProps[K]): void
     {
-        // eslint-disable-next-line no-debugger
-        if (diff.isDown.isModified && diff.isDown.oldValue === false)
+        const { props } = this;
+
+        switch (name)
         {
-            this.classList.add(_css.down);
-            this.emit('down');
+            case 'isDown':
+                if (newValue === true && oldValue === false)
+                {
+                    this.classList.add(_css.down);
+                    this.emit('down');
+                }
+                break;
+            case 'isToggled':
+                if (typeof newValue === 'boolean' && props.isToggle && props.isToggled !== newValue)
+                {
+                    props.isToggled = newValue;
+
+                    if (props.isToggled)
+                    {
+                        this.classList.add('toggled');
+                    } else
+                    {
+                        this.classList.remove('toggled');
+                    }
+
+                    this.emit('toggle', { isToggled: props.isToggled });
+                }
+                break;
         }
     }
+
 
     protected css(): string | void
     {
