@@ -3,7 +3,7 @@ import { createStyle, unregisterElement } from './stylesheet';
 import { toHyphenCase } from './util';
 
 /** ------- Types ------- */
-export type Constructor<T, PropsType = any> = new (props?: Partial<PropsType>) => T;
+export type Constructor<T, StateType = any> = new (state?: Partial<StateType>) => T;
 
 export interface CustomEventListener<T = any>
 {
@@ -17,35 +17,35 @@ export const attributeValidators: Record<string, AttributeValidator> = {
     boolean: (value) => { const val = String(value).toLowerCase(); return val === "true" || val === "false" },
 };
 
-export interface Descriptor<PropsType extends object>
+export interface Descriptor<StateType extends object>
 {
     tagName: string;
     classes?: string[];
-    props?: PropsType;
+    state?: StateType;
 }
 
 export type ControlMeta<
-    PropsType extends object,
+    StateType extends object,
 > = {
     fullTagName: string;
-    descriptor: Descriptor<PropsType>;
+    descriptor: Descriptor<StateType>;
 };
 
 let _id = 0;
 
 /** ------- BaseControl ------- */
 export class BaseControl<
-    PropsType extends object = object,
+    StateType extends object = object,
     EventsType = object,
 > extends HTMLElement
 {
     private _muteAttributeChanged = false;
-    protected _meta: ControlMeta<PropsType> = {} as ControlMeta<PropsType>;
+    protected _meta: ControlMeta<StateType> = {} as ControlMeta<StateType>;
     protected _id = String(_id++);
     protected _isMounted = false;
     protected _cssClass?: string;
     protected _shadowDom?: ShadowRoot;
-    protected _props: PropsType = {} as PropsType;
+    protected _state: StateType = {} as StateType;
 
     private _listeners: Map<string, CustomEventListener[]> = new Map();
 
@@ -78,8 +78,8 @@ export class BaseControl<
         return this._shadowDom;
     }
 
-    protected get props() {
-        return this as unknown as PropsType;
+    protected get state() {
+        return this as unknown as StateType;
     }
 
     protected connectedCallback()
@@ -171,16 +171,16 @@ export class BaseControl<
             return;
         }
 
-        if (name in this._props)
+        if (name in this._state)
         {
-            const propKey = name as keyof PropsType;
+            const propKey = name as keyof StateType;
 
             if (newValue === null)
             {
-                this._props[propKey] = this._meta.descriptor.props![name as keyof PropsType];
+                this._state[propKey] = this._meta.descriptor.state![name as keyof StateType];
             } else
             {
-                const type = typeof this._meta.descriptor.props![name as keyof PropsType];
+                const type = typeof this._meta.descriptor.state![name as keyof StateType];
 
                 const validator = attributeValidators[type];
 
@@ -195,13 +195,13 @@ export class BaseControl<
                 switch (type)
                 {
                     case 'number':
-                        this.props[propKey] = parseFloat(newValue) as PropsType[keyof PropsType];
+                        this.state[propKey] = parseFloat(newValue) as StateType[keyof StateType];
                         break;
                     case 'boolean':
-                        this.props[propKey] = (newValue.toLowerCase() === 'true') as PropsType[keyof PropsType];
+                        this.state[propKey] = (newValue.toLowerCase() === 'true') as StateType[keyof StateType];
                         break;
                     case 'string':
-                        this.props[propKey] = newValue as PropsType[keyof PropsType];
+                        this.state[propKey] = newValue as StateType[keyof StateType];
                 }
             }
 
@@ -212,7 +212,7 @@ export class BaseControl<
     protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null): false | void { /** override */ }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onPropChanged<K extends keyof PropsType>(name: K, oldValue: PropsType[K], newValue: PropsType[K]) { /** override */ }
+    protected onStateChanged<K extends keyof StateType>(name: K, oldValue: StateType[K], newValue: StateType[K]) { /** override */ }
 
     private listenersForType(type: string)
     {
@@ -231,6 +231,7 @@ export class BaseControl<
         ): this =>
         {
             const key = String(type);
+
             this.listenersForType(key).push(listener);
             this.addEventListener(key, listener as EventListenerOrEventListenerObject, options);
 
@@ -257,6 +258,7 @@ export class BaseControl<
             {
                 // remove listener
                 const index = listeners.indexOf(listener);
+                
                 if (index !== -1)
                 {
                     listeners.splice(index, 1);
@@ -310,16 +312,16 @@ export class BaseControl<
 export const tagPref = 'ctrl-';
 
 export function Ctrl<
-    PropsType extends object,
+    StateType extends object,
     EventsType,
 >(
-    descriptor: Descriptor<PropsType>,
-    ctor: Constructor<BaseControl<PropsType, EventsType>, PropsType>
+    descriptor: Descriptor<StateType>,
+    ctor: Constructor<BaseControl<StateType, EventsType>, StateType>
 )
 {
     type CtorType = typeof ctor;
 
-    const { tagName, props: descProps } = descriptor;
+    const { tagName, state: descProps } = descriptor;
     const fullTagName = tagPref + (tagName ?? toHyphenCase(ctor.name));
 
     if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
@@ -337,7 +339,7 @@ export function Ctrl<
 
     return class
     {
-        constructor(props: Partial<PropsType> = {})
+        constructor(state: Partial<StateType> = {})
         {
             // create element
             const element = document.createElement(fullTagName) as InstanceType<CtorType>;
@@ -349,33 +351,33 @@ export function Ctrl<
             };
 
             // install props
-            element['_props'] = {
+            element['_state'] = {
                 ...descProps,
-                ...props,
-            } as PropsType;
+                ...state,
+            } as StateType;
 
             /** Define the getters and setters based on props */
             if (descProps)
             {
                 for (const key of Object.keys(descProps))
                 {
-                    const propKey = key as keyof PropsType;
+                    const propKey = key as keyof StateType;
 
                     Object.defineProperty(element, key, {
                         get()
                         {
-                            return element['_props'][propKey];
+                            return element['_state'][propKey];
                         },
                         set(value: any)
                         {
-                            const oldValue = element['_props'][propKey];
+                            const oldValue = element['_state'][propKey];
                             if (element.hasAttribute(key)) {
                                 element['_muteAttributeChanged'] = true;
                                 element.setAttribute(key, String(value));
                                 element['_muteAttributeChanged'] = false;
                             }
-                            element['_props'][propKey] = value;
-                            element['onPropChanged'](propKey, oldValue, value);
+                            element['_state'][propKey] = value;
+                            element['onStateChanged'](propKey, oldValue, value);
                         }
                     });
                 }
@@ -384,5 +386,5 @@ export function Ctrl<
             // return element as ctor with props
             return element;
         }
-    } as unknown as new (props?: Partial<PropsType>) => InstanceType<CtorType> & PropsType;
+    } as unknown as new (state?: Partial<StateType>) => InstanceType<CtorType> & StateType;
 }

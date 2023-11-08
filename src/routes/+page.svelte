@@ -9,7 +9,7 @@
 	onMount(() => {
 		root = document.getElementById('root') as HTMLElement;
 
-		type TestProps = {
+		type TestState = {
 			prop1: string;
 			prop2: number;
 			prop3: boolean;
@@ -20,21 +20,21 @@
 			event1: { x: number };
 		}
 
-		class TestControl extends BaseControl<TestProps, TestEvents>
+		class TestControl extends BaseControl<TestState, TestEvents>
 		{
 			public test() {
-				this.props.prop3 = false;
+				this.state.prop3 = false;
 			}
 
-			protected onPropChanged(name: keyof { prop1: string; prop2: number; prop3: boolean; prop4: object; }, oldValue: any, newValue: any): void
+			protected onStateChanged(name: keyof { prop1: string; prop2: number; prop3: boolean; prop4: object; }, oldValue: any, newValue: any): void
 			{
 				console.log('onPropChanged', name, oldValue, newValue);
 			}
 		}
 
-		const CtrlTest = Ctrl<TestProps, TestEvents>({
+		const CtrlTest = Ctrl<TestState, TestEvents>({
 			tagName: 'test',
-			props: {
+			state: {
 				prop1: 'foo',
 				prop2: 123,
 				prop3: true,

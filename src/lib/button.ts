@@ -8,7 +8,7 @@ export enum ButtonFlag
     Right = 2
 }
 
-export interface ButtonProps
+export interface ButtonState
 {
     buttons: ButtonFlag;
     isDown: boolean;
@@ -37,7 +37,7 @@ function checkFlag(flag: number, mode: ButtonFlag): boolean
 
 export default Ctrl({
     tagName: 'button',
-    props: {
+    state: {
         buttons: ButtonFlag.Left,
         isDown: false,
         isToggle: false,
@@ -45,7 +45,7 @@ export default Ctrl({
         longPressTime: 500,
     },
     classes: ['button'],
-}, class extends BaseControl<ButtonProps, ButtonEvent>
+}, class extends BaseControl<ButtonState, ButtonEvent>
 {
     private _longPressTimeout = 0;
 
@@ -56,7 +56,7 @@ export default Ctrl({
         this.addEventListener('mousedown', this.onMouseDown);
         this.addEventListener('mouseleave', this.onMouseLeave);
 
-        if (this.props.isToggle && this.props.isToggled)
+        if (this.state.isToggle && this.state.isToggled)
         {
             this.classList.add('toggled');
         }
@@ -70,26 +70,26 @@ export default Ctrl({
 
     protected onMouseDown = (e: MouseEvent) =>
     {
-        if (!checkFlag(e.buttons, this.props.buttons))
+        if (!checkFlag(e.buttons, this.state.buttons))
         {
             return;
         }
 
         clearTimeout(this._longPressTimeout);
 
-        this.props.isDown = true;
+        this.state.isDown = true;
 
         this._longPressTimeout = setTimeout(() =>
         {
             this.emit('longPress');
-        }, this.props.longPressTime) as unknown as number;
+        }, this.state.longPressTime) as unknown as number;
 
         window.addEventListener('mouseup', this.onMouseUp);
     };
 
     protected onMouseUp = (e: MouseEvent) =>
     {
-        this.props.isDown = false;
+        this.state.isDown = false;
 
         clearTimeout(this._longPressTimeout);
         window.removeEventListener('mouseup', this.onMouseUp);
@@ -99,7 +99,7 @@ export default Ctrl({
         {
             this.emit('up');
 
-            this.props.isToggled = !this.props.isToggled;
+            this.state.isToggled = !this.state.isToggled;
         } else
         {
             this.emit('upOutside');
@@ -111,9 +111,9 @@ export default Ctrl({
         clearTimeout(this._longPressTimeout);
     };
 
-    protected onPropChanged<K extends keyof ButtonProps>(name: K, oldValue: ButtonProps[K], newValue: ButtonProps[K]): void
+    protected onStateChanged<K extends keyof ButtonState>(name: K, oldValue: ButtonState[K], newValue: ButtonState[K]): void
     {
-        const { props } = this;
+        const { state } = this;
 
         switch (name)
         {
@@ -125,11 +125,11 @@ export default Ctrl({
                 }
                 break;
             case 'isToggled':
-                if (typeof newValue === 'boolean' && props.isToggle && props.isToggled !== newValue)
+                if (typeof newValue === 'boolean' && state.isToggle && state.isToggled !== newValue)
                 {
-                    props.isToggled = newValue;
+                    state.isToggled = newValue;
 
-                    if (props.isToggled)
+                    if (state.isToggled)
                     {
                         this.classList.add(_css.toggled);
                     } else
@@ -137,7 +137,7 @@ export default Ctrl({
                         this.classList.remove(_css.toggled);
                     }
 
-                    this.emit('toggle', { isToggled: props.isToggled });
+                    this.emit('toggle', { isToggled: state.isToggled });
                 }
                 break;
         }
