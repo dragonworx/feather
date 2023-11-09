@@ -48,6 +48,13 @@ export function toHyphenCase(str: string): string
         .toLowerCase();
 }
 
+export function toCamelCase(str: string): string {
+    return str
+        .split('-')
+        .map((word, index) => index === 0 ? word : word[0].toUpperCase() + word.slice(1))
+        .join('');
+}
+
 export function randRgb()
 {
     return `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`;

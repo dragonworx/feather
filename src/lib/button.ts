@@ -25,7 +25,7 @@ export type ButtonEvent = {
     longPress: null;
 }
 
-const _css = {
+const cssClasses = {
     down: 'down',
     toggled: 'toggled',
 };
@@ -35,7 +35,7 @@ function checkFlag(flag: number, mode: ButtonFlag): boolean
     return (flag & mode) !== 0;
 }
 
-export default Ctrl({
+export default Ctrl<ButtonState, ButtonEvent>({
     tagName: 'button',
     state: {
         buttons: ButtonFlag.Left,
@@ -93,7 +93,7 @@ export default Ctrl({
         state.isDown = false;
 
         clearTimeout(this._longPressTimeout);
-        this.classList.remove(_css.down);
+        this.classList.remove(cssClasses.down);
         
         window.removeEventListener('mouseup', this.onMouseUp);
 
@@ -122,23 +122,16 @@ export default Ctrl({
             case 'isDown':
                 if (newValue === true && oldValue === false)
                 {
-                    this.classList.add(_css.down);
+                    this.classList.add(cssClasses.down);
                     this.emit('down');
                 }
                 break;
             case 'isToggled':
-                if (typeof newValue === 'boolean' && state.isToggle && state.isToggled !== newValue)
+                if (typeof newValue === 'boolean' && state.isToggle && oldValue !== newValue)
                 {
                     state.isToggled = newValue;
 
-                    if (state.isToggled)
-                    {
-                        this.classList.add(_css.toggled);
-                    } else
-                    {
-                        this.classList.remove(_css.toggled);
-                    }
-
+                    this.setClass(cssClasses.toggled, newValue);
                     this.emit('toggle', { isToggled: state.isToggled });
                 }
                 break;
@@ -149,14 +142,14 @@ export default Ctrl({
     protected css(): string | void
     {
         return css`
-            background: red;
+            background: #666;
 
-            &.${_css.down} {
+            &.${cssClasses.toggled} {
                 background: blue;
             }
 
-            &.${_css.toggled} {
-                background: blue;
+            &.${cssClasses.down} {
+                background: red;
             }
         `
     }
