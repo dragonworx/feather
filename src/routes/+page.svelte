@@ -2,8 +2,9 @@
 	import './forceHotReload';
 	import { onMount } from 'svelte';
 	
-	import {BaseControl, Ctrl} from '$lib/builder'
-	import Button from '../lib/button';
+	import {Ctrl} from '$lib/builder'
+	import Button from '$lib/button';
+	import { BaseControl } from '$lib/control';
 
 	let root: HTMLElement;
 

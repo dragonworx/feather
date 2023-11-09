@@ -1,5 +1,7 @@
-import { BaseControl, Ctrl } from './builder';
-import { css } from './util';
+import { Ctrl } from './builder';
+import { BaseControl } from './control';
+import { drag } from './draggable';
+import { checkFlag, css } from './util';
 
 export enum ButtonFlag
 {
@@ -29,11 +31,6 @@ const cssClasses = {
     down: 'down',
     toggled: 'toggled',
 };
-
-function checkFlag(flag: number, mode: ButtonFlag): boolean
-{
-    return (flag & mode) !== 0;
-}
 
 export default Ctrl<ButtonState, ButtonEvent>({
     tagName: 'button',
@@ -84,6 +81,12 @@ export default Ctrl<ButtonState, ButtonEvent>({
         this._longPressTimeout = setTimeout(() => this.emit('longPress'), state.longPressTime) as unknown as number;
 
         window.addEventListener('mouseup', this.onMouseUp);
+
+        drag({
+            onStart: (e) => console.log("drag start", e.xDelta, e.yDelta),
+            onMove: (e) => console.log("drag move", e.xDelta, e.yDelta),
+            onEnd: (e) => console.log("drag end", e.xDelta, e.yDelta),
+        })
     };
 
     protected onMouseUp = (e: MouseEvent) =>

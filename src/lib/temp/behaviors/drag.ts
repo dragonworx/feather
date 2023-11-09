@@ -8,6 +8,7 @@ export interface DragBehaviorOptions
 
 export interface DragBehaviorEvent
 {
+	sourceEvent: MouseEvent;
 	xDelta: number;
 	yDelta: number;
 }
