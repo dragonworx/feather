@@ -6,9 +6,9 @@ import { toCamelCase } from './util';
 let _id = 0;
 
 /** ------- BaseControl ------- */
-export class BaseControl<
-    StateType extends object = object,
-    EventsType = object,
+export abstract class BaseControl<
+    StateType,
+    EventsType,
 > extends HTMLElement
 {
     private _muteAttributeChanged = false;
@@ -56,7 +56,8 @@ export class BaseControl<
         }
     }
 
-    protected get meta() {
+    protected get meta()
+    {
         return (this.constructor as unknown as WithMeta)._meta;
     }
 
@@ -89,11 +90,12 @@ export class BaseControl<
         return this as unknown as StateType;
     }
 
-    private init() {
+    private init()
+    {
         const { classes, state } = this.meta.descriptor;
 
-         // install props
-         this['_state'] = {
+        // install props
+        this['_state'] = {
             ...state,
             ...this._initialState,
             ...this._state,
@@ -111,12 +113,13 @@ export class BaseControl<
         this.render();
         this.applyStyle();
 
-        installContextHook(this as unknown as BaseControl);
+        installContextHook(this as unknown as BaseControl<unknown, unknown>);
     }
 
-    private dispose() {
+    private dispose()
+    {
         this._isMounted = false;
-        uninstallContextHook(this as unknown as BaseControl);
+        uninstallContextHook(this as unknown as BaseControl<unknown, unknown>);
     }
 
     protected connectedCallback()
@@ -130,7 +133,7 @@ export class BaseControl<
         this.dispose();
         this.unmount();
 
-        unregisterElement(this as unknown as BaseControl, this._cssClass);
+        unregisterElement(this as unknown as BaseControl<unknown, unknown>, this._cssClass);
     }
 
     protected adoptedCallback()
@@ -164,7 +167,7 @@ export class BaseControl<
 
         if (cssText)
         {
-            this._cssClass = createStyle(cssText, this as unknown as BaseControl);
+            this._cssClass = createStyle(cssText, this as unknown as BaseControl<unknown, unknown>);
         }
     }
 
@@ -178,15 +181,18 @@ export class BaseControl<
         return
     }
 
-    protected setClass(cssClass: string, predicate: boolean) {
+    protected setClass(cssClass: string, predicate: boolean)
+    {
         if (predicate)
         {
-            if (!this.classList.contains(cssClass)) {
+            if (!this.classList.contains(cssClass))
+            {
                 this.classList.add(cssClass);
             }
         } else
         {
-            if (this.classList.contains(cssClass)) {
+            if (this.classList.contains(cssClass))
+            {
                 this.classList.remove(cssClass);
             }
         }
@@ -206,89 +212,64 @@ export class BaseControl<
         return this._listeners.get(type)!;
     }
 
-    public on = (<T extends EventsType>() =>
-        <E extends keyof T>(
-            type: E | keyof HTMLElementEventMap,
-            listener: CustomEventListener<T[E]>,
-            options?: boolean | AddEventListenerOptions
-        ): this =>
+    public on<K extends keyof (EventsType | HTMLElementEventMap)>(event: K, listener: CustomEventListener<T[E]>, options?: boolean | AddEventListenerOptions)
+    {
+        this.listenersForType(event).push(listener);
+        this.addEventListener(event, listener as EventListenerOrEventListenerObject, options);
+    }
+
+    public off<K extends keyof (EventsType | HTMLElementEventMap)>(key: K, listener?: CustomEventListener<T[E]>, options?: boolean | AddEventListenerOptions)
+    {
+        if (!this._listeners.has(key))
         {
-            const key = String(type);
-
-            this.listenersForType(key).push(listener);
-            this.addEventListener(key, listener as EventListenerOrEventListenerObject, options);
-
             return this;
-        })();
+        }
 
-    public off = (<T extends EventsType>() =>
-        <E extends keyof T>(
-            type: E | keyof HTMLElementEventMap,
-            listener: CustomEventListener<T[E]>,
-            options?: boolean | AddEventListenerOptions
-        ): this =>
+        const listeners = this.listenersForType(key);
+
+        if (listener)
         {
-            const key = String(type);
+            // remove listener
+            const index = listeners.indexOf(listener);
 
-            if (!this._listeners.has(key))
+            if (index !== -1)
             {
-                return this;
+                listeners.splice(index, 1);
             }
 
-            const listeners = this.listenersForType(key);
-
-            if (listener)
+            if (listeners.length === 0)
             {
-                // remove listener
-                const index = listeners.indexOf(listener);
-
-                if (index !== -1)
-                {
-                    listeners.splice(index, 1);
-                }
-
-                if (listeners.length === 0)
-                {
-                    this._listeners.delete(key);
-                }
-
-                this.removeEventListener(
-                    key,
-                    listener as EventListenerOrEventListenerObject,
-                    options
-                );
-            } else
-            {
-                // remove all
-                for (const l of listeners)
-                {
-                    this.removeEventListener(key, l as EventListenerOrEventListenerObject, options);
-                }
-
                 this._listeners.delete(key);
             }
 
-            return this;
-        })();
-
-    public emit = (<T extends EventsType>() =>
-        <E extends keyof T>(
-            type: E,
-            detail?: T[E] extends object ? T[E] : (T[E] extends null ? null : object)
-        ): this =>
-        {
-            const key = String(type);
-
-            this.dispatchEvent(
-                new CustomEvent(key, {
-                    detail,
-                    bubbles: true,
-                    cancelable: true
-                })
+            this.removeEventListener(
+                key,
+                listener as EventListenerOrEventListenerObject,
+                options
             );
+        } else
+        {
+            // remove all
+            for (const l of listeners)
+            {
+                this.removeEventListener(key, l as EventListenerOrEventListenerObject, options);
+            }
 
-            return this;
-        })();
+            this._listeners.delete(key);
+        }
+    }
+
+
+    public emit<K extends keyof EventsType>(event: K, detail?: EventsType[K]): void
+    {
+        this.dispatchEvent(
+            new CustomEvent(String(event), {
+                detail,
+                bubbles: true,
+                cancelable: true
+            })
+        );
+    }
 
     protected attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null)
     {
@@ -298,7 +279,7 @@ export class BaseControl<
         }
 
         const stateKey = toCamelCase(name);
-        
+
         console.log(`${this.fullTagName}.attributeChangedCallback`, `${name}=${stateKey}`, oldValue, newValue);
 
         if (this.onAttributeChanged(stateKey, oldValue, newValue) === false)
@@ -344,10 +325,10 @@ export class BaseControl<
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null): false | void { /** override */ }
+    protected onAttributeChanged(name: string, oldValue: string | null, newValue: string | null): false | void { }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onStateChanged<K extends keyof StateType>(name: K, oldValue: StateType[K], newValue: StateType[K]) { /** override */ }
+    protected onStateChanged(name: string, oldValue: unknown, newValue: unknown): void { }
 
     protected onContext(e: MouseEvent)
     {

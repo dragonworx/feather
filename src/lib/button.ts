@@ -10,7 +10,7 @@ export enum ButtonFlag
     Right = 2
 }
 
-export interface ButtonState
+export type ButtonState =
 {
     buttons: ButtonFlag;
     isDown: boolean;
@@ -18,6 +18,14 @@ export interface ButtonState
     isToggled: boolean;
     longPressTime: number;
 }
+
+export const defaultButtonState: ButtonState = {
+    buttons: ButtonFlag.Left,
+    isDown: false,
+    isToggle: false,
+    isToggled: false,
+    longPressTime: 500,
+};
 
 export type ButtonEvent = {
     down: null;
@@ -27,12 +35,15 @@ export type ButtonEvent = {
     longPress: null;
 }
 
+export type ButtonCompositeState<S> = S & ButtonState;
+export type ButtonCompositeEvent<E> = E & ButtonEvent;
+
 const cssClasses = {
     down: 'down',
     toggled: 'toggled',
 };
 
-export class Button extends BaseControl<ButtonState, ButtonEvent>
+export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> extends BaseControl<ButtonCompositeState<S>, ButtonCompositeEvent<E>>
 {
     private _longPressTimeout = 0;
 
@@ -150,12 +161,6 @@ export class Button extends BaseControl<ButtonState, ButtonEvent>
 
 export default Ctrl<ButtonState, ButtonEvent>({
     tagName: 'button',
-    state: {
-        buttons: ButtonFlag.Left,
-        isDown: false,
-        isToggle: false,
-        isToggled: false,
-        longPressTime: 500,
-    },
+    state: defaultButtonState,
     classes: ['button'],
 }, Button);
