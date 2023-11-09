@@ -39,7 +39,7 @@ export const tagPref = 'ctrl-';
 
 export function Ctrl<
     StateType extends object,
-    EventsType,
+    EventsType extends object = object,
 >(
     descriptor: Descriptor<StateType>,
     ctor: Constructor<BaseControl<StateType, EventsType>, StateType>

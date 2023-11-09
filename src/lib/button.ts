@@ -32,17 +32,7 @@ const cssClasses = {
     toggled: 'toggled',
 };
 
-export default Ctrl<ButtonState, ButtonEvent>({
-    tagName: 'button',
-    state: {
-        buttons: ButtonFlag.Left,
-        isDown: false,
-        isToggle: false,
-        isToggled: false,
-        longPressTime: 500,
-    },
-    classes: ['button'],
-}, class extends BaseControl<ButtonState, ButtonEvent>
+export class Button extends BaseControl<ButtonState, ButtonEvent>
 {
     private _longPressTimeout = 0;
 
@@ -156,4 +146,16 @@ export default Ctrl<ButtonState, ButtonEvent>({
             }
         `
     }
-});
+}
+
+export default Ctrl<ButtonState, ButtonEvent>({
+    tagName: 'button',
+    state: {
+        buttons: ButtonFlag.Left,
+        isDown: false,
+        isToggle: false,
+        isToggled: false,
+        longPressTime: 500,
+    },
+    classes: ['button'],
+}, Button);
