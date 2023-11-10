@@ -31,13 +31,18 @@
 
 <div use:foo={{x:1}} on:emit={e => console.log(e.detail.y)}>
     <slot/>
+    <p>hey</p>
 </div>
 
-<style>
+<style lang="scss">
     div {
         position: relative;
         background-color: red;
         width: 100px;
         height: 100px;
+
+        p {
+            color: blue;
+        }
     }
 </style>

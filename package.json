@@ -64,6 +64,8 @@
 	"type": "module",
 	"dependencies": {
 		"@emotion/css": "^11.11.2",
-		"node-sass": "^9.0.0"
+		"node-sass": "^9.0.0",
+		"sass": "^1.69.5",
+		"svelte-preprocess": "^5.1.0"
 	}
 }
