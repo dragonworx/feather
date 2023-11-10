@@ -1,14 +1,8 @@
 <script lang="ts">
-	import { drag, type DragOptions } from '../actions/drag';
+	import { drag } from '../actions/drag';
 </script>
 
-<div
-	use:drag={{
-		onStart() {
-			console.log('!');
-		}
-	}}
->
+<div use:drag on:drag-start={() => console.log('begin')}>
 	<slot />
 </div>
 

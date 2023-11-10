@@ -3,12 +3,12 @@ import type { ActionReturn } from 'svelte/action';
 
 type Props = DragOptions;
 
-type Event = {
-    y: number;
-};
+// type Event = {
+//     y: number;
+// };
 
 type Attributes = {
-    'on:emit'?: (e: CustomEvent<Event>) => void;
+    'on:drag-start'?: (e: CustomEvent<DraggableEvent>) => void;
 }
 
 export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attributes>
@@ -22,7 +22,7 @@ export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attr
         onStart(e)
         {
             props?.onStart?.(e);
-            node.dispatchEvent(new CustomEvent('emit', { detail: { y: 5 } }));
+            node.dispatchEvent(new CustomEvent('drag-start', { detail: e }));
         },
         onMove(e)
         {
