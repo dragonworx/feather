@@ -34,36 +34,44 @@ export function drag(options: Partial<DragOptions>) {
      const { startX, startY, xDistThreshold, yDistThreshold, onStart, onMove, onEnd } = opts;
 
     let isActive = false;
-    let xDelta = 0;
-    let yDelta = 0;
+    let xStart = 0;
+    let yStart = 0;
 
-    function isActiveDelta(xDelta: number, yDelta: number): boolean
+    function isActiveDelta(e: MouseEvent): boolean
 	{
+        const { xDelta, yDelta } = getDelta(e);
 		return Math.abs(xDelta) > xDistThreshold || Math.abs(yDelta) > yDistThreshold;
 	}
 
+    function getDelta(e: MouseEvent) {
+        return {
+            xDelta: e.clientX - xStart + startX,
+            yDelta: e.clientY - yStart + startY,
+        };
+    }
+
     function onMouseMove(e: MouseEvent) {
         if (!isActive) {
-            xDelta = e.clientX - startX;
-            yDelta = e.clientY - startY;
-
-            if (isActiveDelta(xDelta, yDelta)) {
-                onStart({ sourceEvent: e, xDelta, yDelta });
+            // check for move delta threshold
+            if (isActiveDelta(e)) {
+                // start
                 isActive = true;
+                xStart = e.clientX;
+                yStart = e.clientY;
+
+                onStart({ sourceEvent: e, ...getDelta(e) });
             }
         } else {
-            xDelta = e.clientX - startX;
-            yDelta = e.clientY - startY;
+            // move
+            onMove({ sourceEvent: e, ...getDelta(e) });
         }
-
-        onMove({ sourceEvent: e, xDelta, yDelta });
     }
 
     function onMouseUp(e: MouseEvent) {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
 
-        onEnd({ sourceEvent: e, xDelta, yDelta });
+        onEnd({ sourceEvent: e, ...getDelta(e) });
     }
 
     window.addEventListener('mousemove', onMouseMove);

@@ -1,4 +1,7 @@
 @mixin control {
+	display: flex;
+	align-items: center;
+    justify-content: center;
 	color: white;
 	background: #666;
 	box-sizing: border-box;

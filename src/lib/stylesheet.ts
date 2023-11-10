@@ -1,5 +1,5 @@
 import createEmotion from '@emotion/css/create-instance';
-import type { BaseControl } from './builder';
+import type { BaseControl } from './control';
 
 let _id = 0;
 
@@ -133,7 +133,6 @@ class CssCache
 const cache = new CssCache();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(window as any).sheets = cache;
 
 export function unregisterElement(element: BaseControl, currentClassName?: string)
 {

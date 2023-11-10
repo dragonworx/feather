@@ -1,7 +1,7 @@
 import { Ctrl } from './builder';
 import { BaseControl } from './control';
 import { drag } from './draggable';
-import { checkFlag, css } from './util';
+import { checkFlag } from './util';
 
 export enum ButtonFlag
 {
@@ -141,26 +141,10 @@ export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> 
                 break;
         }
     }
-
-
-    protected css(): string | void
-    {
-        return css`
-            background: #666;
-
-            &.${cssClasses.toggled} {
-                background: blue;
-            }
-
-            &.${cssClasses.down} {
-                background: red;
-            }
-        `
-    }
 }
 
 export default Ctrl<ButtonState, ButtonEvent>({
     tagName: 'button',
     state: defaultButtonState,
-    classes: ['button'],
+    classes: ['control', 'button'],
 }, Button);

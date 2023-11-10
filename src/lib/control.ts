@@ -1,4 +1,4 @@
-import { type CustomEventListener, type WithMeta, attributeValidators } from './builder';
+import { type CustomEventListener, type WithMeta, attributeValidators, prefixes } from './builder';
 import { installContextHook, uninstallContextHook } from './contextMenu';
 import { unregisterElement, createStyle } from './stylesheet';
 import { toCamelCase } from './util';
@@ -7,8 +7,8 @@ let _id = 0;
 
 /** ------- BaseControl ------- */
 export abstract class BaseControl<
-    StateType,
-    EventsType,
+    StateType = object,
+    EventsType = object,
 > extends HTMLElement
 {
     private _muteAttributeChanged = false;
@@ -101,6 +101,10 @@ export abstract class BaseControl<
             ...this._state,
         } as StateType;
 
+        if (prefixes.css) {
+            this.classList.add(prefixes.css);
+        }
+
         if (classes)
         {
             this.classList.add(...classes);
@@ -113,13 +117,13 @@ export abstract class BaseControl<
         this.render();
         this.applyStyle();
 
-        installContextHook(this as unknown as BaseControl<unknown, unknown>);
+        installContextHook(this as unknown as BaseControl);
     }
 
     private dispose()
     {
         this._isMounted = false;
-        uninstallContextHook(this as unknown as BaseControl<unknown, unknown>);
+        uninstallContextHook(this as unknown as BaseControl);
     }
 
     protected connectedCallback()
@@ -133,7 +137,7 @@ export abstract class BaseControl<
         this.dispose();
         this.unmount();
 
-        unregisterElement(this as unknown as BaseControl<unknown, unknown>, this._cssClass);
+        unregisterElement(this as unknown as BaseControl, this._cssClass);
     }
 
     protected adoptedCallback()
@@ -167,7 +171,7 @@ export abstract class BaseControl<
 
         if (cssText)
         {
-            this._cssClass = createStyle(cssText, this as unknown as BaseControl<unknown, unknown>);
+            this._cssClass = createStyle(cssText, this as unknown as BaseControl);
         }
     }
 

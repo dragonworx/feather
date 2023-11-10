@@ -1,9 +1,9 @@
-/* Debug */
 /* Button */
-/* List */
 /* Checkbox */
-/* Panel */
-.ctl-control {
+.ctrl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
   background: #666;
   box-sizing: border-box;
@@ -11,12 +11,7 @@
   font-size: 11px;
   user-select: none;
   transition: opacity 150ms ease-in-out, background 150ms ease-in-out; }
-  .ctl-control.ctl-debug {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    outline: 1px dotted white; }
-  .ctl-control.ctl-button {
+  .ctrl.button {
     border-top: 1px solid #ccc;
     border-left: 1px solid #ccc;
     border-right: 1px solid #999;
@@ -24,78 +19,35 @@
     border-radius: 3px;
     width: 50px;
     height: 20px; }
-    .ctl-control.ctl-button.disabled {
+    .ctrl.button.disabled {
       opacity: 0.35;
       color: #ccc;
       font-style: italic; }
-    .ctl-control.ctl-button.down label, .ctl-control.ctl-button.toggled label {
+    .ctrl.button.down label, .ctrl.button.toggled label {
       position: relative;
       left: 1px;
       top: 1px; }
-    .ctl-control.ctl-button.down {
+    .ctrl.button.down {
       background: #444; }
-    .ctl-control.ctl-button.toggled {
+    .ctrl.button.toggled {
       background: #555; }
-    .ctl-control.ctl-button.down.toggled {
+    .ctrl.button.down.toggled {
       background: #333; }
-  .ctl-control.ctl-list {
-    list-style: none;
-    margin: 0;
-    padding: 0; }
-    .ctl-control.ctl-list .list-item {
-      text-align: center; }
-  .ctl-control.ctl-checkbox {
+  .ctrl.checkbox {
     border: 1px outset #ccc;
     border-radius: 3px;
     width: 20px;
     height: 20px; }
-    .ctl-control.ctl-checkbox svg {
+    .ctrl.checkbox svg {
       position: relative;
       left: -1px;
       top: -1px;
       fill: white; }
-    .ctl-control.ctl-checkbox.down svg, .ctl-control.ctl-checkbox.toggled svg {
+    .ctrl.checkbox.down svg, .ctrl.checkbox.toggled svg {
       left: 0px;
       top: 0px; }
-    .ctl-control.ctl-checkbox.down {
+    .ctrl.checkbox.down {
       background: #444;
       opacity: 0.5; }
-    .ctl-control.ctl-checkbox.toggled {
+    .ctrl.checkbox.toggled {
       background: #555; }
-  .ctl-control.ctl-panel {
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    padding: 5px;
-    margin: 5px;
-    display: flex;
-    flex-wrap: nowrap; }
-    .ctl-control.ctl-panel.vertical {
-      flex-direction: column; }
-    .ctl-control.ctl-panel.horizontal {
-      flex-direction: row; }
-    .ctl-control.ctl-panel.wrap {
-      flex-wrap: wrap; }
-    .ctl-control.ctl-panel.justify-start {
-      justify-content: flex-start; }
-    .ctl-control.ctl-panel.justify-end {
-      justify-content: flex-end; }
-    .ctl-control.ctl-panel.justify-center {
-      justify-content: center; }
-    .ctl-control.ctl-panel.justify-space-around {
-      justify-content: space-around; }
-    .ctl-control.ctl-panel.justify-space-between {
-      justify-content: space-between; }
-    .ctl-control.ctl-panel.justify-space-evenly {
-      justify-content: space-between; }
-    .ctl-control.ctl-panel.justify-stretch {
-      justify-content: stretch; }
-    .ctl-control.ctl-panel.align-start {
-      align-items: flex-start; }
-    .ctl-control.ctl-panel.align-end {
-      align-items: flex-end; }
-    .ctl-control.ctl-panel.align-center {
-      align-items: center; }
-    .ctl-control.ctl-panel.align-baseline {
-      align-items: baseline; }
-    .ctl-control.ctl-panel.align-stretch {
-      align-items: stretch; }

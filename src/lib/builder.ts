@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { BaseControl } from './control';
-import { toHyphenCase } from './util';
+import { isValidTagName, toHyphenCase } from './util';
 
 /** ------- Types ------- */
 export type Constructor<T, StateType = any> = new (state?: Partial<StateType>) => T;
@@ -34,9 +34,32 @@ export type ControlMeta<
     descriptor: Descriptor<StateType>;
 };
 
-/** ------- Ctrl ------- */
-export const tagPref = 'ctrl-';
+/** ------- Prefixes ------- */
+type Prefixes = {
+    tag: string;
+    css: string;
+};
 
+export const prefixes: Prefixes = {
+    tag: 'ctrl',
+    css: 'ctrl',
+};
+
+export function getPrefix(k: keyof Prefixes): string {
+    return prefixes[k];
+}
+
+export function setPrefix(k: keyof Prefixes, v: string): void {
+    if (v.trim().length) {
+        prefixes[k] = v;
+    }
+}
+
+export function applyPrefix(k: keyof Prefixes, v: string): string {
+    return `${getPrefix(k)}-${v}`.replace(/^-/, '');
+}
+
+/** ------- Ctrl ------- */
 export function Ctrl<
     StateType extends object,
     EventsType extends object = object,
@@ -48,9 +71,9 @@ export function Ctrl<
     type CtorType = typeof ctor;
 
     const { tagName, state: descState } = descriptor;
-    const fullTagName = tagPref + (tagName ?? toHyphenCase(ctor.name));
+    const fullTagName = [prefixes.tag, (tagName ?? toHyphenCase(ctor.name))].join('-');
 
-    if (fullTagName.endsWith('-') || fullTagName.startsWith('-'))
+    if (!isValidTagName(fullTagName))
     {
         throw new Error(`Invalid tag name: ${fullTagName}`)
     }
