@@ -5,10 +5,10 @@ export type ButtonState = InteractiveControlState & {
     label: string;
 }
 
-type CompositeState<S> = S & ButtonState;
-type CompositeEvent<E> = E & InteractiveControlEvent;
-
-export class Button<S, E = InteractiveControlEvent> extends InteractiveControl<CompositeState<S>, CompositeEvent<E>> {
+export class Button<S, E = InteractiveControlEvent> extends InteractiveControl<
+    S & ButtonState, 
+    E & InteractiveControlEvent
+> {
     protected html(): string | void
     {
         const {label} = this.state;

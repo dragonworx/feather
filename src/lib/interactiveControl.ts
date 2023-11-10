@@ -34,9 +34,6 @@ export type InteractiveControlEvent = {
     longPress: null;
 }
 
-type CompositeState<S> = S & InteractiveControlState;
-type CompositeEvent<E> = E & InteractiveControlEvent;
-
 const cssClasses = {
     down: 'down',
     toggled: 'toggled',
@@ -46,7 +43,10 @@ export abstract class InteractiveControl<
     S extends InteractiveControlState,
     E extends InteractiveControlEvent = InteractiveControlEvent
 > 
-extends BaseControl<CompositeState<S>, CompositeEvent<E>>
+extends BaseControl<
+    S & InteractiveControlState,
+    E & InteractiveControlEvent
+>
 {
     private _longPressTimeout = 0;
 

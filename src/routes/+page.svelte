@@ -6,6 +6,6 @@
 </script>
 
 <main id="root">
-	<ctrl-button is-toggle="true">Foo</ctrl-button>
+	<ctrl-button is-toggle="true" label="Foo" />
 	<ctrl-checkbox />
 </main>
