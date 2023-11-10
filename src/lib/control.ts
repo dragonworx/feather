@@ -122,6 +122,7 @@ export abstract class BaseControl<
         this._isMounted = true;
 
         this.render();
+
         this.applyStyle();
 
         installContextHook(this as unknown as BaseControl);

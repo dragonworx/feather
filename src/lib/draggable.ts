@@ -77,7 +77,9 @@ export function drag(options: Partial<DragOptions>) {
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
 
-        onEnd({ sourceEvent: e, ...getDelta(e) });
+        if (hasStarted) {
+            onEnd({ sourceEvent: e, ...getDelta(e) });
+        }
     }
 
     window.addEventListener('mousemove', onMouseMove);

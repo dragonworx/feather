@@ -1,4 +1,4 @@
-import { Ctrl } from './builder';
+import { Ctrl, type Descriptor } from './builder';
 import { BaseControl } from './control';
 import { drag } from './draggable';
 import { checkFlag } from './util';
@@ -12,20 +12,13 @@ export enum ButtonFlag
 
 export type ButtonState =
 {
+    label: string;
     buttons: ButtonFlag;
     isDown: boolean;
     isToggle: boolean;
     isToggled: boolean;
     longPressTime: number;
 }
-
-export const defaultButtonState: ButtonState = {
-    buttons: ButtonFlag.Left,
-    isDown: false,
-    isToggle: false,
-    isToggled: false,
-    longPressTime: 500,
-};
 
 export type ButtonEvent = {
     down: null;
@@ -46,6 +39,12 @@ const cssClasses = {
 export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> extends BaseControl<ButtonCompositeState<S>, ButtonCompositeEvent<E>>
 {
     private _longPressTimeout = 0;
+
+    protected html(): string | void
+    {
+        const {label} = this.state;
+        return label ? `<label>${this.state.label}</label>` : void 0;
+    }
 
     protected mount(): void
     {
@@ -161,9 +160,18 @@ export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> 
     }
 }
 
-export default Ctrl<ButtonState, ButtonEvent>({
+export const descriptor: Descriptor<ButtonState> = {
     tagName: 'button',
-    state: defaultButtonState,
+    state: {
+        label: '',
+        buttons: ButtonFlag.Left,
+        isDown: false,
+        isToggle: false,
+        isToggled: false,
+        longPressTime: 500,
+    },
     classes: ['control', 'button'],
     isTabbable: true,
-}, Button);
+};
+
+export default Ctrl<ButtonState, ButtonEvent>(descriptor, Button);

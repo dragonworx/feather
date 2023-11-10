@@ -20,12 +20,13 @@
     border-bottom: 1px solid #999;
     border-radius: 3px;
     width: 50px;
-    height: 20px; }
+    height: 20px;
+    position: relative; }
     .ctrl.button.disabled {
       opacity: 0.35;
       color: #ccc;
       font-style: italic; }
-    .ctrl.button.down label, .ctrl.button.toggled label {
+    .ctrl.button.down *, .ctrl.button.toggled * {
       position: relative;
       left: 1px;
       top: 1px; }
@@ -35,6 +36,15 @@
       background: #555; }
     .ctrl.button.down.toggled {
       background: #333; }
+    .ctrl.button label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center; }
   .ctrl.checkbox {
     border: 1px outset #ccc;
     border-radius: 3px;
@@ -42,14 +52,6 @@
     height: 20px; }
     .ctrl.checkbox svg {
       position: relative;
-      left: -1px;
-      top: -1px;
       fill: white; }
-    .ctrl.checkbox.down svg, .ctrl.checkbox.toggled svg {
-      left: 0px;
-      top: 0px; }
     .ctrl.checkbox.down {
-      background: #444;
       opacity: 0.5; }
-    .ctrl.checkbox.toggled {
-      background: #555; }
