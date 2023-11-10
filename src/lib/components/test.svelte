@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Action, ActionReturn } from 'svelte/action';
-    import {drag} from '../lib/draggable';
+    import {drag} from '../draggable';
 
     type Parameter = { x: number };
     type Event = { y: number };
@@ -35,7 +35,7 @@
 </div>
 
 <style lang="scss">
-    @import '../sass/test.scss';
+    @import '../../sass/test.scss';
 
     div {
         position: relative;
