@@ -1,9 +1,8 @@
 import { Ctrl } from './builder';
-import { Button, descriptor as buttonDescriptor, type ButtonState } from './button';
+import { Button, type ButtonState, descriptor as buttonDescriptor } from './button';
 
 export type CheckboxState = ButtonState &
 {
-	label: string;
 	isChecked: boolean;
 }
 
@@ -19,7 +18,6 @@ export default Ctrl<CheckboxState>({
 	state: {
 		...buttonDescriptor.state!,
 		isToggle: true,
-		label: '',
 		isChecked: false,
 	},
 	classes: [...buttonDescriptor.classes!, 'checkbox'],
