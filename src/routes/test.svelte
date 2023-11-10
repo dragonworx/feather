@@ -35,6 +35,8 @@
 </div>
 
 <style lang="scss">
+    @import '../sass/test.scss';
+
     div {
         position: relative;
         background-color: red;
@@ -43,6 +45,7 @@
 
         p {
             color: blue;
+            @include test;
         }
     }
 </style>
