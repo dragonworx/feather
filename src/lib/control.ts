@@ -212,20 +212,22 @@ export abstract class BaseControl<
         return this._listeners.get(type)!;
     }
 
-    public on<K extends keyof (EventsType | HTMLElementEventMap)>(event: K, listener: CustomEventListener<T[E]>, options?: boolean | AddEventListenerOptions)
+    public on<K extends keyof EventsType>(event: K, listener: CustomEventListener<EventsType[K]>, options?: boolean | AddEventListenerOptions)
     {
-        this.listenersForType(event).push(listener);
-        this.addEventListener(event, listener as EventListenerOrEventListenerObject, options);
+        const k = String(event);
+        this.listenersForType(k).push(listener);
+        this.addEventListener(k, listener as EventListenerOrEventListenerObject, options);
     }
 
-    public off<K extends keyof (EventsType | HTMLElementEventMap)>(key: K, listener?: CustomEventListener<T[E]>, options?: boolean | AddEventListenerOptions)
+    public off<K extends keyof EventsType>(key: K, listener?: CustomEventListener<EventsType[K]>, options?: boolean | AddEventListenerOptions)
     {
-        if (!this._listeners.has(key))
+        const k = String(event);
+        if (!this._listeners.has(k))
         {
             return this;
         }
 
-        const listeners = this.listenersForType(key);
+        const listeners = this.listenersForType(k);
 
         if (listener)
         {
@@ -239,11 +241,11 @@ export abstract class BaseControl<
 
             if (listeners.length === 0)
             {
-                this._listeners.delete(key);
+                this._listeners.delete(k);
             }
 
             this.removeEventListener(
-                key,
+                k,
                 listener as EventListenerOrEventListenerObject,
                 options
             );
@@ -252,21 +254,20 @@ export abstract class BaseControl<
             // remove all
             for (const l of listeners)
             {
-                this.removeEventListener(key, l as EventListenerOrEventListenerObject, options);
+                this.removeEventListener(k, l as EventListenerOrEventListenerObject, options);
             }
 
-            this._listeners.delete(key);
+            this._listeners.delete(k);
         }
     }
 
 
-    public emit<K extends keyof EventsType>(event: K, detail?: EventsType[K]): void
+    public emit<K extends keyof EventsType>(event: K, detail?: EventsType[K], options?: Omit<CustomEventInit<EventsType[K]>, 'detail'>): void
     {
         this.dispatchEvent(
             new CustomEvent(String(event), {
                 detail,
-                bubbles: true,
-                cancelable: true
+                ...options
             })
         );
     }

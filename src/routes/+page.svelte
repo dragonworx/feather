@@ -4,6 +4,7 @@
 	
 	import {Ctrl} from '$lib/builder'
 	import Button from '$lib/button';
+	import Checkbox from '$lib/checkbox';
 	import { BaseControl } from '$lib/control';
 
 	let root: HTMLElement;
@@ -44,23 +45,27 @@
 			},
 		}, TestControl);
 		
-		// const test = new CtrlTest({
-		// 	prop1: 'bar',
-		// });
-		// test.prop1 = 'boo';
-		// test.prop4 = { a: 5 };
-		// test.on('event1', (evt) => {console.log('event1', evt.detail.x)}); // <-- this should work, events are strongly typed
-		// setTimeout(() => {
-		// 	test.emit('event1', { x: 123 });
-		// }, 1000);
+		const test = new CtrlTest({
+			prop1: 'bar',
+		});
+		test.prop1 = 'boo';
+		test.prop4 = { a: 5 };
+		test.on('event1', (evt) => {console.log('event1', evt.detail.x)});
+		
+		setTimeout(() => {
+			test.emit('event1', { x: 123 });
+		}, 1000);
 
-		// (window as any).test = test;
-		// console.log(test);
+		(window as any).test = test;
+		console.log(test);
 
-		// root.appendChild(test);
+		root.appendChild(test);
+
+
 	});
 </script>
 
 <main id="root">
+	<ctrl-checkbox>Check</ctrl-checkbox>
 	<ctrl-button is-toggle="true">Click</ctrl-button>
 </main>
