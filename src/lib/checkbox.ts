@@ -23,4 +23,5 @@ export default Ctrl<CheckboxState>({
 		isChecked: false,
 	},
 	classes: ['control', 'checkbox'],
+	isTabbable: true,
 }, Checkbox);

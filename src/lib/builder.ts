@@ -21,8 +21,9 @@ export const attributeValidators: Record<string, AttributeValidator> = {
 export interface Descriptor<StateType extends object>
 {
     tagName: string;
-    classes?: string[];
     state?: StateType;
+    classes?: string[];
+    isTabbable?: boolean;
 }
 
 export type WithMeta = { _meta: ControlMeta<any> };

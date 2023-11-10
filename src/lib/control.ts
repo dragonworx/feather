@@ -92,7 +92,7 @@ export abstract class BaseControl<
 
     private init()
     {
-        const { classes, state } = this.meta.descriptor;
+        const { classes, state, isTabbable } = this.meta.descriptor;
 
         // install props
         this['_state'] = {
@@ -101,6 +101,7 @@ export abstract class BaseControl<
             ...this._state,
         } as StateType;
 
+        // setup css
         if (prefixes.css) {
             this.classList.add(prefixes.css);
         }
@@ -110,6 +111,12 @@ export abstract class BaseControl<
             this.classList.add(...classes);
         }
 
+        // setup attributes
+        if (isTabbable) {
+            this.setAttribute('tabindex', '0');
+        }
+
+        // debug
         this.setAttribute('ctrl-id', this.controlId);
 
         this._isMounted = true;

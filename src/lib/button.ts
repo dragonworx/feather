@@ -53,6 +53,8 @@ export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> 
 
         this.addEventListener('mousedown', this.onMouseDown);
         this.addEventListener('mouseleave', this.onMouseLeave);
+        this.addEventListener('keydown', this.onKeyDown);
+        this.addEventListener('keyup', this.onKeyUp);
 
         if (state.isToggle && state.isToggled)
         {
@@ -66,11 +68,11 @@ export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> 
         this.removeEventListener('mouseleave', this.onMouseLeave);
     }
 
-    protected onMouseDown = (e: MouseEvent) =>
+    protected onMouseDown = (e: MouseEvent, force = false) =>
     {
         const { state } = this;
 
-        if (!checkFlag(e.buttons, state.buttons))
+        if (!force && !checkFlag(e.buttons, state.buttons))
         {
             return;
         }
@@ -81,13 +83,15 @@ export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> 
 
         this._longPressTimeout = setTimeout(() => this.emit('longPress'), state.longPressTime) as unknown as number;
 
-        window.addEventListener('mouseup', this.onMouseUp);
+        if (!force) {
+            window.addEventListener('mouseup', this.onMouseUp);
 
-        drag({
-            onStart: (e) => console.log("drag start", e.xDelta, e.yDelta),
-            onMove: (e) => console.log("drag move", e.xDelta, e.yDelta),
-            onEnd: (e) => console.log("drag end", e.xDelta, e.yDelta),
-        })
+            drag({
+                onStart: (e) => console.log("drag start", e.xDelta, e.yDelta),
+                onMove: (e) => console.log("drag move", e.xDelta, e.yDelta),
+                onEnd: (e) => console.log("drag end", e.xDelta, e.yDelta),
+            });
+        }
     };
 
     protected onMouseUp = (e: MouseEvent) =>
@@ -116,6 +120,20 @@ export class Button<S extends ButtonState, E extends ButtonEvent = ButtonEvent> 
     {
         clearTimeout(this._longPressTimeout);
     };
+
+    protected onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ')
+        {
+            this.onMouseDown(e as unknown as MouseEvent, true);
+        }
+    }
+
+    protected onKeyUp = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ')
+        {
+            this.onMouseUp(e as unknown as MouseEvent);
+        }
+    }
 
     protected onStateChanged<K extends keyof ButtonState>(name: K, oldValue: ButtonState[K], newValue: ButtonState[K]): void
     {
@@ -147,4 +165,5 @@ export default Ctrl<ButtonState, ButtonEvent>({
     tagName: 'button',
     state: defaultButtonState,
     classes: ['control', 'button'],
+    isTabbable: true,
 }, Button);

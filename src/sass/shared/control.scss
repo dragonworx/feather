@@ -9,6 +9,10 @@
 	font-size: 11px;
 	user-select: none;
 	transition: opacity 150ms ease-in-out, background 150ms ease-in-out;
+
+	&:focus {
+		outline: 1px solid cyan;
+	}
 }
 
 @mixin control_down {
