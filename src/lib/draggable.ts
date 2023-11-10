@@ -18,8 +18,8 @@ export interface DragOptions {
 const defaultOptions: DragOptions = {
     startX: 0,
     startY: 0,
-    xDistThreshold: 5,
-    yDistThreshold: 5,
+    xDistThreshold: 10,
+    yDistThreshold: 10,
     onStart: () => {},
     onMove: () => {},
     onEnd: () => {},
@@ -33,7 +33,8 @@ export function drag(options: Partial<DragOptions>) {
 
      const { startX, startY, xDistThreshold, yDistThreshold, onStart, onMove, onEnd } = opts;
 
-    let isActive = false;
+    let hasInit = false;
+    let hasStarted = false;
     let xStart = 0;
     let yStart = 0;
 
@@ -51,13 +52,18 @@ export function drag(options: Partial<DragOptions>) {
     }
 
     function onMouseMove(e: MouseEvent) {
-        if (!isActive) {
+        if (!hasInit) {
+            // init
+            hasInit = true;
+            xStart = e.clientX;
+            yStart = e.clientY;
+        }
+
+        if (!hasStarted) {
             // check for move delta threshold
             if (isActiveDelta(e)) {
                 // start
-                isActive = true;
-                xStart = e.clientX;
-                yStart = e.clientY;
+                hasStarted = true;
 
                 onStart({ sourceEvent: e, ...getDelta(e) });
             }
