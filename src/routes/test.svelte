@@ -1,28 +1,35 @@
 <script lang="ts">
+	import type { Action, ActionReturn } from 'svelte/action';
     import {drag} from '../lib/draggable';
 
-    function foo(node, bar) {
-		// the node has been mounted in the DOM
+    type Parameter = { x: number };
+    type Event = { y: number };
+    type Attributes = { 'on:emit': (e: CustomEvent<Event>) => void }
+    export function foo(node: HTMLElement, parameter: Parameter): ActionReturn<Parameter, Attributes> {
+        
         node.onmousedown = () => drag({
             startX: node.offsetLeft,
             startY: node.offsetTop,
+            onStart(e)
+            {
+                node.dispatchEvent(new CustomEvent('emit', { detail: { y: 5 } }));
+            },
             onMove(e)
             {
                 node.style.left = e.xDelta + 'px';
                 node.style.top = e.yDelta + 'px';
             },
-        })
+        });
 
-		return {
-			destroy() {
-				// the node has been removed from the DOM
-			}
-		};
-	}
+        return {
+            update: (updatedParameter) => {},
+            destroy: () => {}
+        };
+    }
 </script>
 
 
-<div use:foo={["bar", 2]}>
+<div use:foo={{x:1}} on:emit={e => console.log(e.detail.y)}>
     <slot/>
 </div>
 
