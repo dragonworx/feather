@@ -48,7 +48,8 @@ export function toHyphenCase(str: string): string
         .toLowerCase();
 }
 
-export function toCamelCase(str: string): string {
+export function toCamelCase(str: string): string
+{
     return str
         .split('-')
         .map((word, index) => index === 0 ? word : word[0].toUpperCase() + word.slice(1))
@@ -91,3 +92,31 @@ export const html = (strings: TemplateStringsArray, ...values: unknown[]): strin
 const tagNameRegex = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/i;
 
 export const isValidTagName = (tagName: string): boolean => tagNameRegex.test(tagName);
+
+export function setClass(node: HTMLElement, cssClass: string, predicate: boolean)
+{
+    if (predicate)
+    {
+        if (!node.classList.contains(cssClass))
+        {
+            insertClass(node, cssClass);
+            // node.classList.add(cssClass);
+        }
+    } else
+    {
+        if (node.classList.contains(cssClass))
+        {
+            node.classList.remove(cssClass);
+        }
+    }
+}
+
+export function insertClass(node: HTMLElement, cssClass: string)
+{
+    if (!node.classList.contains(cssClass))
+    {
+        const classList = node.getAttribute('class') || '';
+
+        node.setAttribute('class', `${cssClass} ${classList}`);
+    }
+}

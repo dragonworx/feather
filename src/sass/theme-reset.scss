@@ -1,30 +1,15 @@
 @import 'shared/control';
-// @import 'components/debug';
 @import 'components/button';
-// @import 'components/list';
 @import 'components/checkbox';
-// @import 'components/panel';
 
-.ctrl {
+.control {
 	@include control;
-
-	// &.ctl-debug {
-	// 	@include debug;
-	// }
 
 	&.button {
 		@include button;
 	}
 
-	// &.ctl-list {
-	// 	@include list;
-	// }
-
 	&.checkbox {
 		@include checkbox;
 	}
-
-	// &.ctl-panel {
-	// 	@include panel;
-	// }
 }

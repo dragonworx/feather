@@ -1,17 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { ActionReturn } from 'svelte/action';
 
-type Props = DragOptions;
-
-// type Event = {
-//     y: number;
-// };
-
 type Attributes = {
     'on:drag-start'?: (e: CustomEvent<DraggableEvent>) => void;
 }
 
-export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attributes>
+export function drag(node: HTMLElement, props?: DragOptions): ActionReturn<DragOptions, Attributes>
 {
     node.style.position = 'relative';
 
