@@ -1,0 +1,15 @@
+@import 'shared/control';
+@import 'components/button';
+@import 'components/checkbox';
+
+.control {
+	@include control;
+
+	&.button {
+		@include button;
+	}
+
+	&.checkbox {
+		@include checkbox;
+	}
+}

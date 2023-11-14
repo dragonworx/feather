@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { button } from '../actions/button';
 	import { contextMenu } from '../actions/contextMenu';
+
+	export let css: string | undefined = undefined;
+	export let isToggle: boolean = false;
+
+	$: classes = ['control', 'button', css].filter(Boolean).join(' ');
 </script>
 
 <!-- svelte-ignore a11y-positive-tabindex -->
@@ -8,9 +13,9 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-	class="control button"
+	class={classes}
 	tabindex="1"
-	use:button={{ isToggle: false }}
+	use:button={{ isToggle }}
 	use:contextMenu
 	on:button-down={() => console.log('down')}
 	on:button-up={() => console.log('up')}
