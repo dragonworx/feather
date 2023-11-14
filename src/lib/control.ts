@@ -1,6 +1,6 @@
 import { type CustomEventListener, type WithMeta, attributeValidators, prefixes } from './builder';
 import { installContextHook, uninstallContextHook } from './contextMenu';
-import { unregisterElement, createStyle } from './stylesheet';
+import { uninstallStyle, installStyle } from './stylesheet';
 import { toCamelCase } from './util';
 
 let _id = 0;
@@ -102,7 +102,8 @@ export abstract class BaseControl<
         } as StateType;
 
         // setup css
-        if (prefixes.css) {
+        if (prefixes.css)
+        {
             this.classList.add(prefixes.css);
         }
 
@@ -112,7 +113,8 @@ export abstract class BaseControl<
         }
 
         // setup attributes
-        if (isTabbable) {
+        if (isTabbable)
+        {
             this.setAttribute('tabindex', '0');
         }
 
@@ -145,7 +147,7 @@ export abstract class BaseControl<
         this.dispose();
         this.unmount();
 
-        unregisterElement(this as unknown as BaseControl, this._cssClass);
+        uninstallStyle(this as unknown as BaseControl, this._cssClass);
     }
 
     protected adoptedCallback()
@@ -179,7 +181,7 @@ export abstract class BaseControl<
 
         if (cssText)
         {
-            this._cssClass = createStyle(cssText, this as unknown as BaseControl);
+            this._cssClass = installStyle(cssText, this as unknown as BaseControl);
         }
     }
 

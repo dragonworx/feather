@@ -1,7 +1,12 @@
 import createEmotion from '@emotion/css/create-instance';
-import type { BaseControl } from './control';
 
-let _id = 0;
+const key = 'ctrl';
+const metaKey = '__${key}_className';
+
+let _nodeId = 0;
+let _styleSheetId = 0;
+
+type Meta = { [metaKey]: string | undefined };
 
 const {
     // flush,
@@ -15,16 +20,16 @@ const {
     sheet,
     // cache
 } = createEmotion({
-    key: 'ctrl'
+    key,
 });
 
 class StyleSheet
 {
-    public id = String(_id++);
+    public id = String(_styleSheetId++);
     public cssText: string;
     public className: string;
     public styleElements: HTMLStyleElement[] = [];
-    public usageElements: Set<BaseControl> = new Set();
+    public usageElements: Set<HTMLElement> = new Set();
 
     constructor(cssText: string, className: string, elements: NodeListOf<Element>)
     {
@@ -43,7 +48,7 @@ class StyleSheet
         return this.styleElements.every(e => e.parentElement);
     }
 
-    public registerElement(element: BaseControl)
+    public registerNode(node: HTMLElement)
     {
         if (this.usageElements.size === 0)
         {
@@ -54,8 +59,8 @@ class StyleSheet
                 for (const styleElement of styleElements)
                 {
                     styleElement.removeAttribute('nonce');
-                    styleElement.setAttribute('ctrl-class', className);
-                    styleElement.setAttribute('style-id', this.id);
+                    styleElement.setAttribute('class', className);
+                    styleElement.setAttribute(`${key}-id`, this.id);
                 }
             } else
             {
@@ -68,16 +73,17 @@ class StyleSheet
 
         }
 
-        if (!this.usageElements.has(element))
+        if (!this.usageElements.has(node))
         {
-            this.usageElements.add(element);
-            element.classList.add(this.className);
+            this.usageElements.add(node);
+            node.classList.add(this.className);
+            (node as unknown as Meta)[metaKey] = this.className;
         }
     }
 
-    public unregisterElement(element: BaseControl)
+    public unregisterNode(node: HTMLElement)
     {
-        if (this.usageElements.has(element))
+        if (this.usageElements.has(node))
         {
             if (this.isSingleUsage)
             {
@@ -87,15 +93,16 @@ class StyleSheet
                 }
             }
 
-            this.usageElements.delete(element);
-            element.classList.remove(this.className);
+            this.usageElements.delete(node);
+            node.classList.remove(this.className);
+            delete (node as unknown as Meta)[metaKey];
         }
     }
 
     public debug()
     {
         console.log(`StyleSheet[${this.id} - ${this.className}]:`, {
-            usageElements: [...this.usageElements].map(e => e.controlId),
+            usageElements: [...this.usageElements].map(e => e.getAttribute('id')),
             styleElements: this.styleElements.map(e => e.getAttribute('style-id')),
         });
     }
@@ -130,37 +137,21 @@ class CssCache
     }
 }
 
-const cache = new CssCache();
+const _cache = new CssCache();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-export function unregisterElement(element: BaseControl, currentClassName?: string)
+export function installStyle(cssText: string, node: HTMLElement)
 {
-    if (currentClassName)
-    {
-        const stylesheet = cache.getStyleSheetForClassName(currentClassName);
-
-        if (stylesheet)
-        {
-            stylesheet.unregisterElement(element);
-        }
-    }
-}
-
-// todo: check that stylesheet is ready for next removed cached cssText
-export function createStyle(cssText: string, element: BaseControl)
-{
-    const id = element.controlId;
-    const currentClassName = element.styleSheetId;
-    let stylesheet = cache.getStyleSheetForCssText(cssText);
+    let stylesheet = _cache.getStyleSheetForCssText(cssText);
 
     if (stylesheet)
     {
-        // cached, register element and return className
-        stylesheet.registerElement(element);
+        // cached, register node and return className
+        stylesheet.registerNode(node);
 
         return stylesheet.className;
     }
+
+    const id = String(_nodeId++);
 
     // new stylesheet, create and register
     sheet.nonce = id;
@@ -174,22 +165,40 @@ export function createStyle(cssText: string, element: BaseControl)
     // create stylesheet
     stylesheet = new StyleSheet(cssText, className, elements);
 
-    // register element
-    stylesheet.registerElement(element);
+    // check for current class name before registering
+    const currentClassName = (node as unknown as Meta)[metaKey];
 
     // update cache
-    cache.add(stylesheet);
+    _cache.add(stylesheet);
 
     // clean up if necessary
     if (currentClassName)
     {
-        stylesheet = cache.getStyleSheetForClassName(currentClassName);
+        const prevStylesheet = _cache.getStyleSheetForClassName(currentClassName);
 
-        if (stylesheet)
+        if (prevStylesheet)
         {
-            stylesheet.unregisterElement(element);
+            prevStylesheet.unregisterNode(node);
         }
     }
 
+    // register node
+    stylesheet.registerNode(node);
+
     return className;
+}
+
+export function uninstallStyle(node: HTMLElement)
+{
+    const currentClassName = (node as unknown as Meta)[metaKey];
+
+    if (currentClassName)
+    {
+        const stylesheet = _cache.getStyleSheetForClassName(currentClassName);
+
+        if (stylesheet)
+        {
+            stylesheet.unregisterNode(node);
+        }
+    }
 }
