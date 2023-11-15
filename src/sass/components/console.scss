@@ -1,0 +1,9 @@
+@mixin console {
+    background: #000;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    display: block;
+    width: 100%;
+    height: 100%;
+}

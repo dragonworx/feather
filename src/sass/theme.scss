@@ -1,6 +1,7 @@
 @import 'shared/control';
 @import 'components/button';
 @import 'components/checkbox';
+@import 'components/console';
 
 .control {
 	@include control;
@@ -12,4 +13,8 @@
 	&.checkbox {
 		@include checkbox;
 	}
+}
+
+.console {
+	@include console; 
 }
