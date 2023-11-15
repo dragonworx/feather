@@ -3,6 +3,7 @@
 	import App from '../lib/components/app.svelte';
 	import Button from '../lib/components/button.svelte';
 	import Checkbox from '../lib/components/checkbox.svelte';
+	import Accordion from '../lib/components/accordion.svelte';
 	import Console, { type LogFunction } from '../lib/components/console.svelte';
 	// import { deepEvent } from '../lib/deepEvent';
 	import { deepStore } from '../lib/deepStore';
@@ -26,7 +27,9 @@
 			}}>Click@ {store.foo}</Button
 		>
 		<Checkbox />
-		<Console {height} bind:log />
+		<Accordion title="Console">
+			<Console {height} bind:log />
+		</Accordion>
 	</App>
 </main>
 

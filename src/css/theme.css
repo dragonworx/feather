@@ -64,3 +64,10 @@
   width: 100%;
   height: 100%;
   overflow: auto; }
+
+.accordion legend {
+  color: white;
+  background: red; }
+
+.accordion .closed {
+  height: 0; }

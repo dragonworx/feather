@@ -1,0 +1,10 @@
+@mixin accordion {
+    legend {
+        color: white;
+        background: red;
+    }
+
+    .closed {
+        height: 0;
+    }
+}

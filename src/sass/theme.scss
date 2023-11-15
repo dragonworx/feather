@@ -2,6 +2,7 @@
 @import 'components/button';
 @import 'components/checkbox';
 @import 'components/console';
+@import 'components/accordion';
 
 * {
 	box-sizing: border-box;	
@@ -22,3 +23,7 @@
 .console {
 	@include console;
 }
+
+.accordion {
+	@include accordion;  
+} 
