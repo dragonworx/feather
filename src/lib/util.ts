@@ -123,3 +123,8 @@ export function css(...classes: Array<string | string[]>)
 {
     return classes.flat().join(' ');
 }
+
+export function nextTick()
+{
+    return new Promise(resolve => setTimeout(resolve, 0));
+}

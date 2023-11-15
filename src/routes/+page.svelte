@@ -30,6 +30,12 @@
 		<Accordion title="Console">
 			<Console {height} bind:log />
 		</Accordion>
+		<Accordion title="Console">
+			<Console {height} bind:log />
+		</Accordion>
+		<Accordion title="Console">
+			<Console {height} bind:log />
+		</Accordion>
 	</App>
 </main>
 
