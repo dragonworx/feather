@@ -1,10 +1,20 @@
+@import "../shared//bevel.scss";
+
 @mixin accordion {
+    @include bevel;
+
+    width: calc(100% - 2px);
+
     legend {
         color: white;
         background: red;
     }
 
-    .closed {
-        height: 0;
+    .content {
+        overflow: hidden;
+
+        &.closed {
+            height: 0;
+        }
     }
 }
