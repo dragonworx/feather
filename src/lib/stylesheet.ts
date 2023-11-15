@@ -1,12 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import createEmotion from '@emotion/css/create-instance';
 
-const key = 'ctrl';
-const metaKey = '__${key}_className';
+
+const meta = {
+    key: 'ctrl',
+    metaKey: () => `__${meta.key}_className`
+};
+
+export function setMetaKey(key: string)
+{
+    meta.key = key;
+}
 
 let _nodeId = 0;
 let _styleSheetId = 0;
 
-type Meta = { [metaKey]: string | undefined };
 
 const {
     // flush,
@@ -20,7 +28,7 @@ const {
     sheet,
     // cache
 } = createEmotion({
-    key,
+    key: meta.key,
 });
 
 class StyleSheet
@@ -60,7 +68,7 @@ class StyleSheet
                 {
                     styleElement.removeAttribute('nonce');
                     styleElement.setAttribute('class', className);
-                    styleElement.setAttribute(`${key}-id`, this.id);
+                    styleElement.setAttribute(`${meta.key}-id`, this.id);
                 }
             } else
             {
@@ -77,7 +85,7 @@ class StyleSheet
         {
             this.usageElements.add(node);
             node.classList.add(this.className);
-            (node as unknown as Meta)[metaKey] = this.className;
+            (node as any)[meta.metaKey()] = this.className;
         }
     }
 
@@ -95,7 +103,7 @@ class StyleSheet
 
             this.usageElements.delete(node);
             node.classList.remove(this.className);
-            delete (node as unknown as Meta)[metaKey];
+            delete (node as any)[meta.metaKey()];
         }
     }
 
@@ -166,7 +174,7 @@ export function installStyle(cssText: string, node: HTMLElement)
     stylesheet = new StyleSheet(cssText, className, elements);
 
     // check for current class name before registering
-    const currentClassName = (node as unknown as Meta)[metaKey];
+    const currentClassName = (node as any)[meta.metaKey()];
 
     // update cache
     _cache.add(stylesheet);
@@ -190,7 +198,7 @@ export function installStyle(cssText: string, node: HTMLElement)
 
 export function uninstallStyle(node: HTMLElement)
 {
-    const currentClassName = (node as unknown as Meta)[metaKey];
+    const currentClassName = (node as any)[meta.metaKey()];
 
     if (currentClassName)
     {

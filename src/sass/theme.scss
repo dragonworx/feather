@@ -3,6 +3,10 @@
 @import 'components/checkbox';
 @import 'components/console';
 
+* {
+	box-sizing: border-box;	
+}
+
 .control {
 	@include control;
 
@@ -16,5 +20,5 @@
 }
 
 .console {
-	@include console; 
+	@include console;
 }
