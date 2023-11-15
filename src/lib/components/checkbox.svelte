@@ -1,13 +1,14 @@
 <script lang="ts">
-	import Control from './control.svelte';
+	import control from '../actions/control';
+	import button from '../actions/button';
+
+	export let isToggle: boolean = false;
 </script>
 
-<Control
-	classes={['button', 'checkbox']}
-	isToggle={true}
-	on:button-down={() => console.log('down!')}
->
-	<svg width="20px" height="20px" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"
-		><path d="M760 380.4l-61.6-61.6-263.2 263.1-109.6-109.5L264 534l171.2 171.2L760 380.4z" /></svg
-	>
-</Control>
+<button use:control={{ type: 'checkbox' }} use:button={{ isToggle }}>
+	<svg xmlns="http://www.w3.org/2000/svg">
+		<path
+			d="M14.84375 7.4296875l-1.203125-1.203125-5.140625 5.138671875-2.140625-2.138671875L5.15625 10.4296875l3.34375 3.34375L14.84375 7.4296875"
+		/>
+	</svg>
+</button>

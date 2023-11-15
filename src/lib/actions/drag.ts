@@ -60,7 +60,7 @@ const defaultOptions: Required<DragOptions> = {
     onEnd: () => { },
 };
 
-export function startDrag(options: DragOptions)
+export default function startDrag(options: DragOptions)
 {
     const opts: Required<DragOptions> = {
         ...defaultOptions,

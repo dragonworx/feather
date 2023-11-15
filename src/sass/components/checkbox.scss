@@ -6,8 +6,12 @@
 	height: 20px;
 
 	svg {
-		position: relative;
+		position: absolute;
 		fill: white;
+		width: 20px;
+		height: 20px;
+		top: 0;
+		left: 0;
 	}
 
 	&.down {

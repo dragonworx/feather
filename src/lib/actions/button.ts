@@ -47,7 +47,7 @@ export const defaultState: InteractiveControlState = {
     longPressTime: 500,
 };
 
-export function button(node: HTMLElement, props?: Partial<InteractiveControlState>): ActionReturn<InteractiveControlState, Attributes>
+export default function button(node: HTMLElement, props?: Partial<InteractiveControlState>): ActionReturn<InteractiveControlState, Attributes>
 {
     const onMouseDown = (e: MouseEvent, force = false) =>
     {

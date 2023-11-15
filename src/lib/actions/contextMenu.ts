@@ -43,7 +43,7 @@ export function uninstallContextHook(node: HTMLElement)
 
 type Props = undefined;
 
-export function contextMenu(node: HTMLElement, props?: Props): ActionReturn<Props, Attributes>
+export default function contextMenu(node: HTMLElement, props?: Props): ActionReturn<Props, Attributes>
 {
     installContextHook(node);
 

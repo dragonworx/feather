@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { css } from '../util';
-	import Control from './control.svelte';
+	import control from '../actions/control';
+	import button from '../actions/button';
 
-	export let classes: string[] | string = [];
 	export let isToggle: boolean = false;
 </script>
 
-<Control classes={css('button', classes)} {isToggle}>
+<button use:control={{ type: 'button' }} use:button={{ isToggle }}>
 	<label>
 		<slot />
 	</label>
-</Control>
+</button>

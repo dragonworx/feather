@@ -1,7 +1,6 @@
 @mixin control {
-	display: flex;
-	align-items: center;
-    justify-content: center;
+	display: inline-block;
+	position: relative;
 	color: white;
 	background: #666;
 	box-sizing: border-box;
@@ -25,6 +24,14 @@
 
 	&.down.toggled {
 		background: #333;
+	}
+
+	&.down,
+	&.toggled {
+		* {
+			left: 1px !important;
+			top: 1px !important;
+		}
 	}
 
 	&.disabled {
