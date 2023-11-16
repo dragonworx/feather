@@ -72,22 +72,29 @@
   border-bottom: 1px solid #444;
   border-right: 1px solid #444;
   box-shadow: 0 0 5px #000;
-  width: calc(100% - 2px); }
+  width: calc(100% - 3px); }
   .accordion legend {
     position: relative;
     top: 2px;
     border: 1px outset #666;
-    background: #545454;
+    background: #555;
     padding: 2px 5px;
     border-radius: 3px;
     color: #d0d0d0;
     font-family: sans-serif;
     font-size: 11px;
     user-select: none;
-    cursor: pointer; }
+    cursor: pointer;
+    transition: background 250ms ease-in-out, top 250ms ease-in-out; }
     .accordion legend.hidden {
       display: none; }
+    .accordion legend.closed {
+      top: 8px; }
+    .accordion legend:hover {
+      background: #666; }
   .accordion .content {
     overflow: hidden;
     display: block;
-    transition: height 150ms ease-in-out; }
+    transition: height 250ms ease-in-out; }
+    .accordion .content.no-transition {
+      transition: none; }

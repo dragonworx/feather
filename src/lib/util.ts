@@ -98,7 +98,6 @@ export function setClass(node: HTMLElement, cssClass: string, predicate: boolean
         if (!node.classList.contains(cssClass))
         {
             insertClass(node, cssClass);
-            // node.classList.add(cssClass);
         }
     } else
     {
@@ -126,5 +125,5 @@ export function css(...classes: Array<string | string[]>)
 
 export function nextTick()
 {
-    return new Promise(resolve => setTimeout(resolve, 0));
+    return new Promise(resolve => requestAnimationFrame(resolve));
 }

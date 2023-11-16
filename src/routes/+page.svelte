@@ -33,7 +33,7 @@
 		<Accordion title="Console">
 			<Console {height} bind:log />
 		</Accordion>
-		<Accordion title="Console">
+		<Accordion title="Console" storageKey="test">
 			<Console {height} bind:log />
 		</Accordion>
 	</App>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	let innerWidth = 0;
 
-	$: console.log('innerWidth', innerWidth);
+	// $: console.log('innerWidth', innerWidth);
 
 	function handleVisibilityChange() {
 		console.log('visibilitychange', document.visibilityState);

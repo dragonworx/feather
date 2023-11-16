@@ -3,13 +3,13 @@
 @mixin accordion {
     @include bevel;
 
-    width: calc(100% - 2px);
+    width: calc(100% - 3px);
 
     legend {
         position: relative;
         top: 2px;
         border: 1px outset #666;
-        background: #545454;
+        background: #555;
         padding: 2px 5px;
         border-radius: 3px;
         color: #d0d0d0;
@@ -17,15 +17,28 @@
         font-size: 11px;
         user-select: none;
         cursor: pointer;
+        transition: background 250ms ease-in-out, top 250ms ease-in-out;;
 
         &.hidden {
             display: none;
+        }
+
+        &.closed {
+            top: 8px;
+        }
+
+        &:hover {
+            background: #666;
         }
     }
 
     .content {
         overflow: hidden;
         display: block;
-        transition: height 150ms ease-in-out;
+        transition: height 250ms ease-in-out;
+
+        &.no-transition {
+            transition: none;
+        }
     }
 }
