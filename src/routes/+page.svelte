@@ -5,7 +5,7 @@
 	import Checkbox from '../lib/components/checkbox.svelte';
 	import Accordion from '../lib/components/accordion.svelte';
 	import Console, { type LogFunction } from '../lib/components/console.svelte';
-	// import { deepEvent } from '../lib/deepEvent';
+	import Scrollbar from '../lib/components/scrollbar.svelte';
 	import { deepStore } from '../lib/deepStore';
 
 	const store = deepStore({
@@ -36,6 +36,9 @@
 		<Accordion title="Console" storageKey="test">
 			<Console {height} bind:log />
 		</Accordion>
+		<div class="container">
+			<Scrollbar direction="vertical" />
+		</div>
 	</App>
 </main>
 
@@ -45,5 +48,11 @@
 		flex-direction: column;
 		align-items: flex-start;
 		justify-content: flex-start;
+	}
+
+	.container {
+		width: 100px;
+		height: 100px;
+		background: red;
 	}
 </style>

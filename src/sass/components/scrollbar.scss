@@ -1,0 +1,24 @@
+@import "../shared/vars.scss";
+
+@mixin scrollbar {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: blue;
+
+    &.vertical {
+        width: var(--scroll-bar-size);
+    }
+
+    &.horizontal {
+        height: var(--scroll-bar-size);
+    }
+
+    .thumb {
+        position: absolute;
+        background: green;
+        width: 100%;
+        height: 100%;
+    }
+}

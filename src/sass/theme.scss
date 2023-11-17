@@ -3,6 +3,7 @@
 @import 'components/checkbox';
 @import 'components/console';
 @import 'components/accordion';
+@import 'components/scrollbar';
 
 * {
 	box-sizing: border-box;	
@@ -27,3 +28,7 @@
 .accordion {
 	@include accordion;  
 } 
+
+.scrollbar {
+	@include scrollbar;
+}

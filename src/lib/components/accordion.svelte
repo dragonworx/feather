@@ -56,7 +56,7 @@
 	}
 </script>
 
-<fieldset class="accordion">
+<fieldset class="accordion" class:closed={!isOpen}>
 	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<legend on:click={toggle} class:closed={!isOpen} class:hidden={!!!title}>{title}</legend>

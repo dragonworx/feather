@@ -1,3 +1,8 @@
-- create static Behavior.id property
-  - replace explicit behavior tag functionality
-  - if needing to get tag, get by passing classes static id property to .behavior()
+- Controls
+  - ScrollBar - Horizontal/Vertical (self contained all parts)
+  - ScrollView - uses ScrollBar
+  - Splitter
+    - Consider SplitRegions, use Svelte context
+  - Windows / Dialogs / Palettes
+  - Dockable Areas
+    - Nestable
