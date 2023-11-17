@@ -1,44 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { ActionReturn } from 'svelte/action';
 
-type Attributes = {
-    'on:drag-start'?: (e: CustomEvent<DraggableEvent>) => void;
-}
-
-export function drag(node: HTMLElement, props?: DragOptions): ActionReturn<DragOptions, Attributes>
-{
-    node.style.position = 'relative';
-
-    node.onmousedown = () => startDrag({
-        ...props,
-        startX: props?.startX ?? node.offsetLeft,
-        startY: props?.startY ?? node.offsetTop,
-        onStart(e)
-        {
-            props?.onStart?.(e);
-            node.dispatchEvent(new CustomEvent('drag-start', { detail: e }));
-        },
-        onMove(e)
-        {
-            props?.onMove?.(e);
-            node.style.left = e.xDelta + 'px';
-            node.style.top = e.yDelta + 'px';
-        },
-    });
-
-    return {
-        update: (updatedProp) => { },
-        destroy: () => { }
-    };
-}
-
-export interface DraggableEvent
-{
-    sourceEvent: MouseEvent;
-    xDelta: number;
-    yDelta: number;
-}
-
 export type DragOptions = Partial<
     {
         startX: number;
@@ -59,6 +21,52 @@ const defaultOptions: Required<DragOptions> = {
     onMove: () => { },
     onEnd: () => { },
 };
+
+interface Attributes
+{
+    'on:drag-start'?: (e: CustomEvent<DraggableEvent>) => void;
+    'on:drag-move'?: (e: CustomEvent<DraggableEvent>) => void;
+    'on:drag-end'?: (e: CustomEvent<DraggableEvent>) => void;
+}
+
+type Props = Omit<DragOptions, 'onStart' | 'onMove' | 'onEnd'>;
+
+export interface DraggableEvent
+{
+    sourceEvent: MouseEvent;
+    xDelta: number;
+    yDelta: number;
+}
+
+export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attributes>
+{
+    node.style.position = 'relative';
+
+    node.onmousedown = () => startDrag({
+        ...props,
+        startX: props?.startX ?? node.offsetLeft,
+        startY: props?.startY ?? node.offsetTop,
+        onStart(e)
+        {
+            node.dispatchEvent(new CustomEvent('drag-start', { detail: e }));
+        },
+        onMove(e)
+        {
+            // node.style.left = e.xDelta + 'px';
+            // node.style.top = e.yDelta + 'px';
+            node.dispatchEvent(new CustomEvent('drag-move', { detail: e }));
+        },
+        onEnd(e)
+        {
+            node.dispatchEvent(new CustomEvent('drag-end', { detail: e }));
+        },
+    });
+
+    return {
+        update: (updatedProp) => { },
+        destroy: () => { }
+    };
+}
 
 export default function startDrag(options: DragOptions)
 {

@@ -7,6 +7,7 @@
 	import Console, { type LogFunction } from '../lib/components/console.svelte';
 	import Scrollbar from '../lib/components/scrollbar.svelte';
 	import { deepStore } from '../lib/deepStore';
+	import { debugSvg } from '../lib/util';
 
 	const store = deepStore({
 		foo: 'bar' as string | number
@@ -37,6 +38,7 @@
 			<Console {height} bind:log />
 		</Accordion>
 		<div class="container">
+			{@html debugSvg(50, 50)}
 			<Scrollbar direction="vertical" />
 		</div>
 	</App>
@@ -53,6 +55,10 @@
 	.container {
 		width: 100px;
 		height: 100px;
-		background: red;
+		background: grey;
+		outline: white;
+		position: absolute;
+		top: 200px;
+		left: 200px;
 	}
 </style>
