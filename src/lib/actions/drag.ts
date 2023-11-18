@@ -18,10 +18,10 @@ export type DragOptions =
 const defaultOptions: Omit<Required<DragOptions>, 'parent'> = {
     startX: 0,
     startY: 0,
-    xDistThreshold: 1,
-    yDistThreshold: 1,
+    xDistThreshold: 0,
+    yDistThreshold: 0,
     direction: 'both',
-    constrain: true,
+    constrain: false,
     onStart: () => { },
     onMove: () => { },
     onEnd: () => { },

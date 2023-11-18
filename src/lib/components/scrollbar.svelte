@@ -39,7 +39,8 @@
 	<div
 		bind:this={thumb}
 		use:drag={{
-			direction: isVertical ? 'vertical' : 'horizontal'
+			direction: isVertical ? 'vertical' : 'horizontal',
+			constrain: true
 		}}
 		class="thumb"
 		on:drag-move

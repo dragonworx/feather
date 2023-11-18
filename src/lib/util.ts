@@ -147,3 +147,13 @@ export function debugSvg(width: number, height: number, stroke: string = 'white'
 
     return svgContent;
 }
+
+export function getCssVar(name: string): string
+{
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+export function getCssVarAsNumber(name: string): number
+{
+    return parseFloat(getCssVar(name));
+}

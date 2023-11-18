@@ -44,7 +44,7 @@
 	</Accordion>
 
 	<div class="wrapper">
-		<ScrollView>
+		<ScrollView offsetX={25} offsetY={25}>
 			<Debug width={150} height={150} />
 		</ScrollView>
 	</div>
