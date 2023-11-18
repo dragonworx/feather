@@ -4,6 +4,7 @@
 @import 'components/console';
 @import 'components/accordion';
 @import 'components/scrollbar';
+@import 'components/scrollview';
 
 * {
 	box-sizing: border-box;	
@@ -31,4 +32,8 @@
 
 .scrollbar {
 	@include scrollbar;
+}
+
+.scrollview {
+	@include scrollview;
 }

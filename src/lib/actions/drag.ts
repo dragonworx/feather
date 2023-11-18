@@ -51,7 +51,7 @@ interface AppliedDrag
     yOffset: number;
 }
 
-type DraggableEvent = DragEvent & AppliedDrag;
+export type DraggableEvent = DragEvent & AppliedDrag;
 
 export function drag(node: HTMLElement, props: Partial<Props> = {}): ActionReturn<Props, Attributes>
 {

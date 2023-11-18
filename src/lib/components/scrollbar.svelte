@@ -42,6 +42,6 @@
 			direction: isVertical ? 'vertical' : 'horizontal'
 		}}
 		class="thumb"
-		on:drag-move={(e) => console.log(e.detail.yOffset)}
+		on:drag-move
 	/>
 </div>
