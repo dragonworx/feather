@@ -1,9 +1,9 @@
 @mixin bevel($width: 1px) {
     border-radius: $width;
-    border-top: $width solid #666;
-    border-left: $width solid #666;
-    border-bottom: $width solid #444;
-    border-right: $width solid #444;
+    border-top: $width solid #eeeeee6e;
+    border-left: $width solid #aaaaaa71;
+    border-bottom: $width solid #44444471;
+    border-right: $width solid #4444446e;
 }
 
 @mixin raised($width: 1px) {

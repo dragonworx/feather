@@ -5,7 +5,9 @@
 	export let height: number;
 </script>
 
-<debug style:width={`${width}px`} style:height={`${height}px`}>
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<debug style:width={`${width}px`} style:height={`${height}px`} on:click on:mouseenter on:mouseleave>
 	{@html debugSvg(width, height)}
 </debug>
 

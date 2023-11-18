@@ -73,8 +73,15 @@
 
 	function onMouseWheel(event: WheelEvent) {
 		const { deltaX, deltaY } = event;
-		console.log(deltaX, deltaY);
+		const overflowY = ch - vh + (isHorizontalEnabled ? scrollSize : 0);
+		const overflowX = cw - vw + (isVerticalEnabled ? scrollSize : 0);
 		offsetY += deltaY;
+		offsetY = Math.max(0, Math.min(offsetY, overflowY));
+		offsetX += deltaX;
+		offsetX = Math.max(0, Math.min(offsetX, overflowX));
+
+		contentElement.style.top = `${offsetY * -1}px`;
+		contentElement.style.left = `${offsetX * -1}px`;
 	}
 </script>
 

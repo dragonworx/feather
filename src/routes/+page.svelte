@@ -17,6 +17,9 @@
 
 	let height = 50;
 
+	let w = 150;
+	let h = 150;
+
 	let log: LogFunction;
 </script>
 
@@ -44,8 +47,14 @@
 	</Accordion>
 
 	<div class="wrapper">
-		<ScrollView offsetX={25} offsetY={25}>
-			<Debug width={150} height={150} />
+		<ScrollView offsetX={0} offsetY={0}>
+			<Debug
+				width={w}
+				height={h}
+				on:click={(e) => {
+					w += e.shiftKey ? -50 : 50;
+				}}
+			/>
 		</ScrollView>
 	</div>
 </App>
