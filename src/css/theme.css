@@ -110,7 +110,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  background: #666; }
+  background: #444; }
   .scrollbar.vertical {
     width: var(--scroll-bar-size);
     right: 0;
@@ -125,13 +125,19 @@
     position: absolute;
     background: #ccc;
     width: 100%;
-    height: 100%; }
+    height: 100%;
+    border-radius: 1px;
+    border-top: 1px solid #666;
+    border-left: 1px solid #666;
+    border-bottom: 1px solid #444;
+    border-right: 1px solid #444; }
 
 .scrollview {
   position: relative;
-  display: block;
+  display: inline-block;
   width: 100%;
   height: 100%; }
   .scrollview content {
+    line-height: 0;
     position: relative;
     display: inline-block; }

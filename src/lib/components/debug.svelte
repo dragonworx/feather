@@ -5,7 +5,7 @@
 	export let height: number;
 </script>
 
-<debug>
+<debug style:width={`${width}px`} style:height={`${height}px`}>
 	{@html debugSvg(width, height)}
 </debug>
 
@@ -13,5 +13,6 @@
 	debug {
 		opacity: 0.5;
 		display: inline-block;
+		background: red;
 	}
 </style>

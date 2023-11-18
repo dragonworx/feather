@@ -131,7 +131,7 @@ export function nextTick()
 export function debugSvg(width: number, height: number, stroke: string = 'white', fill: string = 'red'): string
 {
     // Create the opening tag for the SVG element with the specified width and height
-    let svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+    let svgContent = `<svg width="${width}px" height="${height}px" xmlns="http://www.w3.org/2000/svg">`;
 
     // Add a rectangle to the SVG
     svgContent += `<rect x="0" y="0" width="${width}" height="${height}" fill="${fill}" stroke="${stroke}"/>`;

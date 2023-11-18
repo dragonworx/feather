@@ -45,7 +45,7 @@
 
 	<div class="wrapper">
 		<ScrollView>
-			<Debug width={50} height={150} />
+			<Debug width={150} height={150} />
 		</ScrollView>
 	</div>
 </App>

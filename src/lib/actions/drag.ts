@@ -149,8 +149,8 @@ export function drag(node: HTMLElement, props: Partial<Props> = {}): ActionRetur
             return {
                 top,
                 left,
-                xOffset: left / parentBounds.width,
-                yOffset: top / parentBounds.height,
+                xOffset: left / (parentBounds.width - newBounds.width),
+                yOffset: top / (parentBounds.height - newBounds.height),
             };
         }
 

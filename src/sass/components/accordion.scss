@@ -1,7 +1,7 @@
 @import "../shared//bevel.scss";
 
 @mixin accordion {
-    @include bevel;
+    @include raised;
 
     width: calc(100% - 3px);
 

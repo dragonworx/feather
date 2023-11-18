@@ -3,8 +3,8 @@
 	import { drag } from '../actions/drag';
 
 	export let direction: 'horizontal' | 'vertical' = 'vertical';
-	export let contentSize: number = 100;
-	export let viewportSize: number = 50;
+	export let contentSize: number = 0;
+	export let viewportSize: number = 0;
 	export let offset: number = 0;
 	export let isPair = false;
 
