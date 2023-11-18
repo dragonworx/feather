@@ -1,27 +1,27 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { ActionReturn } from 'svelte/action';
 
-export type DragOptions = Partial<
+export type DragOptions =
     {
         startX: number;
         startY: number;
         xDistThreshold: number;
         yDistThreshold: number;
-        allowVertical: boolean;
-        allowHorizontal: boolean;
-        parent: HTMLElement;
+        direction: 'horizontal' | 'vertical' | 'both';
+        constrain: boolean;
+        parent: string | HTMLElement;
         onStart: (e: DraggableEvent) => void;
         onMove: (e: DraggableEvent) => void;
         onEnd: (e: DraggableEvent) => void;
-    }>
+    }
 
-const defaultOptions: Required<DragOptions> = {
+const defaultOptions: Omit<Required<DragOptions>, 'parent'> = {
     startX: 0,
     startY: 0,
-    xDistThreshold: 10,
-    yDistThreshold: 10,
-    allowVertical: true,
-    allowHorizontal: true,
+    xDistThreshold: 1,
+    yDistThreshold: 1,
+    direction: 'both',
+    constrain: true,
     onStart: () => { },
     onMove: () => { },
     onEnd: () => { },
@@ -43,26 +43,84 @@ export interface DraggableEvent
     yDelta: number;
 }
 
-export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attributes>
+export function drag(node: HTMLElement, props: Partial<Props> = {}): ActionReturn<Props, Attributes>
 {
-    node.onmousedown = () => startDrag({
-        ...props,
-        startX: props?.startX ?? node.offsetLeft,
-        startY: props?.startY ?? node.offsetTop,
-        onStart(e)
+    node.addEventListener('mousedown', () =>
+    {
+        const parent: HTMLElement = (props.parent instanceof HTMLElement
+            ? props.parent
+            : typeof props.parent === 'string'
+                ? node.closest(props.parent)
+                : node.parentElement) as HTMLElement;
+
+        const opts: DragOptions = {
+            ...defaultOptions,
+            ...props,
+            startX: props?.startX ?? defaultOptions.startX,
+            startY: props?.startY ?? defaultOptions.startY,
+            parent,
+            onStart,
+            onMove,
+            onEnd,
+        };
+
+        const { direction, constrain } = opts;
+
+        const nodeTop = node.offsetTop;
+        const nodeLeft = node.offsetLeft;
+        const parentBounds = parent.getBoundingClientRect();
+
+        /** drag has started */
+        function onStart(e: DraggableEvent)
         {
             node.dispatchEvent(new CustomEvent('drag-start', { detail: e }));
-        },
-        onMove(e)
+        }
+
+        /** drag is moving */
+        function onMove(e: DraggableEvent)
         {
-            node.style.left = e.xDelta + 'px';
-            node.style.top = e.yDelta + 'px';
+            let top = direction !== 'horizontal' ? nodeTop + e.yDelta : nodeTop;
+            let left = direction !== 'vertical' ? nodeLeft + e.xDelta : nodeLeft;
+
+            node.style.top = `${top}px`;
+            node.style.left = `${left}px`;
+
+            // calculate new bounding client rect for node
+            const newBounds = node.getBoundingClientRect();
+
+            if (constrain)
+            {
+                if (newBounds.top < parentBounds.top)
+                {
+                    top += parentBounds.top - newBounds.top;
+                } else if (newBounds.bottom > parentBounds.bottom)
+                {
+                    top -= newBounds.bottom - parentBounds.bottom;
+                }
+
+                if (newBounds.left < parentBounds.left)
+                {
+                    left += parentBounds.left - newBounds.left;
+                } else if (newBounds.right > parentBounds.right)
+                {
+                    left -= newBounds.right - parentBounds.right;
+                }
+
+                node.style.top = `${top}px`;
+                node.style.left = `${left}px`;
+            }
+
             node.dispatchEvent(new CustomEvent('drag-move', { detail: e }));
-        },
-        onEnd(e)
+        }
+
+        /** drag has ended */
+        function onEnd(e: DraggableEvent)
         {
             node.dispatchEvent(new CustomEvent('drag-end', { detail: e }));
-        },
+        }
+
+        // begin the drag operation
+        beginDrag(opts)
     });
 
     return {
@@ -71,13 +129,8 @@ export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attr
     };
 }
 
-export default function startDrag(options: DragOptions)
+export default function beginDrag(opts: DragOptions)
 {
-    const opts: Required<DragOptions> = {
-        ...defaultOptions,
-        ...options,
-    };
-
     const { startX, startY, xDistThreshold, yDistThreshold, onStart, onMove, onEnd } = opts;
 
     let hasInit = false;
@@ -93,19 +146,9 @@ export default function startDrag(options: DragOptions)
 
     function getDelta(e: MouseEvent)
     {
-        const { allowHorizontal, allowVertical, constraintToParent } = opts;
-
-        let xDelta = e.clientX - xStart + startX;
-        const yDelta = e.clientY - yStart + startY;
-
-        if (!allowHorizontal)
-        {
-            xDelta = startX
-        }
-
         return {
-            xDelta,
-            yDelta,
+            xDelta: e.clientX - xStart + startX,
+            yDelta: e.clientY - yStart + startY,
         };
     }
 
