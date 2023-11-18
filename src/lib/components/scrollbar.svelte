@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { drag, type DraggableEvent } from '../actions/drag';
+	// import { drag, type DraggableEvent } from '../actions/drag';
+	import { drag } from '../actions/drag2';
 
 	export let direction: 'horizontal' | 'vertical' = 'vertical';
 	export let contentSize: number = 100;
@@ -28,12 +29,12 @@
 	onMount(update);
 
 	function onDragMove(e: CustomEvent<DraggableEvent>) {
-		const { xDelta, yDelta } = e.detail;
-		if (isVertical) {
-			offset += (yDelta * contentSize) / track.clientHeight;
-		} else {
-			offset += (xDelta * contentSize) / track.clientWidth;
-		}
+		// const { xDelta, yDelta } = e.detail;
+		// if (isVertical) {
+		// 	offset += (yDelta * contentSize) / track.clientHeight;
+		// } else {
+		// 	offset += (xDelta * contentSize) / track.clientWidth;
+		// }
 	}
 </script>
 
@@ -45,7 +46,13 @@
 >
 	<div
 		bind:this={thumb}
-		use:drag={{ xDistThreshold: 1, yDistThreshold: 1 }}
+		use:drag={{
+			xDistThreshold: 1,
+			yDistThreshold: 1,
+			allowHorizontal: isHorizontal,
+			allowVertical: isVertical,
+			constraintToParent: true
+		}}
 		class="thumb"
 		on:drag-move={onDragMove}
 	/>

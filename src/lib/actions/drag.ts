@@ -7,6 +7,9 @@ export type DragOptions = Partial<
         startY: number;
         xDistThreshold: number;
         yDistThreshold: number;
+        allowVertical: boolean;
+        allowHorizontal: boolean;
+        parent: HTMLElement;
         onStart: (e: DraggableEvent) => void;
         onMove: (e: DraggableEvent) => void;
         onEnd: (e: DraggableEvent) => void;
@@ -17,6 +20,8 @@ const defaultOptions: Required<DragOptions> = {
     startY: 0,
     xDistThreshold: 10,
     yDistThreshold: 10,
+    allowVertical: true,
+    allowHorizontal: true,
     onStart: () => { },
     onMove: () => { },
     onEnd: () => { },
@@ -40,8 +45,6 @@ export interface DraggableEvent
 
 export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attributes>
 {
-    node.style.position = 'relative';
-
     node.onmousedown = () => startDrag({
         ...props,
         startX: props?.startX ?? node.offsetLeft,
@@ -52,8 +55,8 @@ export function drag(node: HTMLElement, props?: Props): ActionReturn<Props, Attr
         },
         onMove(e)
         {
-            // node.style.left = e.xDelta + 'px';
-            // node.style.top = e.yDelta + 'px';
+            node.style.left = e.xDelta + 'px';
+            node.style.top = e.yDelta + 'px';
             node.dispatchEvent(new CustomEvent('drag-move', { detail: e }));
         },
         onEnd(e)
@@ -90,9 +93,19 @@ export default function startDrag(options: DragOptions)
 
     function getDelta(e: MouseEvent)
     {
+        const { allowHorizontal, allowVertical, constraintToParent } = opts;
+
+        let xDelta = e.clientX - xStart + startX;
+        const yDelta = e.clientY - yStart + startY;
+
+        if (!allowHorizontal)
+        {
+            xDelta = startX
+        }
+
         return {
-            xDelta: e.clientX - xStart + startX,
-            yDelta: e.clientY - yStart + startY,
+            xDelta,
+            yDelta,
         };
     }
 

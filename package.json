@@ -16,7 +16,7 @@
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
 		"sass": "node-sass src/sass -o src/css",
-		"sass:watch": "yarn sass && node-sass src/sass -o src/css --watch src/sass/theme.scss:dist/css/theme.css",
+		"sass:dev": "yarn sass && node-sass src/sass -o src/css --watch src/sass/theme.scss:dist/css/theme.css",
 		"test": "jest",
 		"test:watch": "jest --watch"
 	},
