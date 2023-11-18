@@ -5,7 +5,8 @@
 	export let direction: 'horizontal' | 'vertical' = 'vertical';
 	export let contentSize: number = 100;
 	export let viewportSize: number = 50;
-	export let offset: number = 50;
+	export let offset: number = 0;
+	export let isPair = false;
 
 	let track: HTMLElement;
 	let thumb: HTMLElement;
@@ -33,13 +34,14 @@
 	class="scrollbar"
 	class:vertical={isVertical}
 	class:horizontal={isHorizontal}
+	class:pair={isPair}
 >
 	<div
 		bind:this={thumb}
 		use:drag={{
-			parent: '.container',
 			direction: isVertical ? 'vertical' : 'horizontal'
 		}}
 		class="thumb"
+		on:drag-move={(e) => console.log(e.detail.yOffset)}
 	/>
 </div>

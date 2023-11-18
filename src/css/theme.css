@@ -113,7 +113,11 @@
     right: 0;
     top: 0; }
   .scrollbar.horizontal {
-    height: var(--scroll-bar-size); }
+    height: var(--scroll-bar-size);
+    left: 0;
+    bottom: 0; }
+  .scrollbar.pair.horizontal {
+    width: calc(100% - var(--scroll-bar-size)); }
   .scrollbar .thumb {
     position: absolute;
     background: #ccc;

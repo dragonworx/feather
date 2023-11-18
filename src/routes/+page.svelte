@@ -38,8 +38,9 @@
 			<Console {height} bind:log />
 		</Accordion>
 		<div class="container">
-			{@html debugSvg(50, 50)}
+			{@html debugSvg(50, 150)}
 			<Scrollbar direction="vertical" />
+			<Scrollbar direction="horizontal" isPair={true} />
 		</div>
 	</App>
 </main>
@@ -60,5 +61,9 @@
 		position: absolute;
 		top: 200px;
 		left: 200px;
+	}
+
+	.container :global(svg) {
+		opacity: 0.5;
 	}
 </style>

@@ -10,9 +10,9 @@ export type DragOptions =
         direction: 'horizontal' | 'vertical' | 'both';
         constrain: boolean;
         parent: string | HTMLElement;
-        onStart: (e: DraggableEvent) => void;
-        onMove: (e: DraggableEvent) => void;
-        onEnd: (e: DraggableEvent) => void;
+        onStart: (e: DragEvent) => void;
+        onMove: (e: DragEvent) => void;
+        onEnd: (e: DragEvent) => void;
     }
 
 const defaultOptions: Omit<Required<DragOptions>, 'parent'> = {
@@ -36,12 +36,22 @@ interface Attributes
 
 type Props = Omit<DragOptions, 'onStart' | 'onMove' | 'onEnd'>;
 
-export interface DraggableEvent
+interface DragEvent
 {
     sourceEvent: MouseEvent;
     xDelta: number;
     yDelta: number;
 }
+
+interface AppliedDrag
+{
+    top: number;
+    left: number;
+    xOffset: number;
+    yOffset: number;
+}
+
+type DraggableEvent = DragEvent & AppliedDrag;
 
 export function drag(node: HTMLElement, props: Partial<Props> = {}): ActionReturn<Props, Attributes>
 {
@@ -71,13 +81,39 @@ export function drag(node: HTMLElement, props: Partial<Props> = {}): ActionRetur
         const parentBounds = parent.getBoundingClientRect();
 
         /** drag has started */
-        function onStart(e: DraggableEvent)
+        function onStart(e: DragEvent)
         {
-            node.dispatchEvent(new CustomEvent('drag-start', { detail: e }));
+            node.dispatchEvent(new CustomEvent('drag-start', {
+                detail: {
+                    ...e,
+                    ...applyDrag(e),
+                }
+            }));
         }
 
         /** drag is moving */
-        function onMove(e: DraggableEvent)
+        function onMove(e: DragEvent)
+        {
+            node.dispatchEvent(new CustomEvent('drag-move', {
+                detail: {
+                    ...e,
+                    ...applyDrag(e),
+                }
+            }));
+        }
+
+        /** drag has ended */
+        function onEnd(e: DragEvent)
+        {
+            node.dispatchEvent(new CustomEvent('drag-end', {
+                detail: {
+                    ...e,
+                    ...applyDrag(e),
+                }
+            }));
+        }
+
+        function applyDrag(e: DragEvent): AppliedDrag
         {
             let top = direction !== 'horizontal' ? nodeTop + e.yDelta : nodeTop;
             let left = direction !== 'vertical' ? nodeLeft + e.xDelta : nodeLeft;
@@ -110,13 +146,12 @@ export function drag(node: HTMLElement, props: Partial<Props> = {}): ActionRetur
                 node.style.left = `${left}px`;
             }
 
-            node.dispatchEvent(new CustomEvent('drag-move', { detail: e }));
-        }
-
-        /** drag has ended */
-        function onEnd(e: DraggableEvent)
-        {
-            node.dispatchEvent(new CustomEvent('drag-end', { detail: e }));
+            return {
+                top,
+                left,
+                xOffset: left / parentBounds.width,
+                yOffset: top / parentBounds.height,
+            };
         }
 
         // begin the drag operation

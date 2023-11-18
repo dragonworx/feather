@@ -15,6 +15,12 @@
 
     &.horizontal {
         height: var(--scroll-bar-size);
+        left: 0;
+        bottom: 0;
+    }
+
+    &.pair.horizontal {
+        width: calc(100% - var(--scroll-bar-size));
     }
 
     .thumb {
