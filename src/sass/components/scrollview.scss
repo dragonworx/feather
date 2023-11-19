@@ -12,4 +12,8 @@
         display: inline-block;
         transition: top var(--scroll-view-transition), left var(--scroll-view-transition), width var(--scroll-view-transition), height var(--scroll-view-transition);
     }
+
+    content.no-transition {
+        transition: none;
+    }
 }

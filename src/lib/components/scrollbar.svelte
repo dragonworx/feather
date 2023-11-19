@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { drag } from '../actions/drag';
 
 	export let direction: 'horizontal' | 'vertical' = 'vertical';
@@ -7,8 +7,6 @@
 	export let viewportSize: number = 0;
 	export let offset: number = 0;
 	export let isPair = false;
-
-	const dispatch = createEventDispatcher();
 
 	let track: HTMLElement;
 	let thumb: HTMLElement;
@@ -53,6 +51,7 @@
 					}
 				})
 			);
+			update();
 		} else {
 			const isTop = localMouseY < thumbBounds.top - trackBounds.top;
 			const isBottom = localMouseY > thumbBounds.bottom - trackBounds.top;
@@ -69,6 +68,7 @@
 					}
 				})
 			);
+			update();
 		}
 	}
 </script>
@@ -89,6 +89,9 @@
 			constrain: true
 		}}
 		class="thumb"
+		on:mousedown={(e) => e.stopImmediatePropagation()}
+		on:drag-start
 		on:drag-move
+		on:drag-end
 	/>
 </div>

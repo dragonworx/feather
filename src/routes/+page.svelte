@@ -48,13 +48,7 @@
 
 	<div class="wrapper">
 		<ScrollView offsetX={0} offsetY={0}>
-			<Debug
-				width={w}
-				height={h}
-				on:click={(e) => {
-					w += e.shiftKey ? -50 : 50;
-				}}
-			/>
+			<Debug width={w} height={h} />
 		</ScrollView>
 	</div>
 </App>

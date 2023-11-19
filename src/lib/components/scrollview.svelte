@@ -9,6 +9,7 @@
 
 	let contentElement: HTMLElement;
 	let viewportElement: HTMLElement;
+	let isDragging = false;
 
 	export let contentWidth = 0;
 	export let contentHeight = 0;
@@ -30,6 +31,10 @@
 
 	const scrollSize = getCssVarAsNumber('--scroll-bar-size');
 
+	function onDragStart() {
+		isDragging = true;
+	}
+
 	function onHorizontalDrag(event: Event) {
 		const {
 			detail: { xOffset }
@@ -44,6 +49,10 @@
 		} = event as CustomEvent<DraggableEvent>;
 		const overflow = ch - vh;
 		contentElement.style.top = `${overflow * yOffset * -1}px`;
+	}
+
+	function onDragEnd() {
+		isDragging = false;
 	}
 
 	function onContentChange(event: Event) {
@@ -84,20 +93,23 @@
 		xOffset = Math.max(0, Math.min(1, xOffset));
 		yOffset = Math.max(0, Math.min(1, yOffset));
 
-		onHorizontalDrag({
-			detail: {
-				xOffset
-			}
-		} as unknown as Event);
+		if (deltaX !== 0) {
+			onHorizontalDrag({
+				detail: {
+					xOffset
+				}
+			} as unknown as Event);
+			ox = xOffset * overflowX;
+		}
 
-		onVerticalDrag({
-			detail: {
-				yOffset
-			}
-		} as unknown as Event);
-
-		ox = xOffset * overflowX;
-		oy = yOffset * overflowY;
+		if (deltaY !== 0) {
+			onVerticalDrag({
+				detail: {
+					yOffset
+				}
+			} as unknown as Event);
+			oy = yOffset * overflowY;
+		}
 	}
 </script>
 
@@ -111,9 +123,15 @@
 	on:observe-change={onViewportChange}
 	on:mousewheel={onMouseWheel}
 >
-	<content use:observe bind:this={contentElement} on:observe-change={onContentChange}>
+	<content
+		use:observe
+		bind:this={contentElement}
+		on:observe-change={onContentChange}
+		class:no-transition={isDragging}
+	>
 		<slot />
 	</content>
+
 	{#if isValid}
 		{#if isVerticalEnabled}
 			<Scrollbar
@@ -122,9 +140,12 @@
 				viewportSize={vh}
 				offset={oy}
 				isPair={isHorizontalEnabled}
+				on:drag-start={onDragStart}
 				on:drag-move={onVerticalDrag}
+				on:drag-end={onDragEnd}
 			/>
 		{/if}
+
 		{#if isHorizontalEnabled}
 			<Scrollbar
 				direction="horizontal"
@@ -132,7 +153,9 @@
 				viewportSize={vw}
 				offset={ox}
 				isPair={isVerticalEnabled}
+				on:drag-start={onDragStart}
 				on:drag-move={onHorizontalDrag}
+				on:drag-end={onDragEnd}
 			/>
 		{/if}
 	{/if}
