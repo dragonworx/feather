@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { drag } from '../actions/drag';
 
 	export let direction: 'horizontal' | 'vertical' = 'vertical';
@@ -7,6 +7,8 @@
 	export let viewportSize: number = 0;
 	export let offset: number = 0;
 	export let isPair = false;
+
+	const dispatch = createEventDispatcher();
 
 	let track: HTMLElement;
 	let thumb: HTMLElement;
@@ -27,14 +29,58 @@
 	}
 
 	onMount(update);
+
+	function onMouseDown(e: MouseEvent) {
+		const overflow = contentSize - viewportSize;
+		const trackBounds = track.getBoundingClientRect();
+		const thumbBounds = thumb.getBoundingClientRect();
+		const localMouseX = e.clientX - trackBounds.left;
+		const localMouseY = e.clientY - trackBounds.top;
+
+		if (direction === 'horizontal') {
+			const isLeft = localMouseX < thumbBounds.left - trackBounds.left;
+			const isRight = localMouseX > thumbBounds.right - trackBounds.left;
+			if (isRight) {
+				offset = Math.min(Math.max(0, offset + viewportSize), overflow);
+			} else if (isLeft) {
+				offset = Math.min(Math.max(0, offset - viewportSize), overflow);
+			}
+			const xOffset = offset / overflow;
+			thumb.dispatchEvent(
+				new CustomEvent('drag-move', {
+					detail: {
+						xOffset
+					}
+				})
+			);
+		} else {
+			const isTop = localMouseY < thumbBounds.top - trackBounds.top;
+			const isBottom = localMouseY > thumbBounds.bottom - trackBounds.top;
+			if (isTop) {
+				offset = Math.min(Math.max(0, offset - viewportSize), overflow);
+			} else if (isBottom) {
+				offset = Math.min(Math.max(0, offset + viewportSize), overflow);
+			}
+			const yOffset = offset / overflow;
+			thumb.dispatchEvent(
+				new CustomEvent('drag-move', {
+					detail: {
+						yOffset
+					}
+				})
+			);
+		}
+	}
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	bind:this={track}
 	class="scrollbar"
 	class:vertical={isVertical}
 	class:horizontal={isHorizontal}
 	class:pair={isPair}
+	on:mousedown={onMouseDown}
 >
 	<div
 		bind:this={thumb}
