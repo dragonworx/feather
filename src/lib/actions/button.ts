@@ -6,7 +6,7 @@ type Event = {
     down: undefined;
     up: undefined;
     upOutside: undefined;
-    toggle: { isToggled: boolean };
+    toggled: boolean;
     longPress: undefined;
 };
 
@@ -14,7 +14,7 @@ type Attributes = {
     'on:button-down'?: (e: CustomEvent<Event['down']>) => void;
     'on:button-up'?: (e: CustomEvent<Event['up']>) => void;
     'on:button-upOutside'?: (e: CustomEvent<Event['upOutside']>) => void;
-    'on:button-toggle'?: (e: CustomEvent<Event['toggle']>) => void;
+    'on:button-toggled'?: (e: CustomEvent<Event['toggled']>) => void;
     'on:button-longPress'?: (e: CustomEvent<Event['longPress']>) => void;
 }
 
@@ -65,7 +65,6 @@ export default function button(node: HTMLElement, props?: Partial<InteractiveCon
         if (currentIsDown === false)
         {
             insertClass(node, cssClasses.down);
-            // node.classList.add(cssClasses.down);
             node.dispatchEvent(new CustomEvent('button-down'));
         }
 
@@ -97,7 +96,7 @@ export default function button(node: HTMLElement, props?: Partial<InteractiveCon
             if (state.isToggle && oldValue !== state.isToggled)
             {
                 setClass(node, cssClasses.toggled, state.isToggled);
-                node.dispatchEvent(new CustomEvent('button-toggle', { detail: { isToggled: state.isToggled } }));
+                node.dispatchEvent(new CustomEvent('button-toggled', { detail: state.isToggled }));
             }
         } else
         {
@@ -141,7 +140,6 @@ export default function button(node: HTMLElement, props?: Partial<InteractiveCon
     if (state.isToggle && state.isToggled)
     {
         insertClass(node, cssClasses.toggled);
-        // node.classList.add('toggled');
     }
 
     return {

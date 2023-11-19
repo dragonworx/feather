@@ -32,7 +32,7 @@
 		}}>Click@ {store.foo}</Button
 	>
 
-	<Checkbox />
+	<Checkbox isChecked={true} />
 
 	<Accordion title="Console">
 		<Console {height} bind:log />

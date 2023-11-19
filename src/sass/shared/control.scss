@@ -19,19 +19,11 @@
 
 	&.toggled {
 		
-		background: #555;
+		background: #888;
 	}
 
 	&.down.toggled {
 		background: #333;
-	}
-
-	&.down,
-	&.toggled {
-		* {
-			left: 1px !important;
-			top: 1px !important;
-		}
 	}
 
 	&.disabled {
