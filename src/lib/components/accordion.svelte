@@ -7,6 +7,7 @@
 	export let isOpen: boolean = true;
 	export let storageKey: string | undefined = undefined;
 
+	let fieldset: HTMLElement;
 	let content: HTMLElement;
 	let openHeight = Infinity;
 
@@ -15,7 +16,7 @@
 
 		if (storageKey) {
 			isOpen = readLocalStorageKey(storageKey) !== '0';
-			content.classList.add('no-transition');
+			fieldset.classList.add('no-transition');
 			animate();
 		}
 	});
@@ -35,16 +36,14 @@
 			// close
 			openHeight = content.offsetHeight;
 			content.style.height = `${openHeight}px`;
-			// console.log('close', openHeight);
 			nextTick().then(() => {
 				content.style.height = '0px';
 			});
 		} else {
 			// open
-			if (content.classList.contains('no-transition')) {
-				content.classList.remove('no-transition');
+			if (fieldset.classList.contains('no-transition')) {
+				fieldset.classList.remove('no-transition');
 			}
-			// console.log('open', openHeight);
 			content.style.height = `${openHeight}px`;
 		}
 	}
@@ -56,11 +55,11 @@
 	}
 </script>
 
-<fieldset class="accordion" class:closed={!isOpen}>
+<fieldset bind:this={fieldset} class="accordion" class:closed={!isOpen}>
 	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<legend on:click={toggle} class:closed={!isOpen} class:hidden={!!!title}>{title}</legend>
-	<section class="content" on:transitionend={onTransitionEnd} bind:this={content}>
+	<section bind:this={content} class="content" on:transitionend={onTransitionEnd}>
 		<slot />
 	</section>
 </fieldset>

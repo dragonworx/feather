@@ -5,6 +5,12 @@
 
     width: calc(100% - 3px);
 
+    &.no-transition {
+        legend, .content {
+            transition: none;
+        }
+    }
+
     legend {
         position: relative;
         top: 2px;
@@ -17,7 +23,7 @@
         font-size: 11px;
         user-select: none;
         cursor: pointer;
-        transition: background 250ms ease-in-out, top 250ms ease-in-out;;
+        transition: background 250ms ease-in-out, top 250ms ease-in-out;
 
         &.hidden {
             display: none;
@@ -36,9 +42,5 @@
         overflow: hidden;
         display: block;
         transition: height 250ms ease-in-out;
-
-        &.no-transition {
-            transition: none;
-        }
     }
 }
