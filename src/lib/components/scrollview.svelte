@@ -8,6 +8,7 @@
 	export let height: number | undefined = undefined;
 
 	let contentElement: HTMLElement;
+	let viewportElement: HTMLElement;
 
 	export let contentWidth = 0;
 	export let contentHeight = 0;
@@ -29,14 +30,6 @@
 
 	const scrollSize = getCssVarAsNumber('--scroll-bar-size');
 
-	function onVerticalDrag(event: Event) {
-		const {
-			detail: { yOffset }
-		} = event as CustomEvent<DraggableEvent>;
-		const overflow = ch - vh + (isHorizontalEnabled ? scrollSize : 0);
-		contentElement.style.top = `${overflow * yOffset * -1}px`;
-	}
-
 	function onHorizontalDrag(event: Event) {
 		const {
 			detail: { xOffset }
@@ -45,18 +38,19 @@
 		contentElement.style.left = `${overflow * xOffset * -1}px`;
 	}
 
-	function onViewportChange(event: Event) {
+	function onVerticalDrag(event: Event) {
 		const {
-			detail: { width, height }
-		} = event as CustomEvent<{ width: number; height: number }>;
-		viewportWidth = width;
-		viewportHeight = height;
+			detail: { yOffset }
+		} = event as CustomEvent<DraggableEvent>;
+		const overflow = ch - vh;
+		contentElement.style.top = `${overflow * yOffset * -1}px`;
 	}
 
 	function onContentChange(event: Event) {
 		const {
 			detail: { width, height }
 		} = event as CustomEvent<{ width: number; height: number }>;
+
 		contentWidth = width;
 		contentHeight = height;
 		cw = width;
@@ -71,22 +65,45 @@
 		contentElement.style.top = `${overflowY * yOffset * -1}px`;
 	}
 
+	function onViewportChange(event: Event) {
+		const {
+			detail: { width, height }
+		} = event as CustomEvent<{ width: number; height: number }>;
+		viewportWidth = width;
+		viewportHeight = height;
+	}
+
 	function onMouseWheel(event: WheelEvent) {
 		const { deltaX, deltaY } = event;
-		const overflowY = ch - vh + (isHorizontalEnabled ? scrollSize : 0);
-		const overflowX = cw - vw + (isVerticalEnabled ? scrollSize : 0);
-		offsetY += deltaY;
-		offsetY = Math.max(0, Math.min(offsetY, overflowY));
-		offsetX += deltaX;
-		offsetX = Math.max(0, Math.min(offsetX, overflowX));
+		const overflowX = cw - vw;
+		const overflowY = ch - vh;
+		const viewportBounds = viewportElement.getBoundingClientRect();
+		const contentBounds = contentElement.getBoundingClientRect();
+		let xOffset = (viewportBounds.left - contentBounds.left) / overflowX + deltaX / cw;
+		let yOffset = (viewportBounds.top - contentBounds.top) / overflowY + deltaY / ch;
+		xOffset = Math.max(0, Math.min(1, xOffset));
+		yOffset = Math.max(0, Math.min(1, yOffset));
 
-		contentElement.style.top = `${offsetY * -1}px`;
-		contentElement.style.left = `${offsetX * -1}px`;
+		onHorizontalDrag({
+			detail: {
+				xOffset
+			}
+		} as unknown as Event);
+
+		onVerticalDrag({
+			detail: {
+				yOffset
+			}
+		} as unknown as Event);
+
+		ox = xOffset * overflowX;
+		oy = yOffset * overflowY;
 	}
 </script>
 
 <scrollview
 	use:observe
+	bind:this={viewportElement}
 	class="scrollview"
 	style:width={`${width}px`}
 	style:height={`${height}px`}

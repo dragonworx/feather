@@ -1,2 +1,3 @@
 :root {
-  --scroll-bar-size: 10px; }
+  --scroll-bar-size: 10px;
+  --scroll-view-transition: 100ms ease-out; }
