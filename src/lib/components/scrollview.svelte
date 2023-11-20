@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { DraggableEvent } from '../actions/drag';
 	import observe from '../actions/observe';
-	import { getCssVarAsNumber } from '../util';
+	import { getCssVarAsNumber, isTrackPadWheelEvent } from '../util';
 	import Scrollbar from './scrollbar.svelte';
 
 	export let width: number | undefined = undefined;
@@ -60,7 +60,6 @@
 	}
 
 	function onContentChange(event: Event) {
-		console.log('onContentChange');
 		const {
 			detail: { width, height }
 		} = event as CustomEvent<{ width: number; height: number }>;
@@ -114,6 +113,14 @@
 				}
 			} as unknown as Event);
 			oy = yOffset * overflowY;
+		}
+
+		if (isTrackPadWheelEvent(event)) {
+			isDragging = true;
+		}
+
+		if ((isDragging && deltaX > 1) || deltaY > 1) {
+			setTimeout(() => (isDragging = false), 100);
 		}
 	}
 

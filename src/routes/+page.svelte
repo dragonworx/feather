@@ -37,7 +37,7 @@
 	<Checkbox isChecked={false} />
 
 	<Accordion title="Console">
-		<ScrollView height={50}>
+		<ScrollView height={50} offsetY={50}>
 			<Console bind:log />
 		</ScrollView>
 	</Accordion>

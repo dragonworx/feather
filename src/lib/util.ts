@@ -157,3 +157,15 @@ export function getCssVarAsNumber(name: string): number
 {
     return parseFloat(getCssVar(name));
 }
+
+export function isTrackPadWheelEvent(event: WheelEvent)
+{
+    if ('wheelDeltaY' in event)
+    {
+        if ((event as { wheelDeltaY: number }).wheelDeltaY % 3 === 0) return true;
+    } else if (event.deltaY)
+    {
+        if (event.deltaY % 3 === 0) return true;
+    }
+    return false;
+}
