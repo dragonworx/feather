@@ -5,9 +5,13 @@
     display: inline-block;
     width: 100%;
     height: 100%;
+    border: 1px solid #333;
+
+    &.clip {
+        overflow: hidden;
+    }
 
     content {
-        line-height: 0;
         position: relative;
         display: inline-block;
         transition: top var(--scroll-view-transition), left var(--scroll-view-transition), width var(--scroll-view-transition), height var(--scroll-view-transition);

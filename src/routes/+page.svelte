@@ -18,7 +18,7 @@
 	let height = 50;
 
 	let w = 350;
-	let h = 1150;
+	let h = 150;
 	let autoScroll = false;
 
 	let log: LogFunction;
@@ -37,20 +37,22 @@
 	<Checkbox isChecked={false} />
 
 	<Accordion title="Console">
-		<Console {height} bind:log />
+		<ScrollView height={50}>
+			<Console bind:log />
+		</ScrollView>
 	</Accordion>
 
-	<Accordion title="Console">
+	<!-- <Accordion title="Console">
 		<Console {height} bind:log />
 	</Accordion>
 
 	<Accordion title="Console" storageKey="test">
 		<Console {height} bind:log />
-	</Accordion>
+	</Accordion> -->
 
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div class="wrapper" on:click={(e) => e.shiftKey && (autoScroll = !autoScroll)}>
-		<ScrollView offsetX={0} offsetY={0} {autoScroll}>
+		<ScrollView offsetX={0} offsetY={0} {autoScroll} clip={false}>
 			<Debug width={w} height={h} />
 		</ScrollView>
 	</div>

@@ -9,6 +9,7 @@
 	export let autoScroll = false;
 	export let autoScrollThreshold = 20;
 	export let autoScrollAmount = 0.05;
+	export let clip = true;
 
 	let contentElement: HTMLElement;
 	let viewportElement: HTMLElement;
@@ -59,6 +60,7 @@
 	}
 
 	function onContentChange(event: Event) {
+		console.log('onContentChange');
 		const {
 			detail: { width, height }
 		} = event as CustomEvent<{ width: number; height: number }>;
@@ -214,6 +216,7 @@
 	use:observe
 	bind:this={viewportElement}
 	class="scrollview"
+	class:clip
 	style:width={`${width}px`}
 	style:height={`${height}px`}
 	on:observe-change={onViewportChange}

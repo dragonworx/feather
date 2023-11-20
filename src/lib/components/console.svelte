@@ -4,11 +4,11 @@
 
 <script lang="ts">
 	import style from '$lib/actions/style';
-	export let height = 100;
+	export let height: string | number = 'auto';
 
 	let logs: string[] = [];
 
-	$: css = `height: ${height}px`;
+	$: css = `height: ${height === 'auto' ? 'auto' : height + 'px'}`;
 
 	export const log: LogFunction = (...args: any[]) => {
 		const line = args.map((arg) => arg.toString()).join(' ');

@@ -35,7 +35,7 @@
 		if (!isOpen) {
 			// close
 			openHeight = content.offsetHeight;
-			content.style.height = `${openHeight}px`;
+			content.style.height = openHeight === 0 ? 'auto' : `${openHeight}px`;
 			nextTick().then(() => {
 				content.style.height = '0px';
 			});
@@ -44,7 +44,11 @@
 			if (fieldset.classList.contains('no-transition')) {
 				fieldset.classList.remove('no-transition');
 			}
-			content.style.height = `${openHeight}px`;
+			if (openHeight === 0) {
+				content.style.height = 'auto';
+			} else {
+				content.style.height = `${openHeight}px`;
+			}
 		}
 	}
 
