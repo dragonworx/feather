@@ -18,16 +18,15 @@
 	}
 
 	&.down {
-		background: #444;
+		background: #666;
 	}
 
 	&.toggled {
-		
 		background: #888;
 	}
 
 	&.down.toggled {
-		background: #333;
+		background: #555;
 	}
 
 	&.disabled {

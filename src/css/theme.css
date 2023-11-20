@@ -26,11 +26,11 @@
   .control:hover {
     background: #777; }
   .control.down {
-    background: #444; }
+    background: #666; }
   .control.toggled {
     background: #888; }
   .control.down.toggled {
-    background: #333; }
+    background: #555; }
   .control.disabled {
     opacity: 0.35;
     color: #ccc;
@@ -64,8 +64,6 @@
       left: 0;
       opacity: 0;
       transition: opacity 250ms ease-in-out; }
-    .control.checkbox.down {
-      opacity: 0.5; }
 
 .console {
   background: #191919;
