@@ -23,6 +23,8 @@
   transition: opacity 150ms ease-in-out, background 150ms ease-in-out, outline 100ms linear; }
   .control:focus {
     outline: 1px solid rgba(0, 255, 255, 0.3); }
+  .control:hover {
+    background: #777; }
   .control.down {
     background: #444; }
   .control.toggled {

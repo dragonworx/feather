@@ -6,6 +6,9 @@
 
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
+	export let autoScroll = false;
+	export let autoScrollThreshold = 20;
+	export let autoScrollAmount = 0.05;
 
 	let contentElement: HTMLElement;
 	let viewportElement: HTMLElement;
@@ -111,6 +114,99 @@
 			oy = yOffset * overflowY;
 		}
 	}
+
+	let timeout = 0;
+
+	function onMouseMove(event: MouseEvent) {
+		if (!autoScroll) {
+			return;
+		}
+
+		// clear previous timeout
+		clearTimeout(timeout);
+
+		// adjust bounds for scrollbars
+		const viewportBounds = viewportElement.getBoundingClientRect();
+		viewportBounds.width = isVerticalEnabled
+			? viewportBounds.width - scrollSize
+			: viewportBounds.width;
+		viewportBounds.height = isHorizontalEnabled
+			? viewportBounds.height - scrollSize
+			: viewportBounds.height;
+
+		const { clientX, clientY } = event;
+
+		if (
+			clientX < viewportBounds.left ||
+			clientX > viewportBounds.right ||
+			clientY < viewportBounds.top ||
+			clientY > viewportBounds.bottom
+		) {
+			return;
+		}
+
+		// determine scroll behavior from mouse position
+		const localX = clientX - viewportBounds.left;
+		const localY = clientY - viewportBounds.top;
+		const autoScrollBounds = new DOMRectReadOnly(
+			autoScrollThreshold,
+			autoScrollThreshold,
+			viewportBounds.width - autoScrollThreshold * 2,
+			viewportBounds.height - autoScrollThreshold * 2
+		);
+		const isAutoScrollingUp = localY < autoScrollBounds.top;
+		const isAutoScrollingDown = localY > autoScrollBounds.bottom;
+		const isAutoScrollingLeft = localX < autoScrollBounds.left;
+		const isAutoScrollingRight = localX > autoScrollBounds.right;
+
+		// handle up
+		if (isAutoScrollingUp) {
+			const scrollStrength = (autoScrollBounds.top - localY) / autoScrollThreshold;
+			const scrollDistance = contentHeight * autoScrollAmount * scrollStrength * -1;
+			onMouseWheel({
+				deltaX: 0,
+				deltaY: scrollDistance
+			} as WheelEvent);
+		}
+
+		// handle down
+		if (isAutoScrollingDown) {
+			const scrollStrength = (localY - autoScrollBounds.bottom) / autoScrollThreshold;
+			const scrollDistance = contentHeight * autoScrollAmount * scrollStrength;
+			onMouseWheel({
+				deltaX: 0,
+				deltaY: scrollDistance
+			} as WheelEvent);
+		}
+
+		// handle left
+		if (isAutoScrollingLeft) {
+			const scrollStrength = (autoScrollBounds.left - localX) / autoScrollThreshold;
+			const scrollDistance = contentWidth * autoScrollAmount * scrollStrength * -1;
+			onMouseWheel({
+				deltaX: scrollDistance,
+				deltaY: 0
+			} as WheelEvent);
+		}
+
+		// handle right
+		if (isAutoScrollingRight) {
+			const scrollStrength = (localX - autoScrollBounds.right) / autoScrollThreshold;
+			const scrollDistance = contentWidth * autoScrollAmount * scrollStrength;
+			onMouseWheel({
+				deltaX: scrollDistance,
+				deltaY: 0
+			} as WheelEvent);
+		}
+
+		// continue auto scrolling
+		timeout = setTimeout(() => {
+			onMouseMove({
+				clientX,
+				clientY
+			} as MouseEvent);
+		}, 100) as unknown as number;
+	}
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -122,6 +218,7 @@
 	style:height={`${height}px`}
 	on:observe-change={onViewportChange}
 	on:mousewheel={onMouseWheel}
+	on:mousemove={onMouseMove}
 >
 	<content
 		use:observe

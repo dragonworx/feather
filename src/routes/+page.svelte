@@ -17,12 +17,14 @@
 
 	let height = 50;
 
-	let w = 150;
-	let h = 150;
+	let w = 350;
+	let h = 1150;
+	let autoScroll = false;
 
 	let log: LogFunction;
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <App>
 	<Button
 		on:click={() => {
@@ -32,7 +34,7 @@
 		}}>Click@ {store.foo}</Button
 	>
 
-	<Checkbox isChecked={true} />
+	<Checkbox isChecked={false} />
 
 	<Accordion title="Console">
 		<Console {height} bind:log />
@@ -46,8 +48,9 @@
 		<Console {height} bind:log />
 	</Accordion>
 
-	<div class="wrapper">
-		<ScrollView offsetX={0} offsetY={0}>
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
+	<div class="wrapper" on:click={(e) => e.shiftKey && (autoScroll = !autoScroll)}>
+		<ScrollView offsetX={0} offsetY={0} {autoScroll}>
 			<Debug width={w} height={h} />
 		</ScrollView>
 	</div>
