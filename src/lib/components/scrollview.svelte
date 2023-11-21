@@ -9,7 +9,7 @@
 	export let autoScroll = false;
 	export let autoScrollThreshold = 20;
 	export let autoScrollAmount = 0.05;
-	export let autoScrollToBottom = false;
+	export let autoScrollTo: 'left' | 'right' | 'top' | 'bottom' | undefined = undefined;
 	export let clip = true;
 
 	let contentElement: HTMLElement;
@@ -61,8 +61,14 @@
 		contentWidth = width;
 		contentHeight = height;
 
-		if (autoScrollToBottom) {
+		if (autoScrollTo === 'bottom') {
 			offsetY = contentHeight - viewportHeight;
+		} else if (autoScrollTo === 'right') {
+			offsetX = contentWidth - viewportWidth;
+		} else if (autoScrollTo === 'top') {
+			offsetY = 0;
+		} else if (autoScrollTo === 'left') {
+			offsetX = 0;
 		}
 	}
 
