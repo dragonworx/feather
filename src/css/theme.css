@@ -2,11 +2,11 @@
 /* Checkbox */
 :root {
   --scroll-bar-size: 10px;
-  --scroll-view-transition: 100ms ease-out; }
+  --scroll-view-transition: 150ms ease-out; }
 
 :root {
   --scroll-bar-size: 10px;
-  --scroll-view-transition: 100ms ease-out; }
+  --scroll-view-transition: 150ms ease-out; }
 
 * {
   box-sizing: border-box; }

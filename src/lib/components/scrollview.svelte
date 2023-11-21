@@ -9,6 +9,7 @@
 	export let autoScroll = false;
 	export let autoScrollThreshold = 20;
 	export let autoScrollAmount = 0.05;
+	export let autoScrollToBottom = false;
 	export let clip = true;
 
 	let contentElement: HTMLElement;
@@ -59,6 +60,10 @@
 
 		contentWidth = width;
 		contentHeight = height;
+
+		if (autoScrollToBottom) {
+			offsetY = contentHeight - viewportHeight;
+		}
 	}
 
 	function onViewportChange(event: Event) {
