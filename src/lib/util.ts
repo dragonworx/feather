@@ -128,51 +128,6 @@ export function nextTick()
     return new Promise(resolve => requestAnimationFrame(resolve));
 }
 
-export function debugSvg(width: number, height: number, stroke: string = 'white', fill: string = 'red'): string
-{
-    // Create the opening tag for the SVG element with the specified width and height
-    let svgContent = `<svg width="${width}px" height="${height}px" xmlns="http://www.w3.org/2000/svg">`;
-
-    // Add a rectangle to the SVG
-    svgContent += `<rect x="0" y="0" width="${width}" height="${height}" fill="${fill}" stroke="${stroke}"/>`;
-
-    // Add the first diagonal line (top-left to bottom-right)
-    svgContent += `<line x1="0" y1="0" x2="${width}" y2="${height}" stroke="${stroke}"/>`;
-
-    // Add the second diagonal line (bottom-left to top-right)
-    svgContent += `<line x1="0" y1="${height}" x2="${width}" y2="0" stroke="${stroke}"/>`;
-
-    // Close the SVG tag
-    svgContent += `</svg>`;
-
-    return svgContent;
-}
-
-export function debugCanvas(width: number, height: number, stroke: string = 'white', fill: string = 'red')
-{
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-
-    const ctx = canvas.getContext('2d')!;
-
-    ctx.fillStyle = fill;
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.strokeStyle = stroke;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(width, height);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, height);
-    ctx.lineTo(width, 0);
-    ctx.stroke();
-
-    return canvas;
-}
-
 export function getCssVar(name: string): string
 {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

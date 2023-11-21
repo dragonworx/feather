@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { drag } from '../actions/drag';
+	import { drag, type DraggableEvent } from '../actions/drag';
 
 	export let direction: 'horizontal' | 'vertical' = 'vertical';
 	export let contentSize: number = 0;
@@ -71,6 +71,18 @@
 			update();
 		}
 	}
+
+	function onDragMove(e: CustomEvent<DraggableEvent>) {
+		if (direction === 'horizontal') {
+			const { xOffset } = e.detail;
+			const overflow = contentSize - viewportSize;
+			offset = overflow * xOffset;
+		} else {
+			const { yOffset } = e.detail;
+			const overflow = contentSize - viewportSize;
+			offset = overflow * yOffset;
+		}
+	}
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -90,6 +102,7 @@
 		}}
 		class="thumb"
 		on:mousedown={(e) => e.stopImmediatePropagation()}
+		on:drag-move={onDragMove}
 		on:drag-start
 		on:drag-move
 		on:drag-end

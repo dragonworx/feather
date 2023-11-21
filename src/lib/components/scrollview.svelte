@@ -14,8 +14,6 @@
 	let contentElement: HTMLElement;
 	let viewportElement: HTMLElement;
 	let isDragging = false;
-	let hasContentSize = false;
-	let hasViewportSize = false;
 
 	export let contentWidth = 0;
 	export let contentHeight = 0;
@@ -28,26 +26,26 @@
 	$: isVerticalEnabled = isValid && contentHeight > viewportHeight;
 	$: isHorizontalEnabled = isValid && contentWidth > viewportWidth;
 
+	$: contentWidth, contentHeight, viewportWidth, viewportHeight, offsetX, offsetY, update();
+
 	const scrollSize = getCssVarAsNumber('--scroll-bar-size');
+
+	function update() {
+		if (!isValid) {
+			return;
+		}
+
+		const overflowX = contentWidth - viewportHeight + (isVerticalEnabled ? scrollSize : 0);
+		const overflowY = contentHeight - viewportHeight;
+		const xOffset = Math.max(0, Math.min(1, offsetX / overflowX));
+		const yOffset = Math.max(0, Math.min(1, offsetY / overflowY));
+
+		contentElement.style.left = `${overflowX * xOffset * -1}px`;
+		contentElement.style.top = `${overflowY * yOffset * -1}px`;
+	}
 
 	function onDragStart() {
 		isDragging = true;
-	}
-
-	function onHorizontalDrag(event: Event) {
-		const {
-			detail: { xOffset }
-		} = event as CustomEvent<DraggableEvent>;
-		const overflow = contentWidth - viewportHeight + (isVerticalEnabled ? scrollSize : 0);
-		contentElement.style.left = `${overflow * xOffset * -1}px`;
-	}
-
-	function onVerticalDrag(event: Event) {
-		const {
-			detail: { yOffset }
-		} = event as CustomEvent<DraggableEvent>;
-		const overflow = contentHeight - viewportHeight;
-		contentElement.style.top = `${overflow * yOffset * -1}px`;
 	}
 
 	function onDragEnd() {
@@ -59,29 +57,15 @@
 			detail: { width, height }
 		} = event as CustomEvent<{ width: number; height: number }>;
 
-		let xOffset = offsetX / contentWidth;
-		let yOffset = offsetY / contentHeight;
-
 		contentWidth = width;
 		contentHeight = height;
-
-		if (!isValid) {
-			xOffset = offsetX / width;
-		}
-		const overflow = width - viewportHeight + (isVerticalEnabled ? scrollSize : 0);
-		contentElement.style.left = `${overflow * xOffset * -1}px`;
-
-		if (!isValid) {
-			yOffset = offsetY / height;
-		}
-		const overflowY = height - viewportHeight;
-		contentElement.style.top = `${overflowY * yOffset * -1}px`;
 	}
 
 	function onViewportChange(event: Event) {
 		const {
 			detail: { width, height }
 		} = event as CustomEvent<{ width: number; height: number }>;
+
 		viewportWidth = width;
 		viewportHeight = height;
 	}
@@ -92,26 +76,18 @@
 		const overflowY = contentHeight - viewportHeight;
 		const viewportBounds = viewportElement.getBoundingClientRect();
 		const contentBounds = contentElement.getBoundingClientRect();
+
 		let xOffset = (viewportBounds.left - contentBounds.left) / overflowX + deltaX / contentWidth;
 		let yOffset = (viewportBounds.top - contentBounds.top) / overflowY + deltaY / contentHeight;
+
 		xOffset = Math.max(0, Math.min(1, xOffset));
 		yOffset = Math.max(0, Math.min(1, yOffset));
 
-		if (deltaX !== 0) {
-			onHorizontalDrag({
-				detail: {
-					xOffset
-				}
-			} as unknown as Event);
+		if (deltaX !== 0 && isHorizontalEnabled) {
 			offsetX = xOffset * overflowX;
 		}
 
-		if (deltaY !== 0) {
-			onVerticalDrag({
-				detail: {
-					yOffset
-				}
-			} as unknown as Event);
+		if (deltaY !== 0 && isVerticalEnabled) {
 			offsetY = yOffset * overflowY;
 		}
 
@@ -248,7 +224,6 @@
 				direction="vertical"
 				isPair={isHorizontalEnabled}
 				on:drag-start={onDragStart}
-				on:drag-move={onVerticalDrag}
 				on:drag-end={onDragEnd}
 			/>
 		{/if}
@@ -261,7 +236,6 @@
 				direction="horizontal"
 				isPair={isVerticalEnabled}
 				on:drag-start={onDragStart}
-				on:drag-move={onHorizontalDrag}
 				on:drag-end={onDragEnd}
 			/>
 		{/if}
