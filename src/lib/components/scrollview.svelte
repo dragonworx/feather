@@ -14,6 +14,8 @@
 	let contentElement: HTMLElement;
 	let viewportElement: HTMLElement;
 	let isDragging = false;
+	let hasContentSize = false;
+	let hasViewportSize = false;
 
 	export let contentWidth = 0;
 	export let contentHeight = 0;
@@ -22,16 +24,9 @@
 	export let offsetX = 0;
 	export let offsetY = 0;
 
-	$: cw = contentWidth;
-	$: ch = contentHeight;
-	$: vw = viewportWidth;
-	$: vh = viewportHeight;
-	$: ox = offsetX;
-	$: oy = offsetY;
-
-	$: isValid = cw > 0 && ch > 0 && vw > 0 && vh > 0;
-	$: isVerticalEnabled = isValid && ch > vh;
-	$: isHorizontalEnabled = isValid && cw > vw;
+	$: isValid = contentWidth > 0 && contentHeight > 0 && viewportWidth > 0 && viewportHeight > 0;
+	$: isVerticalEnabled = isValid && contentHeight > viewportHeight;
+	$: isHorizontalEnabled = isValid && contentWidth > viewportWidth;
 
 	const scrollSize = getCssVarAsNumber('--scroll-bar-size');
 
@@ -43,7 +38,7 @@
 		const {
 			detail: { xOffset }
 		} = event as CustomEvent<DraggableEvent>;
-		const overflow = cw - vh + (isVerticalEnabled ? scrollSize : 0);
+		const overflow = contentWidth - viewportHeight + (isVerticalEnabled ? scrollSize : 0);
 		contentElement.style.left = `${overflow * xOffset * -1}px`;
 	}
 
@@ -51,7 +46,7 @@
 		const {
 			detail: { yOffset }
 		} = event as CustomEvent<DraggableEvent>;
-		const overflow = ch - vh;
+		const overflow = contentHeight - viewportHeight;
 		contentElement.style.top = `${overflow * yOffset * -1}px`;
 	}
 
@@ -64,17 +59,22 @@
 			detail: { width, height }
 		} = event as CustomEvent<{ width: number; height: number }>;
 
+		let xOffset = offsetX / contentWidth;
+		let yOffset = offsetY / contentHeight;
+
 		contentWidth = width;
 		contentHeight = height;
-		cw = width;
-		ch = height;
 
-		const xOffset = ox / width;
-		const overflow = width - vh + (isVerticalEnabled ? scrollSize : 0);
+		if (!isValid) {
+			xOffset = offsetX / width;
+		}
+		const overflow = width - viewportHeight + (isVerticalEnabled ? scrollSize : 0);
 		contentElement.style.left = `${overflow * xOffset * -1}px`;
 
-		const yOffset = oy / height;
-		const overflowY = height - vh + (isHorizontalEnabled ? scrollSize : 0);
+		if (!isValid) {
+			yOffset = offsetY / height;
+		}
+		const overflowY = height - viewportHeight;
 		contentElement.style.top = `${overflowY * yOffset * -1}px`;
 	}
 
@@ -88,12 +88,12 @@
 
 	function onMouseWheel(event: WheelEvent) {
 		const { deltaX, deltaY } = event;
-		const overflowX = cw - vw;
-		const overflowY = ch - vh;
+		const overflowX = contentWidth - viewportWidth;
+		const overflowY = contentHeight - viewportHeight;
 		const viewportBounds = viewportElement.getBoundingClientRect();
 		const contentBounds = contentElement.getBoundingClientRect();
-		let xOffset = (viewportBounds.left - contentBounds.left) / overflowX + deltaX / cw;
-		let yOffset = (viewportBounds.top - contentBounds.top) / overflowY + deltaY / ch;
+		let xOffset = (viewportBounds.left - contentBounds.left) / overflowX + deltaX / contentWidth;
+		let yOffset = (viewportBounds.top - contentBounds.top) / overflowY + deltaY / contentHeight;
 		xOffset = Math.max(0, Math.min(1, xOffset));
 		yOffset = Math.max(0, Math.min(1, yOffset));
 
@@ -103,7 +103,7 @@
 					xOffset
 				}
 			} as unknown as Event);
-			ox = xOffset * overflowX;
+			offsetX = xOffset * overflowX;
 		}
 
 		if (deltaY !== 0) {
@@ -112,7 +112,7 @@
 					yOffset
 				}
 			} as unknown as Event);
-			oy = yOffset * overflowY;
+			offsetY = yOffset * overflowY;
 		}
 
 		if (isTrackPadWheelEvent(event)) {
@@ -242,10 +242,10 @@
 	{#if isValid}
 		{#if isVerticalEnabled}
 			<Scrollbar
+				bind:contentSize={contentHeight}
+				bind:viewportSize={viewportHeight}
+				bind:offset={offsetY}
 				direction="vertical"
-				contentSize={ch}
-				viewportSize={vh}
-				offset={oy}
 				isPair={isHorizontalEnabled}
 				on:drag-start={onDragStart}
 				on:drag-move={onVerticalDrag}
@@ -255,10 +255,10 @@
 
 		{#if isHorizontalEnabled}
 			<Scrollbar
+				bind:contentSize={contentWidth}
+				bind:viewportSize={viewportWidth}
+				bind:offset={offsetX}
 				direction="horizontal"
-				contentSize={cw}
-				viewportSize={vw}
-				offset={ox}
 				isPair={isVerticalEnabled}
 				on:drag-start={onDragStart}
 				on:drag-move={onHorizontalDrag}

@@ -148,6 +148,31 @@ export function debugSvg(width: number, height: number, stroke: string = 'white'
     return svgContent;
 }
 
+export function debugCanvas(width: number, height: number, stroke: string = 'white', fill: string = 'red')
+{
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = stroke;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(width, height);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, height);
+    ctx.lineTo(width, 0);
+    ctx.stroke();
+
+    return canvas;
+}
+
 export function getCssVar(name: string): string
 {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

@@ -10,6 +10,7 @@
 	import Console, { type LogFunction } from '../lib/components/console.svelte';
 
 	import { deepStore } from '../lib/deepStore';
+	import { onMount } from 'svelte';
 
 	const store = deepStore({
 		foo: 'bar' as string | number
@@ -20,8 +21,16 @@
 	let w = 350;
 	let h = 150;
 	let autoScroll = false;
+	let offsetY = 0;
 
 	let log: LogFunction;
+
+	onMount(() => {
+		for (let i = 0; i < 7; i++) {
+			log(`log ${i}`);
+		}
+		offsetY = 50;
+	});
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -37,7 +46,7 @@
 	<Checkbox isChecked={false} />
 
 	<Accordion title="Console">
-		<ScrollView height={50} offsetY={50}>
+		<ScrollView height={50} {offsetY}>
 			<Console bind:log />
 		</ScrollView>
 	</Accordion>
@@ -52,7 +61,7 @@
 
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div class="wrapper" on:click={(e) => e.shiftKey && (autoScroll = !autoScroll)}>
-		<ScrollView offsetX={0} offsetY={0} {autoScroll} clip={false}>
+		<ScrollView offsetX={0} offsetY={25} {autoScroll} clip={false}>
 			<Debug width={w} height={h} />
 		</ScrollView>
 	</div>
@@ -60,6 +69,7 @@
 
 <style>
 	.wrapper {
+		top: 100px;
 		height: 100px;
 		width: 100px;
 		background: #eee;
