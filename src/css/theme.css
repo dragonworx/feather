@@ -175,8 +175,11 @@
   .list li {
     width: 100%;
     border-bottom: 1px solid #666; }
-  .list .drag-target {
+  .list .drag-source {
     background: blue;
     position: fixed;
     top: 0;
-    left: 0; }
+    left: 0;
+    pointer-events: none; }
+  .list .drag-target {
+    transition: padding-top 0.2s ease-in-out; }

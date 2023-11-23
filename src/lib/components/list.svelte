@@ -5,6 +5,7 @@
     export let component = SimpleListItem;
     export let list: any[];
 
+    let dragSource: HTMLElement;
     let dragTarget: HTMLElement;
     let dragOriginX = 0;
     let dragOriginY = 0;
@@ -12,19 +13,31 @@
     function onDragStart(e: CustomEvent<DraggableEvent>) {
         const {sourceEvent} = e.detail;
         const {target, clientX, clientY} = sourceEvent;
-        dragTarget = target as HTMLElement;
-        // determine offset from mouse to target
-        const bounds = dragTarget.getBoundingClientRect();
+        dragSource = target as HTMLElement;
+        dragTarget = dragSource;
+        
+        const bounds = dragSource.getBoundingClientRect();
         dragOriginX = clientX - bounds.left;
         dragOriginY = clientY - bounds.top;
-        console.log('drag start', dragTarget.textContent, dragOriginX, dragOriginY);
-        dragTarget.classList.add('drag-target');
+        console.log('drag start', dragSource.textContent, dragOriginX, dragOriginY);
+        dragSource.classList.add('drag-source');
     }
 
     function onDragMove(e: CustomEvent<DraggableEvent>) {
-        if (dragTarget) {
-            const {clientY} = e.detail.sourceEvent;
-            dragTarget.style.transform = `translate(0px, ${clientY - dragOriginY}px)`;
+        if (dragSource) {
+            const { clientY, target } = e.detail.sourceEvent;
+
+            dragSource.style.transform = `translate(0px, ${clientY - dragOriginY}px)`;
+
+            if (dragSource === dragTarget || dragTarget !== target) {
+                if (dragSource !== dragTarget) {
+                    dragTarget.classList.remove('drag-target');
+                    dragTarget.removeAttribute('style');
+                }
+                dragTarget = target as HTMLElement;
+                dragTarget.classList.add('drag-target');
+                dragTarget.style.paddingTop = `${dragSource.clientHeight}px`;
+            }
         }
     }
 </script>

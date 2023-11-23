@@ -13,10 +13,15 @@
         border-bottom: 1px solid #666;
     }
 
-    .drag-target {
+    .drag-source {
         background: blue;
         position: fixed;
         top: 0;
         left: 0;
+        pointer-events: none;
+    }
+
+    .drag-target {
+        transition: padding-top 0.2s ease-in-out;
     }
 }
