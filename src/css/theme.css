@@ -8,6 +8,10 @@
   --scroll-bar-size: 10px;
   --scroll-view-transition: 150ms ease-out; }
 
+:root {
+  --scroll-bar-size: 10px;
+  --scroll-view-transition: 150ms ease-out; }
+
 * {
   box-sizing: border-box; }
 
@@ -160,3 +164,19 @@
     transition: top var(--scroll-view-transition), left var(--scroll-view-transition), width var(--scroll-view-transition), height var(--scroll-view-transition); }
   .scrollview content.no-transition {
     transition: none; }
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  background: #333;
+  user-select: none; }
+  .list li {
+    width: 100%;
+    border-bottom: 1px solid #666; }
+  .list .drag-target {
+    background: blue;
+    position: fixed;
+    top: 0;
+    left: 0; }

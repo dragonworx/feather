@@ -6,6 +6,7 @@
 	import Checkbox from '../lib/components/checkbox.svelte';
 	import Accordion from '../lib/components/accordion.svelte';
 	import ScrollView from '../lib/components/scrollview.svelte';
+	import List from '../lib/components/list.svelte';
 	import Debug from '../lib/components/debug.svelte';
 	import Console, { type LogFunction } from '../lib/components/console.svelte';
 
@@ -35,6 +36,8 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <App>
+	<List list={['a', 'b', 'c', 'd', 'e']} />
+
 	<Button
 		on:click={() => {
 			store.foo = 12;
@@ -46,7 +49,7 @@
 	<Checkbox isChecked={false} />
 
 	<Accordion title="Console">
-		<ScrollView height={50} {offsetY} autoScrollTo={'bottom'}>
+		<ScrollView height={100} {offsetY} autoScrollTo={'bottom'}>
 			<Console bind:log />
 		</ScrollView>
 	</Accordion>
@@ -65,6 +68,8 @@
 			<Debug width={w} height={h} />
 		</ScrollView>
 	</div>
+
+	
 </App>
 
 <style>
